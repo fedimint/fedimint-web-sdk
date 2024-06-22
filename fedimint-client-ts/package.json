@@ -1,0 +1,16 @@
+{
+  "name": "fedimint-client-ts",
+  "version": "0.0.0",
+  "main": "dist/lib/es5/index.js",
+	"module": "dist/lib/es6/index.js",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "rm -rf dist/lib && tsc && tsc --build tsconfig.es5.json"
+  },
+  "dependencies": {
+    "fedimint-client-wasm": "file:./../fedimint-client-wasm"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}

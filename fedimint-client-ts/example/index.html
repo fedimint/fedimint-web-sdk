@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="module" src="/index.ts"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fedimint TS Demo</title>
+</head>
+
+<body>
+  <header>
+    <h1>Fedimint Typescript Library Demo</h1>
+    <h3>FYI: none of the frontend actually works yet</h3>
+  </header>
+  <main>
+    <!-- WALLET -->
+    <div class="section">
+      <h3>Fedimint Wallet</h3>
+      <div class="row">
+        <strong>Balance:</strong>
+        <!-- <sl-format-number value="0" id="balance"></sl-format-number> -->
+        0 sats
+      </div>
+
+      <form class="ecash-form" id="ecash">
+        <div class="row">
+          <label>redeem ecash: </label>
+          <input name="ecash" label="Redeem Ecash" class="ecash-input" required></input>
+          <button type="submit" variant="primary" class="redeem" id="ecash">redeem</button>
+        </div>
+      </form>
+
+    </div>
+    <div class="section">
+      <h3>Federation Invite</h3>
+      <!-- TODO: make copy button work -->
+      <button value="test" class="federation-invite">
+        copy federation invite
+      </button>
+    </div>
+
+  </main>
+</body>
+
+</html>
