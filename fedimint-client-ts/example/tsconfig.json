@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-		"module": "esnext",
-		"target": "ES6",
-		"outDir": "./dist",
-		"moduleResolution": "node",
-  },
-  "include": [".", "../vite.config.ts"]
-}

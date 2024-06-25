@@ -1,13 +1,19 @@
-import { FedimintWallet } from "fedimint-client-ts";
+import { FedimintWallet } from "../lib/index"; // "fedimint-client-ts";
+
+console.log("fedimint-client-ts", FedimintWallet);
 
 // local federation
 const inviteCode =
-  "fed11qgqpw9thwvaz7te3xgmjuvpwxqhrzw33xqcrzv30qqqjp8ea0nttppayr4x76qvkr6nxefs5vut8e5aurssrmmqgsc6zmmpznec58u";
+  "fed11qgqzutrhwden5te0vejkg6tdd9h8gepwvejkg6tdd9h8gtn0v35kuen9v3jhyct5d9hkutnc09az7qqpyp938g2xae96wv4jhzg55u4q5tjcw037jsk6948walv95hlyrunm5tyfcdy";
 
 let fed: FedimintWallet;
 FedimintWallet.initFedimint()
-  .then(() => FedimintWallet.joinFederation(inviteCode))
+  .then(() => {
+    console.log("init Fedimint worked!!!!");
+    return FedimintWallet.joinFederation(inviteCode);
+  })
   .then((res) => {
+    console.log("joined Federation!!!!", res);
     fed = res;
     // @ts-ignore
     window.fed = fed;
@@ -45,34 +51,4 @@ ecashForm();
 
 /** --- FORM --- */
 
-const setupForm = () => {
-  const form = document.querySelector(".input-form") as HTMLFormElement;
-  if (!form) return;
-
-  Promise.all([
-    customElements.whenDefined("sl-button"),
-    customElements.whenDefined("sl-checkbox"),
-    customElements.whenDefined("sl-input"),
-    customElements.whenDefined("sl-option"),
-    customElements.whenDefined("sl-select"),
-    customElements.whenDefined("sl-textarea"),
-  ]).then(() => {
-    const data = new FormData(form);
-    form.addEventListener("submit", (event) => {
-      console.log(event, data.entries().next());
-      event.preventDefault();
-      alert("All fields are valid!");
-    });
-  });
-};
-setupForm();
-
 /** --- QR --- */
-const loadQr = () => {
-  const qr = document.querySelector(".qr-code");
-  if (!qr) return;
-  qr.setAttribute("value", inviteCode);
-  const invite = document.querySelector(".federation-invite");
-  invite?.setAttribute("value", inviteCode);
-};
-loadQr();

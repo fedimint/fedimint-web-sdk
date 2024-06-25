@@ -4,9 +4,6 @@ import dts from "vite-plugin-dts";
 
 export default defineConfig({
   plugins: [dts({ include: ["lib"] })],
-  // optimizeDeps: {
-  //   include: ["fedimint-client-wasm"],
-  // },
   resolve: {
     alias: {
       "fedimint-client-wasm": resolve(__dirname, "../fedimint-client-wasm"),
@@ -19,15 +16,6 @@ export default defineConfig({
       name: "fedimint-client-ts",
       fileName: "index",
     },
-    // rollupOptions: {
-    //   input: {
-    //     main: resolve(__dirname, "src/index.html"),
-    //   },
-    //
-    // },
-    // commonjsOptions: {
-    //   include: [/fedimint-client-wasm/, /node_modules/],
-    // },
 
     copyPublicDir: false,
     sourcemap: true,
