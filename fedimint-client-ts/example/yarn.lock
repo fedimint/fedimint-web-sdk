@@ -234,7 +234,7 @@ esbuild@^0.21.3:
 "fedimint-client-ts@file:..":
   version "0.0.0"
   dependencies:
-    fedimint-client-wasm "file:../../../../.cache/yarn/v6/npm-fedimint-client-ts-0.0.0-825c19ea-e4c4-4933-9d08-033b2f1f2172-1719061750452/node_modules/fedimint-client-wasm"
+    fedimint-client-wasm "file:../../../../.cache/yarn/v6/npm-fedimint-client-ts-0.0.0-41a0938e-bb32-4063-97bc-1fac67e7e0a0-1719331545988/node_modules/fedimint-client-wasm"
 
 "fedimint-client-wasm@file:../../fedimint-client-wasm":
   version "0.4.0-alpha"

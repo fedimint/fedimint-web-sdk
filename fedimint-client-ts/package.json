@@ -1,16 +1,24 @@
 {
   "name": "fedimint-client-ts",
   "version": "0.0.0",
-  "main": "dist/lib/es5/index.js",
-	"module": "dist/lib/es6/index.js",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "dev": "tsc --watch",
-    "build": "rm -rf dist/lib && tsc && tsc --build tsconfig.es5.json"
+    "dev": "vite",
+    "build": "rm -rf dist && tsc -p ./tsconfig-build.json && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "fedimint-client-wasm": "file:./../fedimint-client-wasm"
+    "fedimint-client-wasm": "file:../fedimint-client-wasm"
   },
   "devDependencies": {
-    "typescript": "^5.2.2"
+    "@types/node": "^20.14.8",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1",
+    "vite-plugin-dts": "^3.9.1"
   }
 }
