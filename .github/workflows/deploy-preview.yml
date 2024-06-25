@@ -5,9 +5,9 @@ on:
   # Runs on pushes targeting the default branch
   push:
     branches: ['main']
-
-  # Allows you to run this workflow manually from the Actions tab
+    paths: 'fedimint-client-ts/**'
   workflow_dispatch:
+
 
 # Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages
 permissions:
@@ -26,6 +26,9 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    defaults:
+      run:
+        working-directory: fedimint-client-ts
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,17 +38,21 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
+          cache-dependency-path: fedimint-client-ts/yarn.lock
+
+      - name: Install yarn
+        run: npm install -g yarn
       - name: Install dependencies
-        run: npm ci
+        run: yarn
       - name: Build
-        run: npm run build
+        run: yarn build
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload dist folder
-          path: './dist'
+          path: 'fedimint-client-ts/dist'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
