@@ -25,5 +25,5 @@ export default defineConfig({
       allow: [".."],
     },
   },
-  base: "/fedimint-client-ts/",
+  base: "/fedimint-ts/",
 });
