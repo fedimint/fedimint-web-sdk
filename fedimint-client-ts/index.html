@@ -12,45 +12,39 @@
 <body>
   <header>
     <h1>Fedimint Typescript Library Demo</h1>
-    <h3>FYI: none of the frontend actually works yet</h3>
+    <h3>This is a WIP</h3>
   </header>
   <main>
-    <!-- WALLET -->
+
+    <!-- Wallet -->
     <div class="section">
       <h3>Fedimint Wallet</h3>
       <div class="row">
         <strong>Balance:</strong>
-        <!-- <sl-format-number value="0" id="balance"></sl-format-number> -->
         <div class="row">
-          <p class="balance">0</p>
+          <div class="balance">0</div>
           sats
           <button class="refresh-balance">refresh</button>
         </div>
       </div>
 
+      <!-- Receive Ecash -->
       <div class="section">
         <h3>Redeem Ecash</h3>
         <div class="row">
-          <!-- <strong>ecash note</strong> -->
           <input class="ecash-input" placeholder="Long ecash string..." required></input>
           <button variant="primary" class="ecash-submit">redeem</button>
         </div>
-        <div class="section">
-          <h3>Pay Lightning</h3>
-          <div class="row">
-            <!-- <strong>lightning invoice </strong> -->
-            <input class="lightning-input" placeholder="lnbc..." required></input>
-            <button variant="primary" class="lightning-submit">pay</button>
-          </div>
-        </div>
-
       </div>
-      <!-- <div class="section">
-      <h3>Federation Invite</h3>
-      <button value="test" class="federation-invite">
-        copy federation invite
-      </button>
-    </div> -->
+
+      <!-- Pay Lightning -->
+      <div class="section">
+        <h3>Pay Lightning</h3>
+        <div class="row">
+          <input class="lightning-input" placeholder="lnbc..." required></input>
+          <button variant="primary" class="lightning-submit">pay</button>
+        </div>
+      </div>
 
   </main>
 </body>

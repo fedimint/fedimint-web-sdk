@@ -1,19 +1,8 @@
-.container {
-  display: "flex";
-  justify-content: "left";
-  border-width: 1px;
-  border-color: "black";
-  width: 80%;
-}
-p {
-  padding: 0;
-  margin: 0;
-}
-
 body {
   font-family: Arial, sans-serif;
   justify-content: center;
 }
+
 header {
   padding: 7rem 0 0 0;
   text-align: center;
@@ -21,6 +10,7 @@ header {
     padding: 1rem;
   }
 }
+
 main {
   padding: 2rem;
   display: flex;
@@ -28,14 +18,6 @@ main {
   max-width: 50rem;
   margin: auto;
   border-style: solid;
-  /* align-items: stretch; */
-
-  /* & div {
-    max-width: 50rem;
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem;
-    } */
 
   @media (max-width: 600px) {
     margin: 0px;
@@ -43,10 +25,6 @@ main {
   }
 }
 
-form {
-  padding: 1rem;
-  gap: 1rem;
-}
 footer {
   color: #fff;
   text-align: center;
@@ -66,14 +44,4 @@ footer {
   flex-direction: row;
   gap: 0.5rem;
   margin: 0.1rem;
-}
-
-label {
-  font-size: small
-}
-
-.ecash-form {
-  padding: 0;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
 }
