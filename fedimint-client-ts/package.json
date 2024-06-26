@@ -10,7 +10,9 @@
   "scripts": {
     "dev": "vite",
     "build": "rm -rf dist && tsc -p ./tsconfig-build.json && vite build",
-    "preview": "vite preview"
+    "build-preview": "rm -rf dist && tsc -p ./tsconfig.json && vite build",
+    "preview": "vite preview",
+    "prepublishOnly": "yarn build"
   },
   "dependencies": {
     "fedimint-client-wasm": "file:../fedimint-client-wasm"

@@ -5,6 +5,10 @@
   border-color: "black";
   width: 80%;
 }
+p {
+  padding: 0;
+  margin: 0;
+}
 
 body {
   font-family: Arial, sans-serif;
@@ -61,6 +65,7 @@ footer {
   display: flex;
   flex-direction: row;
   gap: 0.5rem;
+  margin: 0.1rem;
 }
 
 label {

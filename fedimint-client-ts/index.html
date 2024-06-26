@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/example/styles.css" />
+  <link rel="stylesheet" href="./src/styles.css" />
+  <script type="module" src="./src/main.ts"></script>
   <title>Fedimint TS Demo</title>
 </head>
 
@@ -20,28 +21,38 @@
       <div class="row">
         <strong>Balance:</strong>
         <!-- <sl-format-number value="0" id="balance"></sl-format-number> -->
-        0 sats
+        <div class="row">
+          <p class="balance">0</p>
+          sats
+          <button class="refresh-balance">refresh</button>
+        </div>
       </div>
 
-      <form class="ecash-form" id="ecash">
+      <div class="section">
+        <h3>Redeem Ecash</h3>
         <div class="row">
-          <label>redeem ecash: </label>
-          <input name="ecash" label="Redeem Ecash" class="ecash-input" required></input>
-          <button type="submit" variant="primary" class="redeem" id="ecash">redeem</button>
+          <!-- <strong>ecash note</strong> -->
+          <input class="ecash-input" placeholder="Long ecash string..." required></input>
+          <button variant="primary" class="ecash-submit">redeem</button>
         </div>
-      </form>
+        <div class="section">
+          <h3>Pay Lightning</h3>
+          <div class="row">
+            <!-- <strong>lightning invoice </strong> -->
+            <input class="lightning-input" placeholder="lnbc..." required></input>
+            <button variant="primary" class="lightning-submit">pay</button>
+          </div>
+        </div>
 
-    </div>
-    <div class="section">
+      </div>
+      <!-- <div class="section">
       <h3>Federation Invite</h3>
-      <!-- TODO: make copy button work -->
       <button value="test" class="federation-invite">
         copy federation invite
       </button>
-    </div>
+    </div> -->
 
   </main>
-  <script type="module" src="/example/index.ts"></script>
 </body>
 
 </html>
