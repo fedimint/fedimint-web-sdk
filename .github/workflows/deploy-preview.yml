@@ -5,7 +5,7 @@ on:
   # Runs on pushes targeting the default branch
   push:
     branches: ['main']
-    paths: 'fedimint-client-ts/**'
+    paths: 'packages/fedimint-client-ts/**'
   workflow_dispatch:
 
 
@@ -28,7 +28,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     defaults:
       run:
-        working-directory: fedimint-client-ts
+        working-directory: packages/fedimint-client-ts
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -51,7 +51,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload dist folder
-          path: 'fedimint-client-ts/dist'
+          path: 'packages/fedimint-client-ts/dist'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
