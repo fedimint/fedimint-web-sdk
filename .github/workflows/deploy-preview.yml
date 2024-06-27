@@ -38,7 +38,6 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: fedimint-client-ts/yarn.lock
 
       - name: Install yarn
         run: npm install -g yarn

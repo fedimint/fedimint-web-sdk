@@ -1,14 +1,14 @@
 {
   "name": "@fedimint/fedimint-client-wasm",
-  "version": "0.4.0-alpha",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "pkg/fedimint_client_wasm.js",
+  "module": "pkg/fedimint_client_wasm.js",
+  "types": "pkg/fedimint_client_wasm.d.ts",
   "files": [
-    "fedimint_client_wasm_bg.wasm",
-    "fedimint_client_wasm.js",
-    "fedimint_client_wasm.d.ts"
+    "pkg/*"
   ],
-  "module": "fedimint_client_wasm.js",
-  "types": "fedimint_client_wasm.d.ts",
-  "sideEffects": [
-    "./snippets/*"
-  ]
+  "dependencies": {
+    "@fedimint/fedimint-client-wasm": "workspace:*"
+  }
 }

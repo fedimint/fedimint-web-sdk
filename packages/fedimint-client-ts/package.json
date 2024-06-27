@@ -3,24 +3,28 @@
   "version": "0.0.0",
   "type": "module",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "rm -rf dist && tsc -p ./tsconfig-build.json && vite build",
-    "build-preview": "rm -rf dist && tsc -p ./tsconfig.json && vite build",
-    "preview": "vite preview",
+    "build": "tsc --p ./tsconfig-build.json && vite build",
+    "build-preview": "tsc --p ./tsconfig.json && vite build --config vite-preview.config.ts",
+    "preview": "yarn build-preview && vite preview",
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
+    "@fedimint/fedimint-client-ts": "workspace:*",
     "@fedimint/fedimint-client-wasm": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.8",
     "typescript": "^5.2.2",
-    "vite": "^5.3.1",
-    "vite-plugin-dts": "^3.9.1"
+    "vite": "^5.3.2",
+    "vite-plugin-dts": "^3.9.1",
+    "vite-plugin-top-level-await": "^1.4.1",
+    "vite-plugin-wasm-pack": "^0.1.12"
   }
 }

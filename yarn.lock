@@ -476,21 +476,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fedimint/fedimint-client-ts@workspace:packages/fedimint-client-ts":
+"@fedimint/fedimint-client-ts@workspace:*, @fedimint/fedimint-client-ts@workspace:packages/fedimint-client-ts":
   version: 0.0.0-use.local
   resolution: "@fedimint/fedimint-client-ts@workspace:packages/fedimint-client-ts"
   dependencies:
+    "@fedimint/fedimint-client-ts": "workspace:*"
     "@fedimint/fedimint-client-wasm": "workspace:*"
     "@types/node": "npm:^20.14.8"
     typescript: "npm:^5.2.2"
-    vite: "npm:^5.3.1"
+    vite: "npm:^5.3.2"
     vite-plugin-dts: "npm:^3.9.1"
+    vite-plugin-top-level-await: "npm:^1.4.1"
+    vite-plugin-wasm: "npm:^3.3.0"
+    vite-plugin-wasm-pack: "npm:^0.1.12"
   languageName: unknown
   linkType: soft
 
 "@fedimint/fedimint-client-wasm@workspace:*, @fedimint/fedimint-client-wasm@workspace:packages/fedimint-client-wasm":
   version: 0.0.0-use.local
   resolution: "@fedimint/fedimint-client-wasm@workspace:packages/fedimint-client-wasm"
+  dependencies:
+    "@fedimint/fedimint-client-wasm": "workspace:*"
   languageName: unknown
   linkType: soft
 
@@ -508,6 +514,15 @@ __metadata:
     eslint-plugin-react-refresh: "npm:^0.4.7"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
+    typescript: "npm:^5.2.2"
+    vite: "npm:^5.3.1"
+  languageName: unknown
+  linkType: soft
+
+"@fedimint/fedimint-web@workspace:packages/fedimint-web":
+  version: 0.0.0-use.local
+  resolution: "@fedimint/fedimint-web@workspace:packages/fedimint-web"
+  dependencies:
     typescript: "npm:^5.2.2"
     vite: "npm:^5.3.1"
   languageName: unknown
@@ -703,6 +718,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rollup/plugin-virtual@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "@rollup/plugin-virtual@npm:3.0.2"
+  peerDependencies:
+    rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+  peerDependenciesMeta:
+    rollup:
+      optional: true
+  checksum: 10c0/7115edb7989096d1ce334939fcf6e1ba365586b487bf61b2dd4f915386197f350db70904030342c0720fe58f5a52828975c645c4d415c1d432d9b1b6760a22ef
+  languageName: node
+  linkType: hard
+
 "@rollup/pluginutils@npm:^5.1.0":
   version: 5.1.0
   resolution: "@rollup/pluginutils@npm:5.1.0"
@@ -884,6 +911,138 @@ __metadata:
     argparse: "npm:~1.0.9"
     string-argv: "npm:~0.3.1"
   checksum: 10c0/329184ae53b3d5dc0218ef63dbbd65efc3a3f423595cf69865cb47ee7ae233cfa8c93d87c31cdb1ef8a00f286d3dd56dc629a16c5903777a9eb1f603dd801c25
+  languageName: node
+  linkType: hard
+
+"@swc/core-darwin-arm64@npm:1.6.5":
+  version: 1.6.5
+  resolution: "@swc/core-darwin-arm64@npm:1.6.5"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@swc/core-darwin-x64@npm:1.6.5":
+  version: 1.6.5
+  resolution: "@swc/core-darwin-x64@npm:1.6.5"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-arm-gnueabihf@npm:1.6.5":
+  version: 1.6.5
+  resolution: "@swc/core-linux-arm-gnueabihf@npm:1.6.5"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-arm64-gnu@npm:1.6.5":
+  version: 1.6.5
+  resolution: "@swc/core-linux-arm64-gnu@npm:1.6.5"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-arm64-musl@npm:1.6.5":
+  version: 1.6.5
+  resolution: "@swc/core-linux-arm64-musl@npm:1.6.5"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-x64-gnu@npm:1.6.5":
+  version: 1.6.5
+  resolution: "@swc/core-linux-x64-gnu@npm:1.6.5"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-x64-musl@npm:1.6.5":
+  version: 1.6.5
+  resolution: "@swc/core-linux-x64-musl@npm:1.6.5"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@swc/core-win32-arm64-msvc@npm:1.6.5":
+  version: 1.6.5
+  resolution: "@swc/core-win32-arm64-msvc@npm:1.6.5"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@swc/core-win32-ia32-msvc@npm:1.6.5":
+  version: 1.6.5
+  resolution: "@swc/core-win32-ia32-msvc@npm:1.6.5"
+  conditions: os=win32 & cpu=ia32
+  languageName: node
+  linkType: hard
+
+"@swc/core-win32-x64-msvc@npm:1.6.5":
+  version: 1.6.5
+  resolution: "@swc/core-win32-x64-msvc@npm:1.6.5"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@swc/core@npm:^1.3.100":
+  version: 1.6.5
+  resolution: "@swc/core@npm:1.6.5"
+  dependencies:
+    "@swc/core-darwin-arm64": "npm:1.6.5"
+    "@swc/core-darwin-x64": "npm:1.6.5"
+    "@swc/core-linux-arm-gnueabihf": "npm:1.6.5"
+    "@swc/core-linux-arm64-gnu": "npm:1.6.5"
+    "@swc/core-linux-arm64-musl": "npm:1.6.5"
+    "@swc/core-linux-x64-gnu": "npm:1.6.5"
+    "@swc/core-linux-x64-musl": "npm:1.6.5"
+    "@swc/core-win32-arm64-msvc": "npm:1.6.5"
+    "@swc/core-win32-ia32-msvc": "npm:1.6.5"
+    "@swc/core-win32-x64-msvc": "npm:1.6.5"
+    "@swc/counter": "npm:^0.1.3"
+    "@swc/types": "npm:^0.1.9"
+  peerDependencies:
+    "@swc/helpers": "*"
+  dependenciesMeta:
+    "@swc/core-darwin-arm64":
+      optional: true
+    "@swc/core-darwin-x64":
+      optional: true
+    "@swc/core-linux-arm-gnueabihf":
+      optional: true
+    "@swc/core-linux-arm64-gnu":
+      optional: true
+    "@swc/core-linux-arm64-musl":
+      optional: true
+    "@swc/core-linux-x64-gnu":
+      optional: true
+    "@swc/core-linux-x64-musl":
+      optional: true
+    "@swc/core-win32-arm64-msvc":
+      optional: true
+    "@swc/core-win32-ia32-msvc":
+      optional: true
+    "@swc/core-win32-x64-msvc":
+      optional: true
+  peerDependenciesMeta:
+    "@swc/helpers":
+      optional: true
+  checksum: 10c0/4fba746667d71641ea8db256561cb47e996f03c091ad62aff6856487f14dffa333eee086d514564ee7c79f657ffc6360a37b06ea136dad08a2aaa8d538681197
+  languageName: node
+  linkType: hard
+
+"@swc/counter@npm:^0.1.3":
+  version: 0.1.3
+  resolution: "@swc/counter@npm:0.1.3"
+  checksum: 10c0/8424f60f6bf8694cfd2a9bca45845bce29f26105cda8cf19cdb9fd3e78dc6338699e4db77a89ae449260bafa1cc6bec307e81e7fb96dbf7dcfce0eea55151356
+  languageName: node
+  linkType: hard
+
+"@swc/types@npm:^0.1.9":
+  version: 0.1.9
+  resolution: "@swc/types@npm:0.1.9"
+  dependencies:
+    "@swc/counter": "npm:^0.1.3"
+  checksum: 10c0/e47db2a06189f100696837ac3d56feaf67e8e68541b236c2de497e066689230f5cbb538fc0ca77c04739ae7653c20a2d79c7ab57ecf7506e2d008cb5e523f724
   languageName: node
   linkType: hard
 
@@ -1409,7 +1568,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:^4.0.0":
+"chalk@npm:^4.0.0, chalk@npm:^4.1.2":
   version: 4.1.2
   resolution: "chalk@npm:4.1.2"
   dependencies:
@@ -1897,12 +2056,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fedimint-web@workspace:packages/fedimint-web":
+"fedimint-client-wasm@workspace:packages/fedimint-client-wasm/pkg":
   version: 0.0.0-use.local
-  resolution: "fedimint-web@workspace:packages/fedimint-web"
-  dependencies:
-    typescript: "npm:^5.2.2"
-    vite: "npm:^5.3.1"
+  resolution: "fedimint-client-wasm@workspace:packages/fedimint-client-wasm/pkg"
   languageName: unknown
   linkType: soft
 
@@ -1959,6 +2115,17 @@ __metadata:
     cross-spawn: "npm:^7.0.0"
     signal-exit: "npm:^4.0.1"
   checksum: 10c0/9a53a33dbd87090e9576bef65fb4a71de60f6863a8062a7b11bc1cbe3cc86d428677d7c0b9ef61cdac11007ac580006f78bd5638618d564cfd5e6fd713d6878f
+  languageName: node
+  linkType: hard
+
+"fs-extra@npm:^10.0.0":
+  version: 10.1.0
+  resolution: "fs-extra@npm:10.1.0"
+  dependencies:
+    graceful-fs: "npm:^4.2.0"
+    jsonfile: "npm:^6.0.1"
+    universalify: "npm:^2.0.0"
+  checksum: 10c0/5f579466e7109719d162a9249abbeffe7f426eb133ea486e020b89bc6d67a741134076bf439983f2eb79276ceaf6bd7b7c1e43c3fd67fe889863e69072fb0a5e
   languageName: node
   linkType: hard
 
@@ -2109,7 +2276,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graceful-fs@npm:^4.1.2, graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.6":
+"graceful-fs@npm:^4.1.2, graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.6":
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: 10c0/386d011a553e02bc594ac2ca0bd6d9e4c22d7fa8cfbfc448a6d148c59ea881b092db9dbe3547ae4b88e55f1b01f7c4a2ecc53b310c042793e63aa44cf6c257f2
@@ -2419,6 +2586,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jsonfile@npm:^6.0.1":
+  version: 6.1.0
+  resolution: "jsonfile@npm:6.1.0"
+  dependencies:
+    graceful-fs: "npm:^4.1.6"
+    universalify: "npm:^2.0.0"
+  dependenciesMeta:
+    graceful-fs:
+      optional: true
+  checksum: 10c0/4f95b5e8a5622b1e9e8f33c96b7ef3158122f595998114d1e7f03985649ea99cb3cd99ce1ed1831ae94c8c8543ab45ebd044207612f31a56fd08462140e46865
+  languageName: node
+  linkType: hard
+
 "keyv@npm:^4.5.3":
   version: 4.5.4
   resolution: "keyv@npm:4.5.4"
@@ -2704,6 +2884,13 @@ __metadata:
   bin:
     nanoid: bin/nanoid.cjs
   checksum: 10c0/e3fb661aa083454f40500473bb69eedb85dc160e763150b9a2c567c7e9ff560ce028a9f833123b618a6ea742e311138b591910e795614a629029e86e180660f3
+  languageName: node
+  linkType: hard
+
+"narrowing@npm:^1.4.0":
+  version: 1.5.0
+  resolution: "narrowing@npm:1.5.0"
+  checksum: 10c0/cad2ddf762ef8271ed6b3deda8a89438670e2eb8b292aed4c21d72996624d26823211b8b0aa5aae5d88ae6a48418eeee4387b1a1e248c344e06af8ed9841c43f
   languageName: node
   linkType: hard
 
@@ -3493,6 +3680,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"universalify@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "universalify@npm:2.0.1"
+  checksum: 10c0/73e8ee3809041ca8b818efb141801a1004e3fc0002727f1531f4de613ea281b494a40909596dae4a042a4fb6cd385af5d4db2e137b1362e0e91384b828effd3a
+  languageName: node
+  linkType: hard
+
 "update-browserslist-db@npm:^1.0.16":
   version: 1.0.16
   resolution: "update-browserslist-db@npm:1.0.16"
@@ -3513,6 +3707,15 @@ __metadata:
   dependencies:
     punycode: "npm:^2.1.0"
   checksum: 10c0/4ef57b45aa820d7ac6496e9208559986c665e49447cb072744c13b66925a362d96dd5a46c4530a6b8e203e5db5fe849369444440cb22ecfc26c679359e5dfa3c
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^9.0.1":
+  version: 9.0.1
+  resolution: "uuid@npm:9.0.1"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 10c0/1607dd32ac7fc22f2d8f77051e6a64845c9bce5cd3dd8aa0070c074ec73e666a1f63c7b4e0f4bf2bc8b9d59dc85a15e17807446d9d2b17c8485fbc2147b27f9b
   languageName: node
   linkType: hard
 
@@ -3544,7 +3747,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.3.1":
+"vite-plugin-top-level-await@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "vite-plugin-top-level-await@npm:1.4.1"
+  dependencies:
+    "@rollup/plugin-virtual": "npm:^3.0.2"
+    "@swc/core": "npm:^1.3.100"
+    uuid: "npm:^9.0.1"
+  peerDependencies:
+    vite: ">=2.8"
+  checksum: 10c0/05fbb56a2b98b9cc637676c6e1259bb5ca1a6690b1bfdd23a682813ed151ac5c6cf87ddb9ddfaa734b7d989c59227e32bc932c30d4e478bec2c3ffd9d63dac21
+  languageName: node
+  linkType: hard
+
+"vite-plugin-wasm-pack@npm:^0.1.12":
+  version: 0.1.12
+  resolution: "vite-plugin-wasm-pack@npm:0.1.12"
+  dependencies:
+    chalk: "npm:^4.1.2"
+    fs-extra: "npm:^10.0.0"
+    narrowing: "npm:^1.4.0"
+  checksum: 10c0/3536b10122a1bf5b7c89503953220969073135561dbcf1bb6657695091408ed107718a544998d17a69e4af62be580fff1046a39555deca898c3224027772b595
+  languageName: node
+  linkType: hard
+
+"vite-plugin-wasm@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "vite-plugin-wasm@npm:3.3.0"
+  peerDependencies:
+    vite: ^2 || ^3 || ^4 || ^5
+  checksum: 10c0/382ba2f2ffef31dde717ad43a69427bc930a6e2ec453d17b700ef7937b48996893a61657fdee3122654e027b1933341548493b35e6469520a8d4ae6c522d1ee2
+  languageName: node
+  linkType: hard
+
+"vite@npm:^5.3.1, vite@npm:^5.3.2":
   version: 5.3.2
   resolution: "vite@npm:5.3.2"
   dependencies:

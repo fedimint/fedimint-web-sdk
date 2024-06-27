@@ -1,5 +1,7 @@
 // import { FedimintWallet } from "../lib/index"; // "fedimint-client-ts";
-import { FedimintWallet } from "@fedimint/fedimint-client-ts"; // "fedimint-client-ts";
+// import { FedimintWallet } from "@fedimint/fedimint-client-ts"; // "fedimint-client-ts";
+import { FedimintWallet } from "../lib/index"; // "fedimint-client-ts";
+// import { FedimintWallet } from "../dist/index"; // "fedimint-client-ts";
 
 console.log("fedimint-client-ts", FedimintWallet);
 
