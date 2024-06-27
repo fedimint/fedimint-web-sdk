@@ -1,4 +1,5 @@
-import { FedimintWallet } from "../lib/index"; // "fedimint-client-ts";
+// import { FedimintWallet } from "../lib/index"; // "fedimint-client-ts";
+import { FedimintWallet } from "@fedimint/fedimint-client-ts"; // "fedimint-client-ts";
 
 console.log("fedimint-client-ts", FedimintWallet);
 
@@ -14,7 +15,7 @@ FedimintWallet.initFedimint()
     console.log("init Fedimint worked!!!!", inviteCode);
     return FedimintWallet.joinFederation(inviteCode);
   })
-  .then((res) => {
+  .then((res: FedimintWallet) => {
     console.log("joined Federation!!!!", res);
     fed = res;
     // @ts-ignore

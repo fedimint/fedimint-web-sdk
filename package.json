@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "workspaces": [
+    "packages/fedimint-client-ts/",
+    "packages/fedimint-client-wasm/",
+    "packages/fedimint-react/",
+    "packages/fedimint-web/",
+    "packages/*"
+  ],
+  "packageManager": "yarn@4.3.1"
+}

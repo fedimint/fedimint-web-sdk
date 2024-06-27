@@ -5,12 +5,10 @@ import dts from "vite-plugin-dts";
 export default defineConfig({
   plugins: [dts({ include: ["lib"] })],
   resolve: {
-    alias: {
-      "fedimint-client-wasm": resolve(__dirname, "../fedimint-client-wasm"),
-    },
+    preserveSymlinks: true,
   },
   build: {
-    target: "esnext",
+    target: ["esnext"],
     lib: {
       entry: resolve(__dirname, "lib/index.ts"),
       name: "fedimint-client-ts",
@@ -22,7 +20,7 @@ export default defineConfig({
   },
   server: {
     fs: {
-      allow: [".."],
+      allow: ["."],
     },
   },
   base: "/fedimint-ts/",

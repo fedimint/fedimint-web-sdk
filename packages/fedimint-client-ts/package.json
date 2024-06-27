@@ -1,5 +1,5 @@
 {
-  "name": "fedimint-client-ts",
+  "name": "@fedimint/fedimint-client-ts",
   "version": "0.0.0",
   "type": "module",
   "main": "dist/index.js",
@@ -15,7 +15,7 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "fedimint-client-wasm": "file:../fedimint-client-wasm"
+    "@fedimint/fedimint-client-wasm": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.8",
