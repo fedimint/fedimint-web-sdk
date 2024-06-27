@@ -487,7 +487,6 @@ __metadata:
     vite: "npm:^5.3.2"
     vite-plugin-dts: "npm:^3.9.1"
     vite-plugin-top-level-await: "npm:^1.4.1"
-    vite-plugin-wasm: "npm:^3.3.0"
     vite-plugin-wasm-pack: "npm:^0.1.12"
   languageName: unknown
   linkType: soft
@@ -3768,15 +3767,6 @@ __metadata:
     fs-extra: "npm:^10.0.0"
     narrowing: "npm:^1.4.0"
   checksum: 10c0/3536b10122a1bf5b7c89503953220969073135561dbcf1bb6657695091408ed107718a544998d17a69e4af62be580fff1046a39555deca898c3224027772b595
-  languageName: node
-  linkType: hard
-
-"vite-plugin-wasm@npm:^3.3.0":
-  version: 3.3.0
-  resolution: "vite-plugin-wasm@npm:3.3.0"
-  peerDependencies:
-    vite: ^2 || ^3 || ^4 || ^5
-  checksum: 10c0/382ba2f2ffef31dde717ad43a69427bc930a6e2ec453d17b700ef7937b48996893a61657fdee3122654e027b1933341548493b35e6469520a8d4ae6c522d1ee2
   languageName: node
   linkType: hard
 
