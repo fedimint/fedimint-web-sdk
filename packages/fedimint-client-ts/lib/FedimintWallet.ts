@@ -1,4 +1,5 @@
-import fedimint, { WasmClient } from "@fedimint/fedimint-client-wasm";
+import "../../fedimint-client-wasm/pkg/fedimint_client_wasm_bg.wasm";
+import fedimint, { WasmClient } from "fedimint-client-wasm";
 export class FedimintWallet {
   // private _client: InitOutput;
   private _fed: WasmClient;

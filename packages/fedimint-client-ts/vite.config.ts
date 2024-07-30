@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [
     wasmPack(
       [resolve(__dirname, "../fedimint-client-wasm")],
-      ["@fedimint/fedimint-client-wasm"]
+      ["fedimint-client-wasm"]
     ),
     dts({ include: ["lib"] }),
     topLevelAwait(),
