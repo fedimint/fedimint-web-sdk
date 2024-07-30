@@ -1,5 +1,5 @@
 {
-  "name": "@fedimint/fedimint-client-wasm",
+  "name": "fedimint-client-wasm",
   "version": "0.0.0",
   "type": "module",
   "main": "pkg/fedimint_client_wasm.js",

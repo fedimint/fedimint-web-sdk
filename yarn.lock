@@ -476,29 +476,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fedimint/fedimint-client-ts@workspace:*, @fedimint/fedimint-client-ts@workspace:packages/fedimint-client-ts":
-  version: 0.0.0-use.local
-  resolution: "@fedimint/fedimint-client-ts@workspace:packages/fedimint-client-ts"
-  dependencies:
-    "@fedimint/fedimint-client-ts": "workspace:*"
-    "@fedimint/fedimint-client-wasm": "workspace:*"
-    "@types/node": "npm:^20.14.8"
-    typescript: "npm:^5.2.2"
-    vite: "npm:^5.3.2"
-    vite-plugin-dts: "npm:^3.9.1"
-    vite-plugin-top-level-await: "npm:^1.4.1"
-    vite-plugin-wasm-pack: "npm:^0.1.12"
-  languageName: unknown
-  linkType: soft
-
-"@fedimint/fedimint-client-wasm@workspace:*, @fedimint/fedimint-client-wasm@workspace:packages/fedimint-client-wasm":
-  version: 0.0.0-use.local
-  resolution: "@fedimint/fedimint-client-wasm@workspace:packages/fedimint-client-wasm"
-  dependencies:
-    "@fedimint/fedimint-client-wasm": "workspace:*"
-  languageName: unknown
-  linkType: soft
-
 "@fedimint/fedimint-react@workspace:packages/fedimint-react":
   version: 0.0.0-use.local
   resolution: "@fedimint/fedimint-react@workspace:packages/fedimint-react"
@@ -2055,9 +2032,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fedimint-client-wasm@workspace:packages/fedimint-client-wasm/pkg":
+"fedimint-client-wasm@workspace:*, fedimint-client-wasm@workspace:packages/fedimint-client-wasm":
   version: 0.0.0-use.local
-  resolution: "fedimint-client-wasm@workspace:packages/fedimint-client-wasm/pkg"
+  resolution: "fedimint-client-wasm@workspace:packages/fedimint-client-wasm"
+  languageName: unknown
+  linkType: soft
+
+"fedimint-web@workspace:packages/fedimint-client-ts":
+  version: 0.0.0-use.local
+  resolution: "fedimint-web@workspace:packages/fedimint-client-ts"
+  dependencies:
+    "@types/node": "npm:^20.14.8"
+    fedimint-client-wasm: "workspace:*"
+    typescript: "npm:^5.2.2"
+    vite: "npm:^5.3.2"
+    vite-plugin-dts: "npm:^3.9.1"
+    vite-plugin-top-level-await: "npm:^1.4.1"
+    vite-plugin-wasm-pack: "npm:^0.1.12"
   languageName: unknown
   linkType: soft
 

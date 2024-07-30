@@ -16,7 +16,7 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@fedimint/fedimint-client-wasm": "workspace:*"
+    "fedimint-client-wasm": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.14.8",
