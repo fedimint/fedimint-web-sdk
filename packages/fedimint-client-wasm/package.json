@@ -7,8 +7,5 @@
   "types": "pkg/fedimint_client_wasm.d.ts",
   "files": [
     "pkg/*"
-  ],
-  "dependencies": {
-    "@fedimint/fedimint-client-wasm": "workspace:*"
-  }
+  ]
 }
