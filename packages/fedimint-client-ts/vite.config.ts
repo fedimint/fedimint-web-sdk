@@ -2,13 +2,13 @@ import { resolve } from 'node:path'
 import { defineConfig } from 'vite'
 import wasm from 'vite-plugin-wasm'
 // import dts from "vite-plugin-dts";
-import wasmPack from 'vite-plugin-wasm-pack'
+// import wasmPack from "vite-plugin-wasm-pack";
 
 export default defineConfig({
   plugins: [
-    wasmPack([resolve(__dirname, './node_modules/fedimint-client-wasm')]),
+    // wasmPack([resolve(__dirname, "./node_modules/fedimint-client-wasm")]),
     // dts({ include: ["lib"] }),
-    // wasm(),
+    wasm(),
   ],
   resolve: {
     preserveSymlinks: true,
@@ -17,7 +17,8 @@ export default defineConfig({
     target: ['esnext'],
     lib: {
       entry: resolve(__dirname, 'lib/index.ts'),
-      formats: ['es'],
+      name: 'fedimint-web',
+      // formats: ["es"],
       //   // entry: "lib/index.ts",
       //   // name: "@fedimint/fedimint-client-ts",
       //   // fileName: "index",
@@ -33,5 +34,9 @@ export default defineConfig({
         assetFileNames: 'assets/[name][extname]',
       },
     },
+  },
+  worker: {
+    format: 'es',
+    plugins: () => [wasm()],
   },
 })

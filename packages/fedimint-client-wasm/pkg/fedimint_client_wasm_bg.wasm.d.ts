@@ -2,8 +2,13 @@
 /* eslint-disable */
 export const memory: WebAssembly.Memory
 export function __wbg_wasmclient_free(a: number): void
-export function wasmclient_open(): number
-export function wasmclient_join_federation(a: number, b: number): number
+export function wasmclient_open(a: number, b: number): number
+export function wasmclient_join_federation(
+  a: number,
+  b: number,
+  c: number,
+  d: number,
+): number
 export function wasmclient_rpc(
   a: number,
   b: number,
@@ -58,40 +63,30 @@ export function __wbindgen_realloc(
   d: number,
 ): number
 export const __wbindgen_export_2: WebAssembly.Table
-export function _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h097bd3e9f2099494(
+export function _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hc084c31f1f28c9b8(
   a: number,
   b: number,
   c: number,
 ): void
-export function _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hddb6488072da84a0(
+export function _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h4dd814b8ece8133b(
+  a: number,
+  b: number,
+): void
+export function _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hc4ce6c5cec9839fc(
+  a: number,
+  b: number,
+): void
+export function _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h9e6e02ca82bce998(
   a: number,
   b: number,
   c: number,
 ): void
-export function _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hf0ebb8a89d864501(
-  a: number,
-  b: number,
-  c: number,
-): void
-export function _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h97cb9335b90d3a95(
-  a: number,
-  b: number,
-): void
-export function _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h03112f63462c5f4e(
-  a: number,
-  b: number,
-): void
-export function _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hd94b7bbe8f82255c(
-  a: number,
-  b: number,
-  c: number,
-): void
-export function _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h701c21cc59581b3c(
+export function _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h68e3ee1a8a347c24(
   a: number,
   b: number,
 ): void
 export function __wbindgen_exn_store(a: number): void
-export function wasm_bindgen__convert__closures__invoke2_mut__h7293b85f43358e2f(
+export function wasm_bindgen__convert__closures__invoke2_mut__h1ded20bdc1d87605(
   a: number,
   b: number,
   c: number,

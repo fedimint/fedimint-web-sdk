@@ -8,7 +8,6 @@ on:
     paths: 'packages/fedimint-client-ts/**'
   workflow_dispatch:
 
-
 # Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages
 permissions:
   contents: read

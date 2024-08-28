@@ -1,4 +1,3 @@
-import '../node_modules/fedimint-client-wasm/pkg/fedimint_client_wasm_bg.wasm'
 import init, { WasmClient } from 'fedimint-client-wasm'
 
 type Body = string | null | Record<string, string>
@@ -15,13 +14,13 @@ export class FedimintWallet {
   // Setup
 
   static async open() {
-    const wasm = await WasmClient.open()
+    const wasm = await WasmClient.open('CLIENT_NAME')
     if (wasm === undefined) return null
     return new FedimintWallet(wasm)
   }
 
   static async joinFederation(inviteCode: string) {
-    const wasm = await WasmClient.join_federation(inviteCode)
+    const wasm = await WasmClient.join_federation('CLIENT_NAME', inviteCode)
     return new FedimintWallet(wasm)
   }
 

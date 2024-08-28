@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "clean:deep": "pnpm run clean && rm -rf node_modules"
   },
   "dependencies": {
     "fedimint-web": "workspace:*",

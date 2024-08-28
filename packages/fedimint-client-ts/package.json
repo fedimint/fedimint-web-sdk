@@ -2,19 +2,28 @@
   "name": "fedimint-web",
   "version": "0.0.1",
   "scripts": {
-    "build": "pnpm run clean && pnpm run build:esm+types && vite build",
+    "build": "pnpm run clean && pnpm run build:esm+types && pnpm run copy-wasm",
+    "copy-wasm": "cp ./node_modules/fedimint-client-wasm/pkg/fedimint_client_wasm_bg.wasm ./dist/esm/",
     "build:esm+types": "tsc --project tsconfig.build.json --outDir ./dist/esm --declaration --declarationMap --declarationDir ./dist/types",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "clean:deep": "pnpm run clean && rm -rf node_modules",
     "typecheck": "tsc --noEmit"
   },
-  "files": ["dist", "dist/**/*.wasm", "lib/**/*.ts"],
+  "files": [
+    "dist",
+    "dist/**/*.wasm",
+    "lib/**/*.ts"
+  ],
   "sideEffects": false,
   "type": "module",
   "main": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "typings": "./dist/types/index.d.ts",
   "exports": {
+    "./dist/esm/fedimint_client_wasm_bg.wasm": "./dist/esm/fedimint_client_wasm_bg.wasm",
     ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/esm/index.js",
       "types": "./dist/types/index.d.ts",
       "default": "./dist/esm/index.js"
     },

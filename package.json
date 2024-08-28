@@ -4,20 +4,23 @@
   "scripts": {
     "build": "pnpm run --r --filter \"./packages/**\" build",
     "clean": "pnpm run --r --parallel clean && rm -rf packages/**/*.json.tmp",
+    "clean:deep": "pnpm run --r --parallel clean:deep",
     "dev": "pnpm dev:core",
     "dev:core": "pnpm --filter vite-core dev",
-    "lint": "biome check --write",
+    "lint": "prettier --check .",
+    "lint:fix": "prettier --write .",
     "lint:repo": "sherif",
     "postinstall": "pnpm preconstruct",
     "preconstruct": "bun scripts/preconstruct.ts",
     "preinstall": "pnpx only-allow pnpm",
     "prepare": "pnpm simple-git-hooks",
-    "typecheck": "pnpm run --r --parallel typecheck && tsc --noEmit"
+    "typecheck": "pnpm run --r --parallel typecheck && tsc --noEmit",
+    "format": "prettier --write ."
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.8.0",
     "@types/bun": "^1.1.1",
     "glob": "^10.3.12",
+    "prettier": "^3.3.3",
     "sherif": "^0.8.4",
     "simple-git-hooks": "^2.11.1",
     "typescript": "5.5.2"
