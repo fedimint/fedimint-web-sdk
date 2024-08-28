@@ -9,7 +9,5 @@
   "module": "fedimint_client_wasm.js",
   "main": "fedimint_client_wasm.js",
   "types": "fedimint_client_wasm.d.ts",
-  "sideEffects": [
-    "./snippets/*"
-  ]
+  "sideEffects": ["./snippets/*"]
 }

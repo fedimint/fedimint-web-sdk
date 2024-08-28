@@ -1,23 +1,23 @@
-import { resolve } from "path";
-import { defineConfig } from "vite";
-import dts from "vite-plugin-dts";
-import wasmPack from "vite-plugin-wasm-pack";
-import topLevelAwait from "vite-plugin-top-level-await";
+import { resolve } from 'node:path'
+import { defineConfig } from 'vite'
+import dts from 'vite-plugin-dts'
+import topLevelAwait from 'vite-plugin-top-level-await'
+import wasmPack from 'vite-plugin-wasm-pack'
 
 export default defineConfig({
   plugins: [
     wasmPack(
-      [resolve(__dirname, "../fedimint-client-wasm")],
-      ["@fedimint/fedimint-client-wasm"]
+      [resolve(__dirname, '../fedimint-client-wasm')],
+      ['fedimint-client-wasm'],
     ),
-    dts({ include: ["lib"] }),
+    dts({ include: ['lib'] }),
     topLevelAwait(),
   ],
   resolve: {
     preserveSymlinks: true,
   },
   build: {
-    target: ["esnext"],
+    target: ['esnext'],
     // lib: {
     //   entry: resolve(__dirname, "lib/index.ts"),
     //   formats: ["es"],
@@ -30,17 +30,17 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        entryFileNames: "[name].js",
-        assetFileNames: "assets/[name][extname]",
+        entryFileNames: '[name].js',
+        assetFileNames: 'assets/[name][extname]',
       },
     },
   },
   server: {
     fs: {
-      allow: [""],
+      allow: [''],
     },
     cors: false,
   },
   preview: {},
-  base: "/fedimint-ts/",
-});
+  base: '/fedimint-ts/',
+})

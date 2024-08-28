@@ -5,7 +5,5 @@
   "main": "pkg/fedimint_client_wasm.js",
   "module": "pkg/fedimint_client_wasm.js",
   "types": "pkg/fedimint_client_wasm.d.ts",
-  "files": [
-    "pkg/*"
-  ]
+  "files": ["pkg/*"]
 }

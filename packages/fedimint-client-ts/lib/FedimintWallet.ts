@@ -1,51 +1,52 @@
-import "../../fedimint-client-wasm/pkg/fedimint_client_wasm_bg.wasm";
-import fedimint, { WasmClient } from "fedimint-client-wasm";
+import '../node_modules/fedimint-client-wasm/pkg/fedimint_client_wasm_bg.wasm'
+import init, { WasmClient } from 'fedimint-client-wasm'
+
+type Body = string | null | Record<string, string>
+
 export class FedimintWallet {
   // private _client: InitOutput;
-  private _fed: WasmClient;
-  static initFedimint = fedimint;
+  private _fed: WasmClient
+  static initFedimint = init
 
   private constructor(wasm: WasmClient) {
-    this._fed = wasm;
+    this._fed = wasm
   }
 
   // Setup
 
   static async open() {
-    await fedimint();
-    const wasm = await WasmClient.open();
-    if (wasm === undefined) return null;
-    return new FedimintWallet(wasm);
+    const wasm = await WasmClient.open()
+    if (wasm === undefined) return null
+    return new FedimintWallet(wasm)
   }
 
   static async joinFederation(inviteCode: string) {
-    await fedimint();
-    const wasm = await WasmClient.join_federation(inviteCode);
-    return new FedimintWallet(wasm);
+    const wasm = await WasmClient.join_federation(inviteCode)
+    return new FedimintWallet(wasm)
   }
 
   // RPC
 
-  private async _rpcSingle(module: string, method: string, body: any = null) {
+  private async _rpcSingle(module: string, method: string, body: Body = null) {
     return new Promise((resolve) =>
       this._fed.rpc(module, method, JSON.stringify(body), (res: string) =>
-        resolve(JSON.parse(res))
-      )
-    );
+        resolve(JSON.parse(res)),
+      ),
+    )
   }
 
   // Client
 
   async getBalance(): Promise<number> {
-    return (await this._rpcSingle("client", "get_balance")) as number;
+    return (await this._rpcSingle('client', 'get_balance')) as number
   }
 
   // LN
 
   async payInvoice(invoice: string): Promise<void> {
-    return (await this._rpcSingle("ln", "pay_bolt11_invoice", {
+    await this._rpcSingle('ln', 'pay_bolt11_invoice', {
       invoice,
-    })) as void;
+    })
   }
 
   // async listGateways() {
@@ -58,8 +59,8 @@ export class FedimintWallet {
   // Mint
 
   async reissueNotes(notes: string): Promise<void> {
-    return (await this._rpcSingle("mint", "reissue_external_notes", {
+    await this._rpcSingle('mint', 'reissue_external_notes', {
       notes,
-    })) as void;
+    })
   }
 }

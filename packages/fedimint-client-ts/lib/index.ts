@@ -1,3 +1,3 @@
-import { FedimintWallet } from "./FedimintWallet";
+import { FedimintWallet } from './FedimintWallet.js'
 
-export { FedimintWallet };
+export { FedimintWallet }
