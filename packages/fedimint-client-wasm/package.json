@@ -11,7 +11,6 @@
     "url": "https://github.com/fedimint/fedimint"
   },
   "scripts": {
-    "build": "webpack",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "clean:deep": "pnpm run clean && rm -rf node_modules"
   },
@@ -21,12 +20,13 @@
     "pkg/fedimint_client_wasm_bg.js",
     "pkg/fedimint_client_wasm.d.ts"
   ],
-  "module": "pkg/fedimint_client_wasm.js",
+  "main": "pkg/fedimint_client_wasm.js",
   "types": "pkg/fedimint_client_wasm.d.ts",
   "sideEffects": false,
-  "devDependencies": {
-    "html-webpack-plugin": "^5.5.0",
-    "webpack": "^5.88.2",
-    "webpack-cli": "^5.1.4"
+  "exports": {
+    ".": {
+      "default": "./pkg/fedimint_client_wasm.js",
+      "types": "./pkg/fedimint_client_wasm.d.ts"
+    }
   }
 }

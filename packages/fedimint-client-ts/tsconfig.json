@@ -1,5 +1,10 @@
 {
   "extends": "./tsconfig.build.json",
-  "include": ["lib/**/*.ts"],
-  "exclude": []
+  "include": ["src/**/*.ts"],
+  "exclude": [],
+  "compilerOptions": {
+    "paths": {
+      "fedimint-client-wasm": ["../fedimint-client-wasm"]
+    }
+  }
 }

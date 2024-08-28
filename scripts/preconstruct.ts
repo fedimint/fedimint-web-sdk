@@ -25,7 +25,8 @@ for (const packagePath of packagePaths) {
   const packageJson = (await file.json()) as Package
 
   // Skip private packages
-  if (packageJson.private && packageJson.name !== '@wagmi/test') continue
+  if (packageJson.name === 'fedimint-client-wasm') continue
+  if (packageJson.private) continue
   if (!packageJson.exports) continue
   if (packageJson.bin) continue
 

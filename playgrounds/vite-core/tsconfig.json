@@ -18,8 +18,8 @@
     "noFallthroughCasesInSwitch": true,
 
     "paths": {
-      "fedimint-web": ["../../tmp/src/exports"],
-      "fedimint-web/*": ["../../tmp/src/exports/*"]
+      "fedimint-web": ["../../packages/fedimint-client-ts/src"]
+      // "fedimint-client-wasm": ["../../packages/fedimint-client-wasm/pkg"]
     }
   },
   "include": ["src"],

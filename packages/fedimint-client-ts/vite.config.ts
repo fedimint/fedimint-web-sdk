@@ -11,12 +11,12 @@ export default defineConfig({
     wasm(),
   ],
   resolve: {
-    preserveSymlinks: true,
+    // preserveSymlinks: true,
   },
   build: {
     target: ['esnext'],
     lib: {
-      entry: resolve(__dirname, 'lib/index.ts'),
+      entry: resolve(__dirname, 'src/index.ts'),
       name: 'fedimint-web',
       // formats: ["es"],
       //   // entry: "lib/index.ts",

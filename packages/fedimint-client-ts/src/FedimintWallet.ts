@@ -1,11 +1,11 @@
-import init, { WasmClient } from 'fedimint-client-wasm'
+import { WasmClient } from 'fedimint-client-wasm'
 
 type Body = string | null | Record<string, string>
 
 export class FedimintWallet {
   // private _client: InitOutput;
   private _fed: WasmClient
-  static initFedimint = init
+  // static initFedimint = init
 
   private constructor(wasm: WasmClient) {
     this._fed = wasm
@@ -13,20 +13,23 @@ export class FedimintWallet {
 
   // Setup
 
-  static async open() {
-    const wasm = await WasmClient.open('CLIENT_NAME')
+  static async open(clientName: string) {
+    const wasm = await WasmClient.open(clientName)
+    console.warn('WASM', wasm)
     if (wasm === undefined) return null
     return new FedimintWallet(wasm)
   }
 
-  static async joinFederation(inviteCode: string) {
-    const wasm = await WasmClient.join_federation('CLIENT_NAME', inviteCode)
+  static async joinFederation(clientName: string, inviteCode: string) {
+    const wasm = await WasmClient.join_federation(clientName, inviteCode)
+    console.warn('JOINED WASM', wasm)
     return new FedimintWallet(wasm)
   }
 
   // RPC
 
-  private async _rpcSingle(module: string, method: string, body: Body = null) {
+  private async _rpcSingle(module: string, method: string, body: Body = {}) {
+    console.warn('RPC', module, method, body)
     return new Promise((resolve) =>
       this._fed.rpc(module, method, JSON.stringify(body), (res: string) =>
         resolve(JSON.parse(res)),
@@ -37,7 +40,7 @@ export class FedimintWallet {
   // Client
 
   async getBalance(): Promise<number> {
-    return (await this._rpcSingle('client', 'get_balance')) as number
+    return (await this._rpcSingle('', 'get_balance')) as number
   }
 
   // LN
@@ -61,5 +64,10 @@ export class FedimintWallet {
     await this._rpcSingle('mint', 'reissue_external_notes', {
       notes,
     })
+  }
+
+  // Teardown
+  async cleanup() {
+    await this._fed.free()
   }
 }

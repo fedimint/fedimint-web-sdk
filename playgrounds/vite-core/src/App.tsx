@@ -3,8 +3,9 @@ import { wallet } from './wallet'
 
 function App() {
   useEffect(() => {
-    // biome-ignore lint/suspicious/noConsoleLog: <explanation>
-    console.log(wallet)
+    return () => {
+      wallet?.cleanup().catch(console.error)
+    }
   }, [])
 
   return (
@@ -37,11 +38,20 @@ function Main() {
 function Wallet() {
   const [balance, setBalance] = useState(0)
 
-  const refreshBalance = () => {
+  const refreshBalance = async () => {
     // TODO: Implement balance refresh logic
     // biome-ignore lint/suspicious/noConsoleLog: <explanation>
     console.log('Refreshing balance...')
-    setBalance(100)
+    await wallet
+      .getBalance()
+      .then((b) => {
+        console.warn('balance', b)
+        setBalance(b)
+      })
+      .catch((e) => {
+        // biome-ignore lint/suspicious/noConsoleLog: <explanation>
+        console.log('Error refreshing balance', e)
+      })
   }
 
   return (
