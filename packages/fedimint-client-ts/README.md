@@ -7,15 +7,17 @@ This package provides a typescript interface for the Fedimint client in the brow
 ## Installation
 
 ```sh
-npm install fedimint-client-ts
+npm install fedimint-web
 # or
-yarn add fedimint-client-ts
+yarn add fedimint-web
+# or
+pnpm add fedimint-web
 ```
 
 ## Usage
 
 ```ts
-import { FedimintWallet } from 'fedimint-client-ts'
+import { FedimintWallet } from 'fedimint-web'
 
 // federation invite code
 const inviteCode = 'fed11qgqpw9thwvaz7t...'
