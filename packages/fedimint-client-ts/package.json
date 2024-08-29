@@ -1,6 +1,6 @@
 {
   "name": "fedimint-web",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "scripts": {
     "build": "pnpm run clean && pnpm run build:esm+types",
     "copy-wasm": "cp ./node_modules/fedimint-client-wasm/pkg/fedimint_client_wasm_bg.wasm ./dist/esm/",
