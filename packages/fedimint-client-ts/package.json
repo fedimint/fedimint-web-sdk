@@ -1,19 +1,29 @@
 {
   "name": "fedimint-web",
   "version": "0.0.1",
-  "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --p ./tsconfig-build.json && vite build",
-    "build-preview": "tsc --p ./tsconfig.json && vite build --config vite-preview.config.ts",
-    "preview": "yarn build-preview && vite preview",
-    "prepublishOnly": "yarn build"
+    "build": "pnpm run clean && pnpm run build:esm+types",
+    "copy-wasm": "cp ./node_modules/fedimint-client-wasm/pkg/fedimint_client_wasm_bg.wasm ./dist/esm/",
+    "build:esm+types": "tsc --project tsconfig.build.json --outDir ./dist/esm --declaration --declarationMap --declarationDir ./dist/types",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "clean:deep": "pnpm run clean && rm -rf node_modules",
+    "typecheck": "tsc --noEmit",
+    "watch": "tsc --watch --project tsconfig.build.json --outDir ./dist/esm --declaration --declarationMap --declarationDir ./dist/types"
+  },
+  "files": [
+    "dist/**",
+    "src/**/*.ts"
+  ],
+  "sideEffects": false,
+  "type": "module",
+  "main": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "typings": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/esm/index.js"
+    }
   },
   "dependencies": {
     "fedimint-client-wasm": "workspace:*"
@@ -24,6 +34,7 @@
     "vite": "^5.3.2",
     "vite-plugin-dts": "^3.9.1",
     "vite-plugin-top-level-await": "^1.4.1",
+    "vite-plugin-wasm": "^3.3.0",
     "vite-plugin-wasm-pack": "^0.1.12"
   }
 }

@@ -15,27 +15,24 @@ yarn add fedimint-client-ts
 ## Usage
 
 ```ts
-import { FedimintWallet } from "fedimint-client-ts";
+import { FedimintWallet } from 'fedimint-client-ts'
 
 // federation invite code
-const inviteCode =
-  "fed11qgqpw9thwvaz7t...";
+const inviteCode = 'fed11qgqpw9thwvaz7t...'
 
 // This should be called only once
-await FedimintWallet.initFedimint();
+await FedimintWallet.initFedimint()
 
-const wallet = await FedimintWallet.joinFederation(
-  inviteCode
-);
+const wallet = await FedimintWallet.joinFederation(inviteCode)
 
 // Get Wallet Balance
-const balance = await wallet.getBalance();
+const balance = await wallet.getBalance()
 
 // Receive Ecash Payments
-await wallet.reissueNotes("A11qgqpw9thwvaz7t...");
+await wallet.reissueNotes('A11qgqpw9thwvaz7t...')
 
 // Pay Lightning Invoice
-await wallet.payInvoice("lnbc...");
+await wallet.payInvoice('lnbc...')
 ```
 
 ## Run the Example

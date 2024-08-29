@@ -1,11 +1,32 @@
 {
   "name": "fedimint-client-wasm",
-  "version": "0.0.0",
-  "type": "module",
-  "main": "pkg/fedimint_client_wasm.js",
-  "module": "pkg/fedimint_client_wasm.js",
-  "types": "pkg/fedimint_client_wasm.d.ts",
+  "collaborators": [
+    "The Fedimint Developers"
+  ],
+  "description": "fedimint client for wasm",
+  "version": "0.5.0-alpha",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fedimint/fedimint"
+  },
+  "scripts": {
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "clean:deep": "pnpm run clean && rm -rf node_modules"
+  },
   "files": [
-    "pkg/*"
-  ]
+    "pkg/fedimint_client_wasm_bg.wasm",
+    "pkg/fedimint_client_wasm.js",
+    "pkg/fedimint_client_wasm_bg.js",
+    "pkg/fedimint_client_wasm.d.ts"
+  ],
+  "main": "pkg/fedimint_client_wasm.js",
+  "types": "pkg/fedimint_client_wasm.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "default": "./pkg/fedimint_client_wasm.js",
+      "types": "./pkg/fedimint_client_wasm.d.ts"
+    }
+  }
 }
