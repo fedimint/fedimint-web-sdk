@@ -10,8 +10,6 @@
     "lint": "prettier --check .",
     "lint:fix": "prettier --write .",
     "lint:repo": "sherif",
-    "postinstall": "pnpm preconstruct",
-    "preconstruct": "bun scripts/preconstruct.ts",
     "preinstall": "pnpx only-allow pnpm",
     "prepare": "pnpm simple-git-hooks",
     "publish": "pnpm run build && pnpm changesets publish",

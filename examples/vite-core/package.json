@@ -1,0 +1,26 @@
+{
+  "name": "vite-core",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "clean:deep": "pnpm run clean && rm -rf node_modules"
+  },
+  "dependencies": {
+    "fedimint-web": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": ">=18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": ">=18.3.1",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite-plugin-top-level-await": "^1.4.1",
+    "buffer": "^6.0.3",
+    "vite": "^5.3.2",
+    "vite-plugin-wasm": "^3.3.0"
+  }
+}

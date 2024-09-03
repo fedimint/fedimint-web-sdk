@@ -9,7 +9,7 @@ This monorepo is structured as a pnpm workspace. There are some helpful scripts 
 There two main folders are:
 
 - `packages`: Contains the actual libraries
-- `playgrounds`: Contains examples of how to use the libraries
+- `examples`: Contains examples of how to use the libraries
 
 Used the [wagmi](https://github.com/wevm/wagmi) library as a reference for the package structure.
 
@@ -19,4 +19,4 @@ Used the [wagmi](https://github.com/wevm/wagmi) library as a reference for the p
 - [`fedimint-client-web`](./packages/fedimint-client-ts/README.md): Wrapper around `fedimint-client-wasm` that provides a typescript interface for the Fedimint client
 - `fedimint-react`: TBD
 
-### Playground
+### Examples

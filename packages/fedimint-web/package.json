@@ -1,0 +1,23 @@
+{
+  "name": "fedimint-web",
+  "version": "0.0.5",
+  "scripts": {
+    "build": "pnpm run clean && tsc --project tsconfig.json",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "clean:deep": "pnpm run clean && rm -rf node_modules",
+    "typecheck": "tsc --noEmit"
+  },
+  "files": [
+    "dist",
+    "wasm",
+    "src"
+  ],
+  "sideEffects": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "devDependencies": {
+    "@types/node": "^20.14.8",
+    "typescript": "^5.2.2"
+  }
+}
