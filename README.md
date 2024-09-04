@@ -15,7 +15,7 @@ Used the [wagmi](https://github.com/wevm/wagmi) library as a reference for the p
 
 ### Packages
 
-- [`fedimint-web`](./packages/fedimint-client-ts/README.md): Provides a typescript interface for the Fedimint client wasm
+- [`fedimint-web`](./packages/fedimint-web/README.md): Provides a typescript interface for the Fedimint client wasm
 - `fedimint-react`: TBD
 
 ### Examples

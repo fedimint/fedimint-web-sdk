@@ -37,27 +37,6 @@ await wallet.reissueNotes('A11qgqpw9thwvaz7t...')
 await wallet.payInvoice('lnbc...')
 ```
 
-## Run the Example
+## Check out the example
 
-### Clone the repo
-
-```sh
-git clone git@github.com:alexlwn123/fedimint-ts.git
-cd fedimint-ts/fedimint-client-ts
-```
-
-### Create .env.local
-
-```sh
-cp .env.local.example .env.local
-vim .env.local
-```
-
-### Install dependencies and run the example
-
-```sh
-yarn
-yarn dev
-```
-
-Then open `http://localhost:5173` in your browser.
+[`examples/vite-core`](../examples/vite-core/README.md)
