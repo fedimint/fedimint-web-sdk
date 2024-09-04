@@ -12,7 +12,7 @@
     "clean:deep": "pnpm run clean && rm -rf node_modules"
   },
   "dependencies": {
-    "fedimint-web": "workspace:*",
+    "@fedimint/fedimint-web": "workspace:*",
     "react": "^18.3.1",
     "react-dom": ">=18.3.1"
   },

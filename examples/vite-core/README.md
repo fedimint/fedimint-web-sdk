@@ -18,8 +18,8 @@ This is an example application demonstrating the usage of Fedimint client in a s
 1. Clone the repository and navigate to the example directory:
 
    ```
-   git clone https://github.com/alexlwn123/fedimint-client-ts.git
-   cd fedimint-client-ts/examples/vite-core
+   git clone https://github.com/fedimint/fedimint-web-sdk.git
+   cd fedimint-web-sdk/examples/vite-core
    ```
 
 2. Install dependencies:

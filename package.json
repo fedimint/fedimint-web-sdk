@@ -14,7 +14,9 @@
     "preinstall": "pnpx only-allow pnpm",
     "prepare": "pnpm simple-git-hooks",
     "publish": "pnpm run build && pnpm changesets publish",
-    "typecheck": "pnpm run --r --parallel typecheck && tsc --noEmit",
+    "changeset": "changesets",
+    "version": "changesets version",
+    "typecheck": "pnpm run --r --parallel typecheck",
     "format": "prettier --write .",
     "watch": "pnpm run --r --parallel --filter \"./packages/**\" watch"
   },

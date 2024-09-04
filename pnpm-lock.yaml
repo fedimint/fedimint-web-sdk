@@ -32,7 +32,7 @@ importers:
 
   examples/vite-core:
     dependencies:
-      fedimint-web:
+      '@fedimint/fedimint-web':
         specifier: workspace:*
         version: link:../../packages/fedimint-web
       react:

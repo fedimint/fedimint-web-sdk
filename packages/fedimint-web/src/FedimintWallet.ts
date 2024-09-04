@@ -5,9 +5,7 @@ type Body = string | null | Record<string, string>
 export class FedimintWallet {
   // private _client: InitOutput;
   private _fed: WasmClient
-  static initWasm = async () => {
-    return await init()
-  }
+  static initWasm = init
 
   private constructor(wasm: WasmClient) {
     this._fed = wasm

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { wallet } from './wallet'
 
-function App() {
+const App = () => {
   useEffect(() => {
     return () => {
       wallet?.cleanup().catch(console.error)
@@ -16,7 +16,7 @@ function App() {
   )
 }
 
-function Header() {
+const Header = () => {
   return (
     <header>
       <h1>Fedimint Typescript Library Demo</h1>
@@ -25,7 +25,7 @@ function Header() {
   )
 }
 
-function Main() {
+const Main = () => {
   return (
     <main>
       <Wallet />
@@ -35,21 +35,21 @@ function Main() {
   )
 }
 
-function Wallet() {
+const Wallet = () => {
   const [balance, setBalance] = useState(0)
+  const [error, setError] = useState(0)
 
   const refreshBalance = async () => {
     // TODO: Implement balance refresh logic
     console.log('Refreshing balance...', wallet)
-    await wallet
-      ?.getBalance()
-      .then((b) => {
-        console.warn('balance', b)
-        setBalance(b)
-      })
-      .catch((e) => {
-        console.log('Error refreshing balance', e)
-      })
+    try {
+      const bal = await wallet?.getBalance()
+      console.warn('balance', bal)
+      setBalance(bal || 0)
+    } catch (e) {
+      console.log('Error refreshing balance', e)
+      setError(e?.message)
+    }
   }
 
   return (
@@ -57,19 +57,18 @@ function Wallet() {
       <h3>Fedimint Wallet</h3>
       <div className="row">
         <strong>Balance:</strong>
-        <div className="row">
-          <div className="balance">{balance}</div>
-          sats
-          <button type="button" onClick={refreshBalance}>
-            refresh
-          </button>
-        </div>
+        <div className="balance">{balance}</div>
+        sats
+        <button type="button" onClick={refreshBalance}>
+          refresh
+        </button>
       </div>
+      {error && <div className="error">{error}</div>}
     </div>
   )
 }
 
-function RedeemEcash() {
+const RedeemEcash = () => {
   const [ecashInput, setEcashInput] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -97,7 +96,7 @@ function RedeemEcash() {
   )
 }
 
-function PayLightning() {
+const PayLightning = () => {
   const [lightningInput, setLightningInput] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {

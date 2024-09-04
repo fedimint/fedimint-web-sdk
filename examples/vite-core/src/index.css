@@ -7,6 +7,7 @@
   font-weight: 400;
   line-height: 1.5;
   text-rendering: optimizeLegibility;
+  margin: 1rem;
 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -18,4 +19,23 @@
     background-color: #f8f8f8;
     color: #181818;
   }
+}
+
+button {
+  color: rgba(255, 255, 255, 0.87);
+  border-radius: 8px;
+  border: none;
+  padding: 0.3em 1em;
+  cursor: pointer;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error {
+  color: red;
 }
