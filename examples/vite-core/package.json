@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:pages": "tsc && vite build --base /fedimint-ts/",
+    "build:pages": "tsc && vite build --base /fedimint-web-sdk/",
     "preview": "vite preview",
-    "preview:pages": "vite preview --base /fedimint-ts/",
+    "preview:pages": "vite preview --base /fedimint-web-sdk/",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "clean:deep": "pnpm run clean && rm -rf node_modules"
   },
