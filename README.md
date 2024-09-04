@@ -15,8 +15,9 @@ Used the [wagmi](https://github.com/wevm/wagmi) library as a reference for the p
 
 ### Packages
 
-- [`fedimint-client-wasm`](./packages/fedimint-client-wasm/README.md): Contains a WASM bundle with typescript bindings for the the Fedimint client (should NOT be used directly)
-- [`fedimint-client-web`](./packages/fedimint-client-ts/README.md): Wrapper around `fedimint-client-wasm` that provides a typescript interface for the Fedimint client
+- [`fedimint-web`](./packages/fedimint-client-ts/README.md): Provides a typescript interface for the Fedimint client wasm
 - `fedimint-react`: TBD
 
 ### Examples
+
+- [`vite-core`](./examples/vite-core/README.md): Wrapper around `fedimint-client-wasm` that provides a typescript interface for the Fedimint client

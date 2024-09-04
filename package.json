@@ -3,6 +3,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm run --r --filter \"./packages/**\" build",
+    "build:preview": "pnpm --filter vite-core build",
     "clean": "pnpm run --r --parallel clean && rm -rf packages/**/*.json.tmp",
     "clean:deep": "rm -rf node_modules && pnpm run --r --parallel clean:deep",
     "dev": "pnpm dev:core",
