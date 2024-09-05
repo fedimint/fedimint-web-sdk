@@ -7,6 +7,6 @@ import topLevelAwait from 'vite-plugin-top-level-await'
 export default defineConfig({
   plugins: [topLevelAwait(), wasm(), react()],
   optimizeDeps: {
-    exclude: ['core-web'],
+    exclude: ['@fedimint/core-web'],
   },
 })

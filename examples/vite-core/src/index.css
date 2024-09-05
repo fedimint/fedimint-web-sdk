@@ -8,6 +8,7 @@
   line-height: 1.5;
   text-rendering: optimizeLegibility;
   margin: 1rem;
+  word-wrap: break-word;
 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -45,21 +46,9 @@ main {
   padding: 1rem;
 }
 
-.section {
-  background-color: #242424;
-  border-radius: 8px;
-  padding: 0.75rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  font-size: 1.1rem;
-}
-
-button {
-  color: rgba(255, 255, 255, 0.87);
-  border-radius: 8px;
-  border: none;
-  padding: 0.3em 1em;
-  cursor: pointer;
-  transition: background-color 0.3s;
+h3 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
 }
 
 input,
@@ -75,6 +64,11 @@ button {
 input {
   width: 100%;
   max-width: 300px;
+}
+
+button {
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 button:hover {
@@ -98,13 +92,6 @@ button:disabled {
   margin-bottom: 0;
 }
 
-.error,
-.success {
-  white-space: normal;
-  word-wrap: break-word;
-  max-width: 100%;
-}
-
 .error {
   color: red;
 }
@@ -113,9 +100,12 @@ button:disabled {
   color: green;
 }
 
-h3 {
-  margin-top: 0;
-  margin-bottom: 0.75rem;
+.section {
+  background-color: #242424;
+  border-radius: 8px;
+  padding: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
 }
 
 @media (min-width: 768px) {
@@ -136,10 +126,6 @@ h3 {
 
   .row {
     margin-bottom: 1rem;
-  }
-
-  .row:last-child {
-    margin-bottom: 0;
   }
 
   input,

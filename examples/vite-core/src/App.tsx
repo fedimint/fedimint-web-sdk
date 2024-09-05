@@ -29,7 +29,7 @@ const App = () => {
     <>
       <header>
         <h1>Fedimint Typescript Library Demo</h1>
-        <h3>This is a WIP</h3>
+        <h2>This is a WIP</h2>
       </header>
       <main>
         <WalletStatus />
@@ -96,6 +96,7 @@ const JoinFederation = () => {
           Join
         </button>
       </form>
+      {wallet.isOpen() && <i>(You've already joined a federation)</i>}
       {joinResult && <div className="success">{joinResult}</div>}
       {joinError && <div className="error">{joinError}</div>}
     </div>
