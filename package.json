@@ -13,9 +13,9 @@
     "lint:repo": "sherif",
     "preinstall": "pnpx only-allow pnpm",
     "prepare": "pnpm simple-git-hooks",
-    "publish": "pnpm run build && pnpm changesets publish",
-    "changeset": "changesets",
-    "version": "changesets version",
+    "publish": "pnpm run build && pnpm changeset publish",
+    "changeset": "changeset",
+    "version": "changeset version",
     "typecheck": "pnpm run --r --parallel typecheck",
     "format": "prettier --write .",
     "watch": "pnpm run --r --parallel --filter \"./packages/**\" watch"
