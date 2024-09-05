@@ -1,39 +1,90 @@
 import init, { WasmClient } from '../wasm/fedimint_client_wasm.js'
 
-type Body = string | null | Record<string, string>
+type StreamError = {
+  error: string
+}
+
+// type StreamSuccess = {
+//   data: {} | [] | null | undefined | number | string | boolean
+// }
+
+type StreamSuccess = any & { error: never }
+
+type StreamResult = StreamSuccess | StreamError
+
+type Body = string | null | Record<string, string | null>
+
+const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
 export class FedimintWallet {
-  // private _client: InitOutput;
-  private _fed: WasmClient
-  static initWasm = init
+  private _fed: WasmClient | null = null
+  private initPromise: Promise<void> | null = null
+  private openPromise: Promise<void> | null = null
+  private resolveOpen: () => void = () => {}
+  // private worker: Worker | null = null
 
-  private constructor(wasm: WasmClient) {
-    this._fed = wasm
+  constructor(lazy: boolean = false) {
+    if (lazy) return
+    this.initialize()
+    this.openPromise = new Promise((resolve) => {
+      this.resolveOpen = resolve
+    })
   }
 
   // Setup
-
-  static async open(clientName: string) {
-    const wasm = await WasmClient.open(clientName)
-    if (wasm === undefined) return null
-    return new FedimintWallet(wasm)
+  async initialize() {
+    if (this.initPromise) return this.initPromise
+    // this.worker = new Worker(new URL('./wasm.worker.ts', import.meta.url))
+    this.initPromise = init().then(() => {
+      console.trace('Fedimint Client Wasm Initialization complete')
+    })
+    return this.initPromise
   }
 
-  static async joinFederation(clientName: string, inviteCode: string) {
-    const wasm = await WasmClient.join_federation(clientName, inviteCode)
-    // console.warn('JOINED WASM', wasm)
-    return new FedimintWallet(wasm)
+  async open(clientName: string = DEFAULT_CLIENT_NAME) {
+    await this.initialize()
+    const wasm = await WasmClient.open(clientName)
+
+    if (wasm === undefined) return false
+    this._fed = wasm
+    this.resolveOpen()
+    return true
+  }
+
+  async joinFederation(
+    inviteCode: string,
+    clientName: string = DEFAULT_CLIENT_NAME,
+  ) {
+    await this.initialize()
+    this._fed = await WasmClient.join_federation(clientName, inviteCode)
+    this.resolveOpen()
   }
 
   // RPC
+  private async _rpcStream(
+    module: string,
+    method: string,
+    body: Body = {},
+    cb: (res: string) => void,
+  ) {
+    await this.openPromise
+    if (!this._fed) throw new Error('FedimintWallet is not open')
+    await this._fed.rpc(module, method, JSON.stringify(body), cb)
+  }
 
   private async _rpcSingle(module: string, method: string, body: Body = {}) {
     // console.warn('RPC', module, method, body)
-    return new Promise((resolve) =>
-      this._fed.rpc(module, method, JSON.stringify(body), (res: string) =>
-        resolve(JSON.parse(res)),
-      ),
-    )
+    return new Promise((resolve, reject) => {
+      if (!this._fed) return reject('FedimintWallet is not open')
+      this._fed.rpc(module, method, JSON.stringify(body), (res: string) => {
+        const parsed = JSON.parse(res)
+        if (parsed.error) {
+          reject(parsed.error)
+        } else {
+          resolve(parsed)
+        }
+      })
+    })
   }
 
   // Client
@@ -53,20 +104,39 @@ export class FedimintWallet {
   // async listGateways() {
   //   return await this._rpcSingle("ln", "list_gateways");
   // }
+  //
   // async verifyGateways() {
   //   return await this._rpcSingle("ln", "verify_gateway_availability");
   // }
 
   // Mint
 
-  async reissueNotes(notes: string): Promise<void> {
+  async redeemEcash(notes: string): Promise<void> {
     await this._rpcSingle('mint', 'reissue_external_notes', {
-      notes,
+      oob_notes: notes, // "out of band notes"
+      extra_meta: null,
     })
   }
 
   // Teardown
   async cleanup() {
-    await this._fed.free()
+    await this._fed?.free()
+  }
+
+  isOpen() {
+    return this._fed !== null
+  }
+
+  // Streaming
+
+  subscribeBalance(callback: (balance: number) => void) {
+    this._rpcStream('', 'subscribe_balance_changes', {}, (res: any) => {
+      callback(res)
+    })
+
+    // TODO: implement unsubscribe on wasm side
+    return () => {
+      // no-op (fake unsubscribe)
+    }
   }
 }

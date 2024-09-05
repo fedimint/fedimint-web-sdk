@@ -1,16 +1,27 @@
 import { FedimintWallet } from '@fedimint/fedimint-web'
 
-const inviteCode =
-  'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
+// TODO: Fix this
+// Add init state inside of FedimintWallet
+// Constructor should be sync
+// then call open/join on the object
+// throw errors if instance methods are called before
+// the wallet is open
 
-await FedimintWallet.initWasm().catch((err) => {
-  console.warn('INIT FAILED', err)
-})
-export const wallet = await FedimintWallet.open('CLIENT_NAME1')
+// const wallet = new FediintWallet()...
+// wallet.open()
+
+// export wallet
+
+const wallet = new FedimintWallet()
+
+await wallet
+  .open()
   .then((res) => {
-    console.warn('JOINED', res)
+    console.warn('JOINED', JSON.stringify(res))
     return res
   })
   .catch((e) => {
     console.warn('JOIN FAILED', e)
   })
+
+export { wallet }
