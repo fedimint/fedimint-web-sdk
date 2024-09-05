@@ -6,23 +6,22 @@ on:
       - main
   workflow_dispatch:
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
-
 jobs:
+  verify:
+    name: Verify
+    uses: ./.github/workflows/verify.yml
+
   release:
     name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
-
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v3
         with:
-          node-version: 20.x
+          fetch-depth: 0
 
-      - name: Install Dependencies
-        run: pnpm install
+      - name: Install dependencies
+        uses: ./.github/actions/install-deps
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
