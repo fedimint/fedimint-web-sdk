@@ -5,7 +5,7 @@ on:
   # Runs on pushes targeting the default branch
   push:
     branches: ['main']
-    paths: ['packages/fedimint-web/**', 'examples/vite-core/**']
+    paths: ['packages/core-web/**', 'examples/vite-core/**']
   workflow_dispatch:
 
 # Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages

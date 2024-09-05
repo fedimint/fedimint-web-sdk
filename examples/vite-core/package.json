@@ -5,14 +5,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:pages": "tsc && vite build --base /fedimint-web-sdk/",
+    "build:pages": "tsc && vite build --base /core-web-sdk/",
     "preview": "vite preview",
-    "preview:pages": "vite preview --base /fedimint-web-sdk/",
+    "preview:pages": "vite preview --base /core-web-sdk/",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "clean:deep": "pnpm run clean && rm -rf node_modules"
   },
   "dependencies": {
-    "@fedimint/fedimint-web": "workspace:*",
+    "@fedimint/core-web": "workspace:*",
     "react": "^18.3.1",
     "react-dom": ">=18.3.1"
   },

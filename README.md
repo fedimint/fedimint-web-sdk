@@ -13,8 +13,8 @@ There two main folders are:
 
 ### Packages
 
-- [`fedimint-web`](./packages/fedimint-web/README.md): Provides a typescript interface for the Fedimint client wasm
-- `fedimint-react`: TBD
+- [`core-web`](./packages/core-web/README.md): Provides a typescript interface for the Fedimint client wasm
+- `react`: TBD
 
 ### Examples
 

@@ -1,5 +1,5 @@
 ---
-'fedimint-web': patch
+'core-web': patch
 'fedimint-client-wasm': patch
 ---
 

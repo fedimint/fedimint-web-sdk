@@ -1,6 +1,6 @@
 CHANGELOG.md
 pnpm-lock.yaml
 tsconfig.base.json
-packages/fedimint-web/wasm/**
+packages/core-web/wasm/**
 tmp/**
 *.html

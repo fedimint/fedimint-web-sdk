@@ -4,7 +4,7 @@ This is an example application demonstrating the usage of Fedimint client in a s
 
 ## Technologies Used
 
-- fedimint-web: The Fedimint client library for web applications
+- core-web: The Fedimint client library for web applications
 - Vite: A fast build tool and development server. Check the [`vite.config.ts`](./vite.config.ts) for configurations required for handling wasm.
 - React
 
@@ -18,8 +18,8 @@ This is an example application demonstrating the usage of Fedimint client in a s
 1. Clone the repository and navigate to the example directory:
 
    ```
-   git clone https://github.com/fedimint/fedimint-web-sdk.git
-   cd fedimint-web-sdk/examples/vite-core
+   git clone https://github.com/fedimint/core-web-sdk.git
+   cd core-web-sdk/examples/vite-core
    ```
 
 2. Install dependencies:
