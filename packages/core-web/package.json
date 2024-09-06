@@ -1,7 +1,7 @@
 {
   "name": "@fedimint/core-web",
   "description": "Library for building web apps with a fedimint client",
-  "version": "0.0.2-alpha.0",
+  "version": "0.0.0-20240906152448",
   "repository": {
     "type": "git",
     "url": "https://github.com/fedimint/fedimint-web-sdk.git",
@@ -27,7 +27,6 @@
     "typescript": "^5.2.2"
   },
   "publishConfig": {
-    "access": "public",
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   }
 }
