@@ -13,7 +13,7 @@
     "lint:repo": "sherif",
     "preinstall": "pnpx only-allow pnpm",
     "prepare": "pnpm simple-git-hooks",
-    "publish": "pnpm run build && pnpm changeset publish",
+    "release": "pnpm run build && pnpm changeset publish",
     "changeset": "changeset",
     "version": "changeset version",
     "typecheck": "pnpm run --r --parallel typecheck",
