@@ -17,6 +17,7 @@
     "release": "pnpm run build && pnpm changeset publish",
     "reset": "pnpm clean && pnpm build && pnpm build:pages && pnpm preview",
     "changeset": "changeset",
+    "changeset:prepublish": "pnpm run build",
     "version": "changeset version",
     "typecheck": "pnpm run --r --parallel typecheck",
     "format": "prettier --write .",
