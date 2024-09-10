@@ -116,9 +116,11 @@ const RedeemEcash = () => {
       const res = await wallet.redeemEcash(ecashInput)
       console.warn('redeem ecash res', res)
       setRedeemResult('Redeemed!')
+      setRedeemError('')
     } catch (e) {
       console.log('Error redeeming ecash', e)
       setRedeemError(e as string)
+      setRedeemResult('')
     }
   }
 
@@ -150,9 +152,11 @@ const SendLightning = () => {
     try {
       await wallet.payInvoice(lightningInput)
       setLightningResult('Paid!')
+      setLightningError('')
     } catch (e) {
       console.log('Error paying lightning', e)
       setLightningError(e as string)
+      setLightningResult('')
     }
   }
 

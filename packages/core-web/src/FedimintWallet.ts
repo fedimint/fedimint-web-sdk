@@ -1,14 +1,14 @@
-import init, { WasmClient } from '../wasm/fedimint_client_wasm.js'
+import init, { RpcHandle, WasmClient } from '../wasm/fedimint_client_wasm.js'
 
 type StreamError = {
   error: string
+  data: never
 }
 
-// type StreamSuccess = {
-//   data: {} | [] | null | undefined | number | string | boolean
-// }
-
-type StreamSuccess = any & { error: never }
+type StreamSuccess = {
+  data: {} | [] | null | undefined | number | string | boolean
+  error: never
+}
 
 type StreamResult = StreamSuccess | StreamError
 
@@ -21,7 +21,6 @@ export class FedimintWallet {
   private initPromise: Promise<void> | null = null
   private openPromise: Promise<void> | null = null
   private resolveOpen: () => void = () => {}
-  // private worker: Worker | null = null
 
   constructor(lazy: boolean = false) {
     if (lazy) return
@@ -65,23 +64,36 @@ export class FedimintWallet {
     module: string,
     method: string,
     body: Body = {},
-    cb: (res: string) => void,
-  ) {
+    onSuccess: (res: StreamSuccess['data']) => void,
+    onError: (res: StreamError['error']) => void,
+  ): Promise<RpcHandle> {
     await this.openPromise
     if (!this._fed) throw new Error('FedimintWallet is not open')
-    await this._fed.rpc(module, method, JSON.stringify(body), cb)
+    const unsubscribe = await this._fed.rpc(
+      module,
+      method,
+      JSON.stringify(body),
+      (res: string) => {
+        const parsed = JSON.parse(res) as StreamResult
+        if (parsed.error) {
+          onError(parsed.error)
+        } else {
+          onSuccess(parsed.data)
+        }
+      },
+    )
+    return unsubscribe
   }
 
   private async _rpcSingle(module: string, method: string, body: Body = {}) {
-    // console.warn('RPC', module, method, body)
     return new Promise((resolve, reject) => {
       if (!this._fed) return reject('FedimintWallet is not open')
       this._fed.rpc(module, method, JSON.stringify(body), (res: string) => {
-        const parsed = JSON.parse(res)
+        const parsed = JSON.parse(res) as StreamResult
         if (parsed.error) {
           reject(parsed.error)
         } else {
-          resolve(parsed)
+          resolve(parsed.data)
         }
       })
     })
@@ -129,14 +141,23 @@ export class FedimintWallet {
 
   // Streaming
 
-  subscribeBalance(callback: (balance: number) => void) {
-    this._rpcStream('', 'subscribe_balance_changes', {}, (res: any) => {
-      callback(res)
-    })
+  subscribeBalance(
+    onSuccess: (balance: number) => void = () => {},
+    onError: (error: string) => void = () => {},
+  ) {
+    const unsubscribe = this._rpcStream(
+      '',
+      'subscribe_balance_changes',
+      {},
+      (res) => onSuccess(parseInt(res as string)),
+      onError,
+    )
 
-    // TODO: implement unsubscribe on wasm side
     return () => {
-      // no-op (fake unsubscribe)
+      unsubscribe.then((unsub) => {
+        unsub.cancel()
+        unsub.free()
+      })
     }
   }
 }
