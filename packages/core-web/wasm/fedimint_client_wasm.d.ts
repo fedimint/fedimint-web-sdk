@@ -2,6 +2,14 @@
 /* eslint-disable */
 /**
 */
+export class RpcHandle {
+  free(): void;
+/**
+*/
+  cancel(): void;
+}
+/**
+*/
 export class WasmClient {
   free(): void;
 /**
@@ -26,15 +34,15 @@ export class WasmClient {
 /**
 * Call a fedimint client rpc the responses are returned using `cb`
 * callback. Each rpc call *can* return multiple responses by calling
-* `cb` multiple times. You should ignore the promise by this function
-* because it has no significance.
+* `cb` multiple times. The returned RpcHandle can be used to cancel the
+* operation.
 * @param {string} module
 * @param {string} method
 * @param {string} payload
 * @param {Function} cb
-* @returns {Promise<void>}
+* @returns {RpcHandle}
 */
-  rpc(module: string, method: string, payload: string, cb: Function): Promise<void>;
+  rpc(module: string, method: string, payload: string, cb: Function): RpcHandle;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -42,6 +50,8 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly __wbg_wasmclient_free: (a: number) => void;
+  readonly __wbg_rpchandle_free: (a: number) => void;
+  readonly rpchandle_cancel: (a: number) => void;
   readonly wasmclient_open: (a: number, b: number) => number;
   readonly wasmclient_join_federation: (a: number, b: number, c: number, d: number) => number;
   readonly wasmclient_rpc: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => number;
@@ -60,7 +70,7 @@ export interface InitOutput {
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export_2: WebAssembly.Table;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h30ddf3bee31ebb33: (a: number, b: number, c: number, d: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h8697e16cd1c64495: (a: number, b: number, c: number, d: number) => void;
   readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h31a94cc9a05d5ca0: (a: number, b: number, c: number) => void;
   readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h4d11ec113460b95d: (a: number, b: number) => void;
   readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__he7056307c6986185: (a: number, b: number, c: number, d: number) => void;
