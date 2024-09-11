@@ -7,7 +7,7 @@ import {
   PayType,
   LnPayState,
   CreateBolt11Response,
-} from './types/FedimintWallet.d.js'
+} from './types/wallet.js'
 
 export { FedimintWallet }
 
