@@ -10,7 +10,7 @@ import {
   StreamError,
   CreateBolt11Response,
   ModuleKind,
-} from './types/FedimintWallet'
+} from './types/wallet.js'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
