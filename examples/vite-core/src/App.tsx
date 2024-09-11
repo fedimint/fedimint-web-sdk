@@ -149,7 +149,10 @@ const SendLightning = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await wallet.payInvoice(lightningInput)
+      await wallet.payBolt11Invoice(lightningInput, {
+        amount: 1000,
+        memo: 'test',
+      })
       setLightningResult('Paid!')
       setLightningError('')
     } catch (e) {
