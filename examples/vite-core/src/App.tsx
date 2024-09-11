@@ -8,23 +8,22 @@ const useBalance = () => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
+    // console.log('subscribing')
     const unsubscribe = wallet.subscribeBalance((balance: number) => {
+      // console.log('balance', balance)
       setBalance(balance)
     })
 
-    return unsubscribe
+    return () => {
+      // console.log('unsubscribing')
+      unsubscribe()
+    }
   }, [])
 
   return balance
 }
 
 const App = () => {
-  useEffect(() => {
-    return () => {
-      // wallet?.cleanup().catch(console.error)
-    }
-  }, [])
-
   return (
     <>
       <header>

@@ -1,18 +1,16 @@
 import init, { RpcHandle, WasmClient } from '../wasm/fedimint_client_wasm.js'
-
-type StreamError = {
-  error: string
-  data: never
-}
-
-type StreamSuccess = {
-  data: {} | [] | null | undefined | number | string | boolean
-  error: never
-}
-
-type StreamResult = StreamSuccess | StreamError
-
-type Body = string | null | Record<string, string | null>
+import {
+  JSONValue,
+  JSONObject,
+  LightningGateway,
+  OutgoingLightningPayment,
+  LnPayState,
+  LnReceiveState,
+  StreamResult,
+  StreamError,
+  CreateBolt11Response,
+  ModuleKind,
+} from './types/FedimintWallet'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
@@ -60,11 +58,14 @@ export class FedimintWallet {
   }
 
   // RPC
-  private async _rpcStream(
-    module: string,
+  private async _rpcStream<
+    Response extends JSONValue = JSONValue,
+    Body extends JSONValue = JSONValue,
+  >(
+    module: ModuleKind,
     method: string,
-    body: Body = {},
-    onSuccess: (res: StreamSuccess['data']) => void,
+    body: Body,
+    onSuccess: (res: Response) => void,
     onError: (res: StreamError['error']) => void,
   ): Promise<RpcHandle> {
     await this.openPromise
@@ -74,7 +75,8 @@ export class FedimintWallet {
       method,
       JSON.stringify(body),
       (res: string) => {
-        const parsed = JSON.parse(res) as StreamResult
+        // TODO: Validate the response?
+        const parsed = JSON.parse(res) as StreamResult<Response>
         if (parsed.error) {
           onError(parsed.error)
         } else {
@@ -85,11 +87,16 @@ export class FedimintWallet {
     return unsubscribe
   }
 
-  private async _rpcSingle(module: string, method: string, body: Body = {}) {
+  private async _rpcSingle<Response extends JSONValue = JSONValue>(
+    module: ModuleKind,
+    method: string,
+    body: JSONValue,
+  ): Promise<Response> {
     return new Promise((resolve, reject) => {
       if (!this._fed) return reject('FedimintWallet is not open')
       this._fed.rpc(module, method, JSON.stringify(body), (res: string) => {
-        const parsed = JSON.parse(res) as StreamResult
+        // TODO: Validate the response?
+        const parsed = JSON.parse(res) as StreamResult<Response>
         if (parsed.error) {
           reject(parsed.error)
         } else {
@@ -99,29 +106,11 @@ export class FedimintWallet {
     })
   }
 
-  // Client
-
   async getBalance(): Promise<number> {
-    return (await this._rpcSingle('', 'get_balance')) as number
+    return await this._rpcSingle('', 'get_balance', {})
   }
 
-  // LN
-
-  async payInvoice(invoice: string): Promise<void> {
-    await this._rpcSingle('ln', 'pay_bolt11_invoice', {
-      invoice,
-    })
-  }
-
-  // async listGateways() {
-  //   return await this._rpcSingle("ln", "list_gateways");
-  // }
-  //
-  // async verifyGateways() {
-  //   return await this._rpcSingle("ln", "verify_gateway_availability");
-  // }
-
-  // Mint
+  // Mint module methods
 
   async redeemEcash(notes: string): Promise<void> {
     await this._rpcSingle('mint', 'reissue_external_notes', {
@@ -130,26 +119,32 @@ export class FedimintWallet {
     })
   }
 
-  // Teardown
-  async cleanup() {
-    await this._fed?.free()
+  async reissueExternalNotes(
+    oobNotes: string,
+    extraMeta: JSONObject,
+  ): Promise<string> {
+    return await this._rpcSingle('mint', 'reissue_external_notes', {
+      oob_notes: oobNotes,
+      extra_meta: extraMeta,
+    })
   }
 
-  isOpen() {
-    return this._fed !== null
-  }
-
-  // Streaming
-
-  subscribeBalance(
-    onSuccess: (balance: number) => void = () => {},
+  subscribeReissueExternalNotes(
+    operationId: string,
+    onSuccess: (state: JSONValue) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    const unsubscribe = this._rpcStream(
-      '',
-      'subscribe_balance_changes',
-      {},
-      (res) => onSuccess(parseInt(res as string)),
+    type ReissueExternalNotesState =
+      | 'Created'
+      | 'Issuing'
+      | 'Done'
+      | { Failed: { error: string } }
+
+    const unsubscribe = this._rpcStream<ReissueExternalNotesState>(
+      'mint',
+      'subscribe_reissue_external_notes',
+      { operation_id: operationId },
+      (res) => onSuccess(res),
       onError,
     )
 
@@ -159,5 +154,228 @@ export class FedimintWallet {
         unsub.free()
       })
     }
+  }
+
+  async spendNotes(
+    minAmount: number,
+    tryCancelAfter: number,
+    includeInvite: boolean,
+    extraMeta: JSONValue,
+  ): Promise<JSONValue> {
+    return await this._rpcSingle('mint', 'spend_notes', {
+      min_amount: minAmount,
+      try_cancel_after: tryCancelAfter,
+      include_invite: includeInvite,
+      extra_meta: extraMeta,
+    })
+  }
+
+  async validateNotes(oobNotes: string): Promise<number> {
+    return await this._rpcSingle('mint', 'validate_notes', {
+      oob_notes: oobNotes,
+    })
+  }
+
+  async tryCancelSpendNotes(operationId: string): Promise<void> {
+    await this._rpcSingle('mint', 'try_cancel_spend_notes', {
+      operation_id: operationId,
+    })
+  }
+
+  subscribeSpendNotes(
+    operationId: string,
+    onSuccess: (state: JSONValue) => void = () => {},
+    onError: (error: string) => void = () => {},
+  ) {
+    const unsubscribe = this._rpcStream(
+      'mint',
+      'subscribe_spend_notes',
+      { operation_id: operationId },
+      (res) => onSuccess(res),
+      onError,
+    )
+
+    return () => {
+      unsubscribe.then((unsub) => {
+        unsub.cancel()
+        unsub.free()
+      })
+    }
+  }
+
+  async awaitSpendOobRefund(operationId: string): Promise<JSONValue> {
+    return await this._rpcSingle('mint', 'await_spend_oob_refund', {
+      operation_id: operationId,
+    })
+  }
+
+  /**
+   * This should ONLY be called when UNLOADING the wallet client.
+   * After this call, the FedimintWallet instance should be discarded.
+   */
+  async cleanup() {
+    await this._fed?.free()
+    this._fed = null
+    this.openPromise = null
+  }
+
+  isOpen() {
+    return this._fed !== null
+  }
+
+  async getConfig(): Promise<JSONValue> {
+    return await this._rpcSingle('', 'get_config', {})
+  }
+
+  async getFederationId(): Promise<string> {
+    return await this._rpcSingle('', 'get_federation_id', {})
+  }
+
+  async getInviteCode(peer: number): Promise<string | null> {
+    return await this._rpcSingle('', 'get_invite_code', { peer })
+  }
+
+  async listOperations(): Promise<JSONValue[]> {
+    return await this._rpcSingle('', 'list_operations', {})
+  }
+
+  async hasPendingRecoveries(): Promise<boolean> {
+    return await this._rpcSingle('', 'has_pending_recoveries', {})
+  }
+
+  async waitForAllRecoveries(): Promise<void> {
+    await this._rpcSingle('', 'wait_for_all_recoveries', {})
+  }
+
+  /// STREAMING RPCs --------------------
+
+  subscribeBalance(
+    onSuccess: (balance: number) => void = () => {},
+    onError: (error: string) => void = () => {},
+  ) {
+    const unsubscribe = this._rpcStream<string>(
+      '',
+      'subscribe_balance_changes',
+      {},
+      (res) => onSuccess(parseInt(res)),
+      onError,
+    )
+
+    return () => {
+      unsubscribe.then((unsub) => {
+        unsub.cancel()
+        unsub.free()
+      })
+    }
+  }
+
+  subscribeToRecoveryProgress(
+    onSuccess: (progress: {
+      module_id: number
+      progress: JSONValue
+    }) => void = () => {},
+    onError: (error: string) => void = () => {},
+  ) {
+    const unsubscribe = this._rpcStream<{
+      module_id: number
+      progress: JSONValue
+    }>('', 'subscribe_to_recovery_progress', {}, onSuccess, onError)
+
+    return () => {
+      unsubscribe.then((unsub) => {
+        unsub.cancel()
+        unsub.free()
+      })
+    }
+  }
+
+  // Lightning Network module methods
+
+  async createBolt11Invoice(
+    amount: number,
+    description: string,
+    expiryTime: number | null = null,
+    extraMeta: JSONObject = {},
+    gateway: LightningGateway | null = null,
+  ): Promise<CreateBolt11Response> {
+    return await this._rpcSingle('ln', 'create_bolt11_invoice', {
+      amount,
+      description,
+      expiry_time: expiryTime,
+      extra_meta: extraMeta,
+      gateway,
+    })
+  }
+
+  async payBolt11Invoice(
+    invoice: string,
+    maybeGateway: LightningGateway | null = null,
+    extraMeta: JSONObject = {},
+  ): Promise<OutgoingLightningPayment> {
+    return await this._rpcSingle('ln', 'pay_bolt11_invoice', {
+      maybe_gateway: maybeGateway,
+      invoice,
+      extra_meta: extraMeta,
+    })
+  }
+
+  subscribeLnPay(
+    operationId: string,
+    onSuccess: (state: LnPayState) => void = () => {},
+    onError: (error: string) => void = () => {},
+  ) {
+    const unsubscribe = this._rpcStream(
+      'ln',
+      'subscribe_ln_pay',
+      { operation_id: operationId },
+      onSuccess,
+      onError,
+    )
+
+    return () => {
+      unsubscribe.then((unsub) => {
+        unsub.cancel()
+        unsub.free()
+      })
+    }
+  }
+
+  subscribeLnReceive(
+    operationId: string,
+    onSuccess: (state: LnReceiveState) => void = () => {},
+    onError: (error: string) => void = () => {},
+  ) {
+    const unsubscribe = this._rpcStream(
+      'ln',
+      'subscribe_ln_receive',
+      { operation_id: operationId },
+      onSuccess,
+      onError,
+    )
+
+    return () => {
+      unsubscribe.then((unsub) => {
+        unsub.cancel()
+        unsub.free()
+      })
+    }
+  }
+
+  async getGateway(
+    gatewayId: string | null = null,
+    forceInternal: boolean = false,
+  ): Promise<LightningGateway | null> {
+    return await this._rpcSingle('ln', 'get_gateway', {
+      gateway_id: gatewayId,
+      force_internal: forceInternal,
+    })
+  }
+
+  async listGateways(): Promise<LightningGateway[]> {
+    return await this._rpcSingle('ln', 'list_gateways', {})
+  }
+
+  async updateGatewayCache(): Promise<void> {
+    await this._rpcSingle('ln', 'update_gateway_cache', {})
   }
 }
