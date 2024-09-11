@@ -8,7 +8,7 @@
     "directory": "packages/core-web"
   },
   "scripts": {
-    "build": "pnpm run clean && tsc --project tsconfig.json",
+    "build": "rollup --config",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "clean:deep": "pnpm run clean && rm -rf node_modules",
     "typecheck": "tsc --noEmit"
@@ -23,7 +23,13 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@rollup/plugin-wasm": "^6.2.2",
     "@types/node": "^20.14.8",
+    "@web/rollup-plugin-import-meta-assets": "^2.2.1",
+    "rollup": "^4.21.2",
+    "tslib": "^2.7.0",
     "typescript": "^5.2.2"
   }
 }
