@@ -1,4 +1,4 @@
-import init, { RpcHandle, WasmClient } from '../wasm/fedimint_client_wasm.js'
+import { type RpcHandle } from '../wasm/fedimint_client_wasm.js'
 import {
   JSONValue,
   JSONObject,
@@ -16,10 +16,12 @@ import {
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
 export class FedimintWallet {
-  private _fed: WasmClient | null = null
+  private worker: Worker | null = null
   private initPromise: Promise<void> | null = null
   private openPromise: Promise<void> | null = null
   private resolveOpen: () => void = () => {}
+  private requestCounter: number = 0
+  private requestCallbacks: Map<number, (value: any) => void> = new Map()
 
   constructor(lazy: boolean = false) {
     if (lazy) return
@@ -29,24 +31,48 @@ export class FedimintWallet {
     })
   }
 
+  private getNextRequestId(): number {
+    return ++this.requestCounter
+  }
+
+  private sendMessage(type: string, payload?: any): Promise<any> {
+    return new Promise((resolve) => {
+      const requestId = this.getNextRequestId()
+      this.requestCallbacks.set(requestId, resolve)
+      this.worker!.postMessage({ type, payload, requestId })
+    })
+  }
+
   // Setup
   async initialize() {
     if (this.initPromise) return this.initPromise
-    // this.worker = new Worker(new URL('./wasm.worker.ts', import.meta.url))
-    this.initPromise = init().then(() => {
-      console.trace('Fedimint Client Wasm Initialization complete')
-    })
+    this.worker = new Worker(new URL('./worker.js', import.meta.url))
+    this.worker.onmessage = this.handleWorkerMessage.bind(this)
+    this.initPromise = this.sendMessage('init')
     return this.initPromise
+  }
+
+  private handleWorkerMessage(event: MessageEvent) {
+    const { type, requestId, ...data } = event.data
+    const callback = this.requestCallbacks.get(requestId)
+    if (callback) {
+      callback(data)
+      this.requestCallbacks.delete(requestId)
+    }
+    if (type === 'rpcResponse') {
+      // Handle streaming RPC responses
+      const streamCallback = this.requestCallbacks.get(requestId)
+      if (streamCallback) {
+        streamCallback(data.response)
+      }
+    }
   }
 
   async open(clientName: string = DEFAULT_CLIENT_NAME) {
     await this.initialize()
-    const wasm = await WasmClient.open(clientName)
-
-    if (wasm === undefined) return false
-    this._fed = wasm
-    this.resolveOpen()
-    return true
+    const { success } = await this.sendMessage('open', { clientName })
+    if (success) this.resolveOpen()
+    return success
   }
 
   async joinFederation(
@@ -54,8 +80,11 @@ export class FedimintWallet {
     clientName: string = DEFAULT_CLIENT_NAME,
   ) {
     await this.initialize()
-    this._fed = await WasmClient.join_federation(clientName, inviteCode)
-    this.resolveOpen()
+    const { success } = await this.sendMessage('join', {
+      inviteCode,
+      clientName,
+    })
+    if (success) this.resolveOpen()
   }
 
   // RPC
@@ -70,21 +99,24 @@ export class FedimintWallet {
     onError: (res: StreamError['error']) => void,
   ): Promise<RpcHandle> {
     await this.openPromise
-    if (!this._fed) throw new Error('FedimintWallet is not open')
-    const unsubscribe = await this._fed.rpc(
+    if (!this.worker) throw new Error('FedimintWallet is not open')
+
+    const requestId = this.getNextRequestId()
+    this.requestCallbacks.set(requestId, (response: string) => {
+      const parsed = JSON.parse(response) as StreamResult<Response>
+      if (parsed.error) {
+        onError(parsed.error)
+      } else {
+        onSuccess(parsed.data)
+      }
+    })
+
+    const { unsubscribe } = await this.sendMessage('rpc', {
       module,
       method,
-      JSON.stringify(body),
-      (res: string) => {
-        // TODO: Validate the response?
-        const parsed = JSON.parse(res) as StreamResult<Response>
-        if (parsed.error) {
-          onError(parsed.error)
-        } else {
-          onSuccess(parsed.data)
-        }
-      },
-    )
+      body,
+      requestId,
+    })
     return unsubscribe
   }
 
@@ -93,18 +125,12 @@ export class FedimintWallet {
     method: string,
     body: JSONValue,
   ): Promise<Response> {
-    return new Promise((resolve, reject) => {
-      if (!this._fed) return reject('FedimintWallet is not open')
-      this._fed.rpc(module, method, JSON.stringify(body), (res: string) => {
-        // TODO: Validate the response?
-        const parsed = JSON.parse(res) as StreamResult<Response>
-        if (parsed.error) {
-          reject(parsed.error)
-        } else {
-          resolve(parsed.data)
-        }
-      })
-    })
+    const { response } = await this.sendMessage('rpc', { module, method, body })
+    const parsed = JSON.parse(response) as StreamResult<Response>
+    if (parsed.error) {
+      throw new Error(parsed.error)
+    }
+    return parsed.data
   }
 
   async getBalance(): Promise<number> {
@@ -215,13 +241,14 @@ export class FedimintWallet {
    * After this call, the FedimintWallet instance should be discarded.
    */
   async cleanup() {
-    await this._fed?.free()
-    this._fed = null
+    this.worker?.terminate()
+    this.worker = null
     this.openPromise = null
+    this.requestCallbacks.clear()
   }
 
   isOpen() {
-    return this._fed !== null
+    return this.worker !== null
   }
 
   async getConfig(): Promise<JSONValue> {
