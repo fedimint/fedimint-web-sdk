@@ -10,6 +10,7 @@ import {
   StreamError,
   CreateBolt11Response,
   ModuleKind,
+  GatewayInfo,
 } from './types/wallet.js'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
@@ -291,13 +292,30 @@ export class FedimintWallet {
 
   // Lightning Network module methods
 
+  async createBolt11InvoiceWithGateway(
+    amount: number,
+    description: string,
+    expiryTime: number | null = null,
+    extraMeta: JSONObject = {},
+    gatewayInfo: GatewayInfo,
+  ) {
+    return await this._rpcSingle('ln', 'create_bolt11_invoice', {
+      amount,
+      description,
+      expiry_time: expiryTime,
+      extra_meta: extraMeta,
+      gateway: gatewayInfo,
+    })
+  }
+
   async createBolt11Invoice(
     amount: number,
     description: string,
     expiryTime: number | null = null,
     extraMeta: JSONObject = {},
-    gateway: LightningGateway | null = null,
   ): Promise<CreateBolt11Response> {
+    await this.updateGatewayCache()
+    const gateway = await this._getDefaultGatewayInfo()
     return await this._rpcSingle('ln', 'create_bolt11_invoice', {
       amount,
       description,
@@ -307,13 +325,31 @@ export class FedimintWallet {
     })
   }
 
+  async payBolt11InvoiceWithGateway(
+    invoice: string,
+    gatewayInfo: GatewayInfo,
+    extraMeta: JSONObject = {},
+  ) {
+    return await this._rpcSingle('ln', 'pay_bolt11_invoice', {
+      maybe_gateway: gatewayInfo,
+      invoice,
+      extra_meta: extraMeta,
+    })
+  }
+
+  async _getDefaultGatewayInfo(): Promise<LightningGateway> {
+    const gateways = await this.listGateways()
+    return gateways[0]
+  }
+
   async payBolt11Invoice(
     invoice: string,
-    maybeGateway: LightningGateway | null = null,
     extraMeta: JSONObject = {},
   ): Promise<OutgoingLightningPayment> {
+    await this.updateGatewayCache()
+    const gateway = await this._getDefaultGatewayInfo()
     return await this._rpcSingle('ln', 'pay_bolt11_invoice', {
-      maybe_gateway: maybeGateway,
+      maybe_gateway: gateway.info,
       invoice,
       extra_meta: extraMeta,
     })
@@ -376,6 +412,7 @@ export class FedimintWallet {
   }
 
   async updateGatewayCache(): Promise<void> {
+    console.trace('Updating gateway cache')
     await this._rpcSingle('ln', 'update_gateway_cache', {})
   }
 }
