@@ -10,13 +10,21 @@ type JSONValue =
 
 type JSONObject = Record<string, JSONValue>
 
-type LightningGateway = {
+type GatewayInfo = {
   gateway_id: string
   api: string
   node_pub_key: string
   federation_index: number
   route_hints: RouteHint[]
   fees: FeeToAmount
+}
+type LightningGateway = {
+  info: GatewayInfo
+  vetted: boolean
+  ttl: {
+    nanos: number
+    secs: number
+  }
 }
 
 type RouteHint = {
@@ -84,6 +92,7 @@ export {
   LnPayState,
   LnReceiveState,
   CreateBolt11Response,
+  GatewayInfo,
   StreamError,
   StreamSuccess,
   StreamResult,
