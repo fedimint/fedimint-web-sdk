@@ -1,6 +1,6 @@
 # Simple Vite Example
 
-This is an example application demonstrating the usage of Fedimint client in a simple web application.
+This is an example application demonstrating the usage of Fedimint client in a simple web application. [(demo)](https://fedimint.github.io/fedimint-web-sdk/)
 
 ## Technologies Used
 
@@ -13,13 +13,13 @@ This is an example application demonstrating the usage of Fedimint client in a s
 - Node.js
 - pnpm (recommended) or npm
 
-## Running the Application
+## Running the Application Locally
 
 1. Clone the repository and navigate to the example directory:
 
    ```
-   git clone https://github.com/fedimint/core-web-sdk.git
-   cd core-web-sdk/examples/vite-core
+   git clone https://github.com/fedimint/fedimint-web-sdk.git
+   cd fedimint-web-sdk/examples/vite-core
    ```
 
 2. Install dependencies:
