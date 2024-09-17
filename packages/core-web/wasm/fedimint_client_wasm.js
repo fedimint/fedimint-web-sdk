@@ -1101,7 +1101,7 @@ async function __wbg_init(input) {
     if (wasm !== undefined) return wasm;
 
     if (typeof input === 'undefined') {
-        input = new URL('fedimint_client_wasm_bg.wasm', import.meta.url);
+        throw new Error('Input is undefined')
     }
     const imports = __wbg_get_imports();
 

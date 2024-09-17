@@ -13,4 +13,16 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['@fedimint/core-web'], // Required for wasm support
   },
+  worker: {
+    format: 'es',
+    plugins: () => [wasm(), topLevelAwait()],
+  },
+  build: {
+    target: 'esnext',
+  },
+  // resolve: {
+  //   alias: {
+  //     '@fedimint/core-web': '../../packages/core-web/src',
+  //   },
+  // },
 })
