@@ -108,15 +108,30 @@ export class FedimintWallet {
     if (response.success) this._isOpen = true
   }
 
-  private _unsubscribe(requestId: number) {
-    this.worker?.postMessage({
-      type: 'unsubscribe',
-      requestId,
-    })
-    this.requestCallbacks.delete(requestId)
-  }
-
-  // RPC
+  /**
+   * @summary Initiates an RPC stream with the specified module and method.
+   *
+   * @description
+   * This function sets up an RPC stream by sending a request to a worker and
+   * handling responses asynchronously. It ensures that unsubscription is handled
+   * correctly, even if the unsubscribe function is called before the subscription
+   * is fully established, by deferring the unsubscription attempt using `setTimeout`.
+   *
+   * The function operates in a non-blocking manner, leveraging Promises to manage
+   * asynchronous operations and callbacks to handle responses.
+   *
+   *
+   * @template Response - The expected type of the successful response.
+   * @template Body - The type of the request body.
+   * @param module - The module kind to interact with.
+   * @param method - The method name to invoke on the module.
+   * @param body - The request payload.
+   * @param onSuccess - Callback invoked with the response data on success.
+   * @param onError - Callback invoked with error information if an error occurs.
+   * @param onEnd - Optional callback invoked when the stream ends.
+   * @returns A function that can be called to cancel the subscription.
+   *
+   */
   private _rpcStream<
     Response extends JSONValue = JSONValue,
     Body extends JSONValue = JSONValue,
@@ -129,10 +144,24 @@ export class FedimintWallet {
     onEnd: () => void = () => {},
   ): CancelFunction {
     const requestId = this.getNextRequestId()
-    let resolveFn;
-    const unsubscribePromise = new Promise(resolve => {
-      resolveFn = resolve
+
+    let unsubscribe: (value: void) => void = () => {}
+    let isSubscribed = false
+
+    const unsubscribePromise = new Promise<void>((resolve) => {
+      unsubscribe = () => {
+        if (isSubscribed) {
+          // If already subscribed, resolve immediately to trigger unsubscription
+          resolve()
+        } else {
+          // If not yet subscribed, defer the unsubscribe attempt to the next event loop tick
+          // This ensures that subscription setup has time to complete
+          setTimeout(() => unsubscribe(), 0)
+        }
+      }
     })
+
+    // Initiate the inner RPC stream setup asynchronously
     this._rpcStreamInner(
       requestId,
       module,
@@ -142,10 +171,10 @@ export class FedimintWallet {
       onError,
       onEnd,
       unsubscribePromise,
-    )
-    const unsubscribe = () => {
-      resolveFn()
-    }
+    ).then(() => {
+      isSubscribed = true
+    })
+
     return unsubscribe
   }
 
@@ -160,19 +189,14 @@ export class FedimintWallet {
     onSuccess: (res: Response) => void,
     onError: (res: StreamError['error']) => void,
     onEnd: () => void = () => {},
-    // when this promise resolves we call unsubscribe
     unsubscribePromise: Promise<void>,
-  ): Promise<CancelFunction> {
+    // Unsubscribe function
+  ): Promise<void> {
     await this.openPromise
     if (!this.worker || !this._isOpen)
       throw new Error('FedimintWallet is not open')
 
-    if (unsubscribePromise.fulfilled) {
-      return;
-    }
     this.requestCallbacks.set(requestId, (response: StreamResult<Response>) => {
-      // const parsed = JSON.parse(response) as StreamResult<Response>
-      // console.log('parsed', parsed)
       if (response.error !== undefined) {
         onError(response.error)
       } else if (response.data !== undefined) {
@@ -182,7 +206,6 @@ export class FedimintWallet {
         onEnd()
       }
     })
-    // this.requestCallbacks.set(requestId, resolve)
     this.worker.postMessage({
       type: 'rpc',
       payload: { module, method, body },
@@ -205,13 +228,7 @@ export class FedimintWallet {
     body: JSONValue,
   ): Promise<Response> {
     return new Promise((resolve, reject) => {
-      this._rpcStream<Response>(
-        module,
-        method,
-        body,
-        resolve,
-        reject,
-      )
+      this._rpcStream<Response>(module, method, body, resolve, reject)
     })
   }
 
