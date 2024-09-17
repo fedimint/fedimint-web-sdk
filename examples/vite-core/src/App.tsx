@@ -256,7 +256,7 @@ const GenerateLightningInvoice = () => {
       {invoice && (
         <div className="success">
           <strong>Generated Invoice:</strong>
-          <pre>{invoice}</pre>
+          <pre className="invoice-wrap">{invoice}</pre>
         </div>
       )}
       {error && <div className="error">{error}</div>}
