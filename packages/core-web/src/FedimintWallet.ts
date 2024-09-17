@@ -1,4 +1,3 @@
-import { type RpcHandle } from '../wasm/fedimint_client_wasm.js'
 import {
   JSONValue,
   JSONObject,
@@ -11,6 +10,7 @@ import {
   CreateBolt11Response,
   ModuleKind,
   GatewayInfo,
+  CancelFunction,
 } from './types/wallet.js'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
@@ -18,60 +18,84 @@ const DEFAULT_CLIENT_NAME = 'fm-default' as const
 export class FedimintWallet {
   private worker: Worker | null = null
   private initPromise: Promise<void> | null = null
-  private openPromise: Promise<void> | null = null
+  private openPromise: Promise<void>
   private resolveOpen: () => void = () => {}
+  private _isOpen: boolean = false
   private requestCounter: number = 0
   private requestCallbacks: Map<number, (value: any) => void> = new Map()
 
-  constructor(lazy: boolean = false) {
-    if (lazy) return
-    this.initialize()
+  constructor(lazy: boolean = false, open: boolean = true) {
     this.openPromise = new Promise((resolve) => {
       this.resolveOpen = resolve
     })
+    if (lazy) return
+    this.initialize()
+  }
+
+  async waitForOpen() {
+    if (this._isOpen) return
+    return this.openPromise
   }
 
   private getNextRequestId(): number {
     return ++this.requestCounter
   }
 
-  private sendMessage(type: string, payload?: any): Promise<any> {
-    return new Promise((resolve) => {
+  // Sends a single message and deletes the request callback
+  // The first response
+  private sendSingleMessage(type: string, payload?: any): Promise<any> {
+    return new Promise((resolve, reject) => {
       const requestId = this.getNextRequestId()
-      this.requestCallbacks.set(requestId, resolve)
-      this.worker!.postMessage({ type, payload, requestId })
+      this.requestCallbacks.set(requestId, (data) => {
+        this.requestCallbacks.delete(requestId)
+        resolve(data)
+      })
+      try {
+        this.worker!.postMessage({ type, payload, requestId })
+      } catch (e) {
+        reject(e)
+      }
     })
   }
+
+  // private sendOpenMessage(type: string, payload?: any): Promise<any> {
+  //   return new Promise((resolve) => {
+  //     const requestId = this.getNextRequestId()
+  //     this.requestCallbacks.set(requestId, resolve)
+  //     this.worker!.postMessage({ type, payload, requestId })
+  //   })
+  // }
 
   // Setup
   async initialize() {
     if (this.initPromise) return this.initPromise
     this.worker = new Worker(new URL('./worker.js', import.meta.url))
     this.worker.onmessage = this.handleWorkerMessage.bind(this)
-    this.initPromise = this.sendMessage('init')
+    this.initPromise = this.sendSingleMessage('init')
     return this.initPromise
   }
 
   private handleWorkerMessage(event: MessageEvent) {
     const { type, requestId, ...data } = event.data
-    const callback = this.requestCallbacks.get(requestId)
-    if (callback) {
-      callback(data)
-      this.requestCallbacks.delete(requestId)
-    }
-    if (type === 'rpcResponse') {
-      // Handle streaming RPC responses
-      const streamCallback = this.requestCallbacks.get(requestId)
-      if (streamCallback) {
-        streamCallback(data.response)
-      }
+    const streamCallback = this.requestCallbacks.get(requestId)
+    // TODO: Handle errors... maybe have another callbacks list for errors?
+    if (streamCallback) {
+      streamCallback(data.data)
     }
   }
 
   async open(clientName: string = DEFAULT_CLIENT_NAME) {
     await this.initialize()
-    const { success } = await this.sendMessage('open', { clientName })
-    if (success) this.resolveOpen()
+    // TODO: Determine if this should be safe or throw
+    if (this._isOpen)
+      throw new Error(
+        'The FedimintWallet is already open. You can only call `FedimintWallet.open on closed clients.`',
+      )
+    const { success } = await this.sendSingleMessage('open', { clientName })
+    if (success) {
+      this._isOpen = !!success
+      this.resolveOpen()
+    }
     return success
   }
 
@@ -80,15 +104,28 @@ export class FedimintWallet {
     clientName: string = DEFAULT_CLIENT_NAME,
   ) {
     await this.initialize()
-    const { success } = await this.sendMessage('join', {
+    // TODO: Determine if this should be safe or throw
+    if (this._isOpen)
+      throw new Error(
+        'Failed to Join Federation. You have already joined a federation, and you can only join one federation per wallet.',
+      )
+    const response = await this.sendSingleMessage('join', {
       inviteCode,
       clientName,
     })
-    if (success) this.resolveOpen()
+    // if (success) this.resolveOpen()
+    if (response.success) this._isOpen = true
   }
+  // private sendOpenMessage(type: string, payload?: any): Promise<any> {
+  //   return new Promise((resolve) => {
+  //     const requestId = this.getNextRequestId()
+  //     this.requestCallbacks.set(requestId, resolve)
+  //     this.worker!.postMessage({ type, payload, requestId })
+  //   })
+  // }
 
   // RPC
-  private async _rpcStream<
+  private _rpcStream<
     Response extends JSONValue = JSONValue,
     Body extends JSONValue = JSONValue,
   >(
@@ -97,27 +134,75 @@ export class FedimintWallet {
     body: Body,
     onSuccess: (res: Response) => void,
     onError: (res: StreamError['error']) => void,
-  ): Promise<RpcHandle> {
-    await this.openPromise
-    if (!this.worker) throw new Error('FedimintWallet is not open')
-
+    onEnd: () => void = () => {},
+  ): CancelFunction {
     const requestId = this.getNextRequestId()
-    this.requestCallbacks.set(requestId, (response: string) => {
-      const parsed = JSON.parse(response) as StreamResult<Response>
-      if (parsed.error) {
-        onError(parsed.error)
-      } else {
-        onSuccess(parsed.data)
-      }
-    })
-
-    const { unsubscribe } = await this.sendMessage('rpc', {
+    this._rpcStreamInner(
+      requestId,
       module,
       method,
       body,
+      onSuccess,
+      onError,
+      onEnd,
+    )
+    const unsubscribe = () => {
+      ///
+    }
+    return unsubscribe
+  }
+
+  private async _rpcStreamInner<
+    Response extends JSONValue = JSONValue,
+    Body extends JSONValue = JSONValue,
+  >(
+    requestId: number,
+    module: ModuleKind,
+    method: string,
+    body: Body,
+    onSuccess: (res: Response) => void,
+    onError: (res: StreamError['error']) => void,
+    onEnd: () => void = () => {},
+  ): Promise<CancelFunction> {
+    await this.openPromise
+    if (!this.worker || !this._isOpen)
+      throw new Error('FedimintWallet is not open')
+
+    this.requestCallbacks.set(requestId, (response: StreamResult<Response>) => {
+      // const parsed = JSON.parse(response) as StreamResult<Response>
+      // console.log('parsed', parsed)
+      if (response.error !== undefined) {
+        onError(response.error)
+      } else if (response.data !== undefined) {
+        onSuccess(response.data)
+      } else if (response.end !== undefined) {
+        this.requestCallbacks.delete(requestId)
+        onEnd()
+      }
+    })
+    // this.requestCallbacks.set(requestId, resolve)
+    this.worker.postMessage({
+      type: 'rpc',
+      payload: { module, method, body },
       requestId,
     })
-    return unsubscribe
+
+    return () => {
+      console.trace('UNSUBSCRIBING', requestId)
+      this.worker?.postMessage({
+        type: 'unsubscribe',
+        requestId,
+      })
+      this.requestCallbacks.delete(requestId)
+    }
+
+    // const { unsubscribe } = await this.sendMessage('rpc', {
+    //   module,
+    //   method,
+    //   body,
+    //   requestId,
+    // })
+    // return unsubscribe
   }
 
   private async _rpcSingle<Response extends JSONValue = JSONValue>(
@@ -125,12 +210,31 @@ export class FedimintWallet {
     method: string,
     body: JSONValue,
   ): Promise<Response> {
-    const { response } = await this.sendMessage('rpc', { module, method, body })
-    const parsed = JSON.parse(response) as StreamResult<Response>
-    if (parsed.error) {
-      throw new Error(parsed.error)
-    }
-    return parsed.data
+    // const { response } = await this.sendSingleMessage('rpc', {
+    //   module,
+    //   method,
+    //   body,
+    // })
+    //   return new Promise((resolve) => {
+    //     const requestId = this.getNextRequestId()
+    //     this.requestCallbacks.set(requestId, resolve)
+    //     this.worker!.postMessage({ type, payload, requestId })
+    //   })
+    return new Promise(async (resolve, reject) => {
+      const response = await this._rpcStream<Response>(
+        module,
+        method,
+        body,
+        resolve,
+        reject,
+      )
+    })
+
+    // const parsed = JSON.parse(response) as StreamResult<Response>
+    // if (parsed.error) {
+    //   throw new Error(parsed.error)
+    // }
+    // return parsed.data
   }
 
   async getBalance(): Promise<number> {
@@ -175,12 +279,7 @@ export class FedimintWallet {
       onError,
     )
 
-    return () => {
-      unsubscribe.then((unsub) => {
-        unsub.cancel()
-        unsub.free()
-      })
-    }
+    return unsubscribe
   }
 
   async spendNotes(
@@ -222,12 +321,7 @@ export class FedimintWallet {
       onError,
     )
 
-    return () => {
-      unsubscribe.then((unsub) => {
-        unsub.cancel()
-        unsub.free()
-      })
-    }
+    return unsubscribe
   }
 
   async awaitSpendOobRefund(operationId: string): Promise<JSONValue> {
@@ -243,12 +337,12 @@ export class FedimintWallet {
   async cleanup() {
     this.worker?.terminate()
     this.worker = null
-    this.openPromise = null
+    this.openPromise = Promise.resolve()
     this.requestCallbacks.clear()
   }
 
   isOpen() {
-    return this.worker !== null
+    return this.worker !== null && this._isOpen
   }
 
   async getConfig(): Promise<JSONValue> {
@@ -289,12 +383,7 @@ export class FedimintWallet {
       onError,
     )
 
-    return () => {
-      unsubscribe.then((unsub) => {
-        unsub.cancel()
-        unsub.free()
-      })
-    }
+    return unsubscribe
   }
 
   subscribeToRecoveryProgress(
@@ -309,12 +398,7 @@ export class FedimintWallet {
       progress: JSONValue
     }>('', 'subscribe_to_recovery_progress', {}, onSuccess, onError)
 
-    return () => {
-      unsubscribe.then((unsub) => {
-        unsub.cancel()
-        unsub.free()
-      })
-    }
+    return unsubscribe
   }
 
   // Lightning Network module methods
@@ -395,12 +479,7 @@ export class FedimintWallet {
       onError,
     )
 
-    return () => {
-      unsubscribe.then((unsub) => {
-        unsub.cancel()
-        unsub.free()
-      })
-    }
+    return unsubscribe
   }
 
   subscribeLnReceive(
@@ -416,12 +495,7 @@ export class FedimintWallet {
       onError,
     )
 
-    return () => {
-      unsubscribe.then((unsub) => {
-        unsub.cancel()
-        unsub.free()
-      })
-    }
+    return unsubscribe
   }
 
   async getGateway(

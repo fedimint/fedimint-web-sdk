@@ -108,6 +108,36 @@ button:disabled {
   font-size: 1.1rem;
 }
 
+.input-group {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.input-group label {
+  font-weight: bold;
+  align-self: center;
+}
+
+.input-group input {
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+button[type='submit'] {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
 @media (min-width: 768px) {
   body {
     padding: 2rem;

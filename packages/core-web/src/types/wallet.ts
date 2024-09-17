@@ -72,14 +72,27 @@ type CreateBolt11Response = {
 type StreamError = {
   error: string
   data: never
+  end: never
 }
 
 type StreamSuccess<T extends JSONValue> = {
   data: T
   error: never
+  end: never
 }
 
-type StreamResult<T extends JSONValue> = StreamSuccess<T> | StreamError
+type StreamEnd = {
+  end: string
+  data: never
+  error: never
+}
+
+type StreamResult<T extends JSONValue> =
+  | StreamSuccess<T>
+  | StreamError
+  | StreamEnd
+
+type CancelFunction = () => void
 
 export {
   JSONValue,
@@ -97,4 +110,5 @@ export {
   StreamSuccess,
   StreamResult,
   ModuleKind,
+  CancelFunction,
 }

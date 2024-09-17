@@ -1,21 +1,30 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { wallet } from './wallet'
 
 const TESTNET_FEDERATION_CODE =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
 
+const useIsOpen = () => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const checkIsOpen = useCallback(() => {
+    if (isOpen !== wallet.isOpen()) setIsOpen(wallet.isOpen())
+    return isOpen
+  }, [wallet])
+
+  return { isOpen, checkIsOpen }
+}
+
 const useBalance = () => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
-    // console.log('subscribing')
     const unsubscribe = wallet.subscribeBalance((balance: number) => {
-      // console.log('balance', balance)
+      console.log('balance', balance)
       setBalance(balance)
     })
 
     return () => {
-      // console.log('unsubscribing')
       unsubscribe()
     }
   }, [])
@@ -24,6 +33,7 @@ const useBalance = () => {
 }
 
 const App = () => {
+  const { isOpen, checkIsOpen } = useIsOpen()
   return (
     <>
       <header>
@@ -31,8 +41,9 @@ const App = () => {
         <h2>This is a WIP</h2>
       </header>
       <main>
-        <WalletStatus />
-        <JoinFederation />
+        <WalletStatus isOpen={isOpen} checkIsOpen={checkIsOpen} />
+        <JoinFederation isOpen={isOpen} checkIsOpen={checkIsOpen} />
+        <GenerateLightningInvoice />
         <RedeemEcash />
         <SendLightning />
       </main>
@@ -40,7 +51,13 @@ const App = () => {
   )
 }
 
-const WalletStatus = () => {
+const WalletStatus = ({
+  isOpen,
+  checkIsOpen,
+}: {
+  isOpen: boolean
+  checkIsOpen: () => boolean
+}) => {
   const balance = useBalance()
 
   return (
@@ -48,7 +65,8 @@ const WalletStatus = () => {
       <h3>Wallet Status</h3>
       <div className="row">
         <strong>Is Wallet Open?</strong>
-        <div>{wallet.isOpen() ? 'Yes' : 'No'}</div>
+        <div>{isOpen ? 'Yes' : 'No'}</div>
+        <button onClick={() => checkIsOpen()}>Check</button>
       </div>
       <div className="row">
         <strong>Balance:</strong>
@@ -59,22 +77,32 @@ const WalletStatus = () => {
   )
 }
 
-const JoinFederation = () => {
+const JoinFederation = ({
+  isOpen,
+  checkIsOpen,
+}: {
+  isOpen: boolean
+  checkIsOpen: () => boolean
+}) => {
   const [inviteCode, setInviteCode] = useState(TESTNET_FEDERATION_CODE)
   const [joinResult, setJoinResult] = useState<string | null>(null)
   const [joinError, setJoinError] = useState('')
 
   const joinFederation = async (e: React.FormEvent) => {
     e.preventDefault()
+    const open = checkIsOpen()
+    console.log('OPEN', open)
+    if (open) return
+
     console.log('Joining federation:', inviteCode)
     try {
       const res = await wallet?.joinFederation(inviteCode)
-      console.warn('join federation res', res)
+      console.log('join federation res', res)
       setJoinResult('Joined!')
       setJoinError('')
-    } catch (e) {
+    } catch (e: any) {
       console.log('Error joining federation', e)
-      setJoinError(e as string)
+      setJoinError(typeof e === 'object' ? e.toString() : (e as string))
       setJoinResult('')
     }
   }
@@ -89,15 +117,13 @@ const JoinFederation = () => {
           required
           value={inviteCode}
           onChange={(e) => setInviteCode(e.target.value)}
-          disabled={wallet.isOpen()}
+          disabled={isOpen}
         />
-        <button type="submit" disabled={wallet.isOpen()}>
+        <button type="submit" disabled={isOpen}>
           Join
         </button>
       </form>
-      {!joinResult && wallet.isOpen() && (
-        <i>(You've already joined a federation)</i>
-      )}
+      {!joinResult && isOpen && <i>(You've already joined a federation)</i>}
       {joinResult && <div className="success">{joinResult}</div>}
       {joinError && <div className="error">{joinError}</div>}
     </div>
@@ -113,7 +139,7 @@ const RedeemEcash = () => {
     e.preventDefault()
     try {
       const res = await wallet.redeemEcash(ecashInput)
-      console.warn('redeem ecash res', res)
+      console.log('redeem ecash res', res)
       setRedeemResult('Redeemed!')
       setRedeemError('')
     } catch (e) {
@@ -173,6 +199,67 @@ const SendLightning = () => {
       </form>
       {lightningResult && <div className="success">{lightningResult}</div>}
       {lightningError && <div className="error">{lightningError}</div>}
+    </div>
+  )
+}
+
+const GenerateLightningInvoice = () => {
+  const [amount, setAmount] = useState('')
+  const [description, setDescription] = useState('')
+  const [invoice, setInvoice] = useState('')
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setInvoice('')
+    setError('')
+
+    try {
+      const response = await wallet.createBolt11Invoice(
+        Number(amount),
+        description,
+      )
+      setInvoice(response.invoice)
+    } catch (e) {
+      console.error('Error generating Lightning invoice', e)
+      setError(e instanceof Error ? e.message : String(e))
+    }
+  }
+
+  return (
+    <div className="section">
+      <h3>Generate Lightning Invoice</h3>
+      <form onSubmit={handleSubmit}>
+        <div className="input-group">
+          <label htmlFor="amount">Amount (sats):</label>
+          <input
+            id="amount"
+            type="number"
+            placeholder="Enter amount"
+            required
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+        </div>
+        <div className="input-group">
+          <label htmlFor="description">Description:</label>
+          <input
+            id="description"
+            placeholder="Enter description"
+            required
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+        <button type="submit">Generate Invoice</button>
+      </form>
+      {invoice && (
+        <div className="success">
+          <strong>Generated Invoice:</strong>
+          <pre>{invoice}</pre>
+        </div>
+      )}
+      {error && <div className="error">{error}</div>}
     </div>
   )
 }

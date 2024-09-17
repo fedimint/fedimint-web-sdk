@@ -10,6 +10,7 @@ export default [
       {
         dir: 'dist',
         format: 'es',
+        sourcemap: true,
       },
     ],
     plugins: [
