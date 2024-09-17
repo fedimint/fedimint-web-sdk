@@ -124,6 +124,14 @@ export class FedimintWallet {
   //   })
   // }
 
+  private _unsubscribe(requestId: number) {
+    this.worker?.postMessage({
+      type: 'unsubscribe',
+      requestId,
+    })
+    this.requestCallbacks.delete(requestId)
+  }
+
   // RPC
   private _rpcStream<
     Response extends JSONValue = JSONValue,
@@ -147,7 +155,7 @@ export class FedimintWallet {
       onEnd,
     )
     const unsubscribe = () => {
-      ///
+      this._unsubscribe(requestId)
     }
     return unsubscribe
   }
@@ -432,7 +440,7 @@ export class FedimintWallet {
       description,
       expiry_time: expiryTime,
       extra_meta: extraMeta,
-      gateway,
+      gateway: gateway.info,
     })
   }
 

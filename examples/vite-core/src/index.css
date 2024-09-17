@@ -106,6 +106,9 @@ button:disabled {
   padding: 0.75rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   font-size: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .input-group {
@@ -163,4 +166,14 @@ button[type='submit'] {
     font-size: 1rem;
     padding: 0.5em 1em;
   }
+}
+
+.invoice-wrap {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-width: 100%;
+  overflow-x: auto;
+  background-color: #333;
+  padding: 0.5rem;
+  border-radius: 4px;
 }
