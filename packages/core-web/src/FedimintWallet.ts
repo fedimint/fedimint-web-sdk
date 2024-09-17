@@ -58,14 +58,6 @@ export class FedimintWallet {
     })
   }
 
-  // private sendOpenMessage(type: string, payload?: any): Promise<any> {
-  //   return new Promise((resolve) => {
-  //     const requestId = this.getNextRequestId()
-  //     this.requestCallbacks.set(requestId, resolve)
-  //     this.worker!.postMessage({ type, payload, requestId })
-  //   })
-  // }
-
   // Setup
   async initialize() {
     if (this.initPromise) return this.initPromise
@@ -113,16 +105,8 @@ export class FedimintWallet {
       inviteCode,
       clientName,
     })
-    // if (success) this.resolveOpen()
     if (response.success) this._isOpen = true
   }
-  // private sendOpenMessage(type: string, payload?: any): Promise<any> {
-  //   return new Promise((resolve) => {
-  //     const requestId = this.getNextRequestId()
-  //     this.requestCallbacks.set(requestId, resolve)
-  //     this.worker!.postMessage({ type, payload, requestId })
-  //   })
-  // }
 
   private _unsubscribe(requestId: number) {
     this.worker?.postMessage({
@@ -145,6 +129,10 @@ export class FedimintWallet {
     onEnd: () => void = () => {},
   ): CancelFunction {
     const requestId = this.getNextRequestId()
+    let resolveFn;
+    const unsubscribePromise = new Promise(resolve => {
+      resolveFn = resolve
+    })
     this._rpcStreamInner(
       requestId,
       module,
@@ -153,9 +141,10 @@ export class FedimintWallet {
       onSuccess,
       onError,
       onEnd,
+      unsubscribePromise,
     )
     const unsubscribe = () => {
-      this._unsubscribe(requestId)
+      resolveFn()
     }
     return unsubscribe
   }
@@ -171,11 +160,16 @@ export class FedimintWallet {
     onSuccess: (res: Response) => void,
     onError: (res: StreamError['error']) => void,
     onEnd: () => void = () => {},
+    // when this promise resolves we call unsubscribe
+    unsubscribePromise: Promise<void>,
   ): Promise<CancelFunction> {
     await this.openPromise
     if (!this.worker || !this._isOpen)
       throw new Error('FedimintWallet is not open')
 
+    if (unsubscribePromise.fulfilled) {
+      return;
+    }
     this.requestCallbacks.set(requestId, (response: StreamResult<Response>) => {
       // const parsed = JSON.parse(response) as StreamResult<Response>
       // console.log('parsed', parsed)
@@ -195,22 +189,14 @@ export class FedimintWallet {
       requestId,
     })
 
-    return () => {
+    unsubscribePromise.then(() => {
       console.trace('UNSUBSCRIBING', requestId)
       this.worker?.postMessage({
         type: 'unsubscribe',
         requestId,
       })
       this.requestCallbacks.delete(requestId)
-    }
-
-    // const { unsubscribe } = await this.sendMessage('rpc', {
-    //   module,
-    //   method,
-    //   body,
-    //   requestId,
-    // })
-    // return unsubscribe
+    })
   }
 
   private async _rpcSingle<Response extends JSONValue = JSONValue>(
@@ -218,18 +204,8 @@ export class FedimintWallet {
     method: string,
     body: JSONValue,
   ): Promise<Response> {
-    // const { response } = await this.sendSingleMessage('rpc', {
-    //   module,
-    //   method,
-    //   body,
-    // })
-    //   return new Promise((resolve) => {
-    //     const requestId = this.getNextRequestId()
-    //     this.requestCallbacks.set(requestId, resolve)
-    //     this.worker!.postMessage({ type, payload, requestId })
-    //   })
-    return new Promise(async (resolve, reject) => {
-      const response = await this._rpcStream<Response>(
+    return new Promise((resolve, reject) => {
+      this._rpcStream<Response>(
         module,
         method,
         body,
@@ -237,12 +213,6 @@ export class FedimintWallet {
         reject,
       )
     })
-
-    // const parsed = JSON.parse(response) as StreamResult<Response>
-    // if (parsed.error) {
-    //   throw new Error(parsed.error)
-    // }
-    // return parsed.data
   }
 
   async getBalance(): Promise<number> {
