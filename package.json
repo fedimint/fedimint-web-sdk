@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm run --r --filter \"./packages/**\" build",
-    "build:pages": "pnpm build && pnpm --filter vite-core build:pages",
+    "build:pages": "pnpm --filter vite-core build:pages",
     "clean": "pnpm run --r --parallel clean && rm -rf packages/**/*.json.tmp",
     "clean:deep": "rm -rf node_modules && pnpm run --r --parallel clean:deep",
     "dev": "pnpm dev:core",
@@ -13,7 +13,9 @@
     "lint:repo": "sherif",
     "preinstall": "pnpx only-allow pnpm",
     "prepare": "pnpm simple-git-hooks",
+    "preview": "pnpm --filter vite-core preview",
     "release": "pnpm run build && pnpm changeset publish",
+    "reset": "pnpm clean && pnpm build && pnpm build:pages && pnpm preview",
     "changeset": "changeset",
     "version": "changeset version",
     "typecheck": "pnpm run --r --parallel typecheck",

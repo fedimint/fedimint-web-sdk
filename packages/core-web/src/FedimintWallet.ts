@@ -11,7 +11,7 @@ import {
   ModuleKind,
   GatewayInfo,
   CancelFunction,
-} from './types/wallet.js'
+} from './types/wallet'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
@@ -48,7 +48,8 @@ export class FedimintWallet {
       const requestId = this.getNextRequestId()
       this.requestCallbacks.set(requestId, (data) => {
         this.requestCallbacks.delete(requestId)
-        resolve(data)
+        if (data.data) resolve(data.data)
+        else if (data.error) reject(data.error)
       })
       try {
         this.worker!.postMessage({ type, payload, requestId })
@@ -59,7 +60,7 @@ export class FedimintWallet {
   }
 
   // Setup
-  async initialize() {
+  initialize() {
     if (this.initPromise) return this.initPromise
     this.worker = new Worker(new URL('./worker.js', import.meta.url))
     this.worker.onmessage = this.handleWorkerMessage.bind(this)
@@ -72,7 +73,7 @@ export class FedimintWallet {
     const streamCallback = this.requestCallbacks.get(requestId)
     // TODO: Handle errors... maybe have another callbacks list for errors?
     if (streamCallback) {
-      streamCallback(data.data)
+      streamCallback(data) // {data: something} OR {error: something}
     }
   }
 
