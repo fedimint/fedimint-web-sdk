@@ -15,18 +15,20 @@
   },
   "files": [
     "dist",
-    "src",
-    "wasm"
+    "src"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/worker.js",
+    "./dist/index.js"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "fedimint-client-wasm": "file:./wasm"
+    "@fedimint/fedimint-client-wasm": "file:./wasm"
   },
-  "bundledDependencies": [
-    "fedimint-client-wasm"
+  "bundleDependencies": [
+    "@fedimint/fedimint-client-wasm"
   ],
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",

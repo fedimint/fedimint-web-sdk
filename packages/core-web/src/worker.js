@@ -1,6 +1,4 @@
-// import { WasmClient } from '../wasm/fedimint_client_wasm.js'
-// import { WasmClient } from 'fedimint-client-wasm'
-// import wasm from '../wasm/fedimint_client_wasm_bg.wasm'
+// Web Worker for fedimint-client-wasm to run in the browser
 
 let WasmClient = null
 let client = null
@@ -15,7 +13,7 @@ self.onmessage = async (event) => {
   const { type, payload, requestId } = event.data
 
   if (type === 'init') {
-    WasmClient = (await import('fedimint-client-wasm')).WasmClient
+    WasmClient = (await import('@fedimint/fedimint-client-wasm')).WasmClient
     self.postMessage({ type: 'initialized', data: {}, requestId })
   } else if (type === 'open') {
     const { clientName } = payload
