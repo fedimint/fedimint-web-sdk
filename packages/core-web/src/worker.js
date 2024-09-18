@@ -55,7 +55,7 @@ self.onmessage = async (event) => {
       JSON.stringify(body),
       (res) => {
         const data = JSON.parse(res)
-        self.postMessage({ type: 'rpcResponse', data, requestId })
+        self.postMessage({ type: 'rpcResponse', requestId, ...data })
 
         if (data.end === undefined) return
 
