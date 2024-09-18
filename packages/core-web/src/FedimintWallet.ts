@@ -47,7 +47,6 @@ export class FedimintWallet {
     return new Promise((resolve, reject) => {
       const requestId = this.getNextRequestId()
       this.requestCallbacks.set(requestId, (data) => {
-        console.error('CALLBACK FROM SINGLE', data)
         this.requestCallbacks.delete(requestId)
         if (data.data) resolve(data.data)
         else if (data.error) reject(data.error)
