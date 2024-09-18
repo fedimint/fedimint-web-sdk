@@ -2,7 +2,7 @@
 ![NPM Version (latest)](https://img.shields.io/npm/v/%40fedimint%2Fcore-web)
 ![NPM Version (canary)](https://img.shields.io/npm/v/%40fedimint%2Fcore-web/canary)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-web-sdk/.github%2Fworkflows%2Fdeploy-preview.yml?label=example%20deployed%20to%20github%20pages&link=https%3A%2F%2Ffedimint.github.io%2Ffedimint-web-sdk%2F)
-![Release Workflow](https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-web-sdk/.github%2Fworkflows%2Frelease.yml?label=release%20workflow)
+![Release Workflow](https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-web-sdk/.github%2Fworkflows%2Fchangesets.yml?label=release%20workflow)
 
 # Fedimint Web SDK Monorepo
 
