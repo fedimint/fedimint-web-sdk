@@ -25,6 +25,9 @@
   "dependencies": {
     "fedimint-client-wasm": "file:./wasm"
   },
+  "bundledDependencies": [
+    "fedimint-client-wasm"
+  ],
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
