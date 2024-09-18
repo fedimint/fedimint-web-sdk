@@ -91,7 +91,7 @@ const JoinFederation = ({
   const joinFederation = async (e: React.FormEvent) => {
     e.preventDefault()
     const open = checkIsOpen()
-    console.log('OPEN', open)
+    console.log('OPEN', open, wallet)
     if (open) return
 
     console.log('Joining federation:', inviteCode)
