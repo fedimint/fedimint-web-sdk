@@ -28,5 +28,4 @@ jobs:
         uses: preactjs/compressed-size-action@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          build-script:
           pattern: '{**/dist/**/*.{js,mjs,cjs},**/*.wasm}'
