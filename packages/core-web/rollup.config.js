@@ -1,6 +1,5 @@
 /** @type {import('rollup').RollupOptions} */
 import typescript from '@rollup/plugin-typescript'
-
 import terser from '@rollup/plugin-terser'
 
 export default [
@@ -12,7 +11,9 @@ export default [
       entryFileNames: '[name].js',
       chunkFileNames: '[name].js',
       assetFileNames: '[name].[ext]',
+      sourcemap: true,
     },
     plugins: [typescript(), terser()],
+    external: ['fedimint-client-wasm'],
   },
 ]

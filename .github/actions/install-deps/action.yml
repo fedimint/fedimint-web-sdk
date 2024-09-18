@@ -1,7 +1,5 @@
 name: Install Dependencies
-on:
-  workflow_call:
-  workflow_dispatch:
+description: Sets up pnpm and installs dependencies
 
 runs:
   using: 'composite'

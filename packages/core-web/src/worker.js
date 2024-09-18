@@ -9,10 +9,8 @@ const streamCancelMap = new Map()
 
 const handleFree = (requestId) => {
   streamCancelMap.delete(requestId)
-  console.log('handleFree', requestId)
 }
 
-console.warn('WORKER STARTED')
 self.onmessage = async (event) => {
   const { type, payload, requestId } = event.data
 
@@ -71,7 +69,6 @@ self.onmessage = async (event) => {
       rpcHandle.cancel()
       rpcHandle.free()
       streamCancelMap.delete(requestId)
-      console.log('unsubscribed', requestId)
     }
   } else {
     self.postMessage({
