@@ -19,7 +19,7 @@ export class FedimintWallet {
   private worker: Worker | null = null
   private initPromise: Promise<void> | null = null
   private openPromise: Promise<void> | null = null
-  private resolveOpen: () => void
+  private resolveOpen: () => void = () => {}
   private _isOpen: boolean = false
   private requestCounter: number = 0
   private requestCallbacks: Map<number, (value: any) => void> = new Map()

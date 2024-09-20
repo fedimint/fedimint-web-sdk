@@ -2,7 +2,7 @@ import { test, expect, vi } from 'vitest'
 import { FedimintWallet } from './FedimintWallet'
 import { beforeAll } from 'vitest'
 
-let randomTestingId
+let randomTestingId: string
 let wallet: FedimintWallet
 // Testnet
 const TESTING_FEDERATION =
@@ -46,7 +46,7 @@ test('Error on open & join if wallet is already open', async () => {
     await wallet.open(randomTestingId)
   } catch (error) {
     expect(error).toBeInstanceOf(Error)
-    expect(error.message).toBe(
+    expect((error as Error).message).toBe(
       'The FedimintWallet is already open. You can only call `FedimintWallet.open on closed clients.`',
     )
   }
@@ -56,7 +56,7 @@ test('Error on open & join if wallet is already open', async () => {
     await wallet.joinFederation(TESTING_FEDERATION, randomTestingId)
   } catch (error) {
     expect(error).toBeInstanceOf(Error)
-    expect(error.message).toBe(
+    expect((error as Error).message).toBe(
       'The FedimintWallet is already open. You can only call `FedimintWallet.joinFederation` on closed clients.',
     )
   }
