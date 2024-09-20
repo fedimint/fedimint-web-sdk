@@ -46,9 +46,7 @@ test('Error on open & join if wallet is already open', async () => {
     await wallet.open(randomTestingId)
   } catch (error) {
     expect(error).toBeInstanceOf(Error)
-    expect((error as Error).message).toBe(
-      'The FedimintWallet is already open. You can only call `FedimintWallet.open on closed clients.`',
-    )
+    expect((error as Error).message).toBe('The FedimintWallet is already open.')
   }
 
   // Test joining federation on an already open wallet
@@ -57,14 +55,14 @@ test('Error on open & join if wallet is already open', async () => {
   } catch (error) {
     expect(error).toBeInstanceOf(Error)
     expect((error as Error).message).toBe(
-      'The FedimintWallet is already open. You can only call `FedimintWallet.joinFederation` on closed clients.',
+      'The FedimintWallet is already open. You can only call `joinFederation` on closed clients.',
     )
   }
 })
 test('getConfig', async () => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
-  const config = await wallet.getConfig()
+  const config = await wallet.federation.getConfig()
   expect(config).toBeDefined()
 })
 
@@ -72,5 +70,5 @@ test('empty getBalance', async () => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
   await expect(wallet.waitForOpen()).resolves.toBeUndefined()
-  await expect(wallet.getBalance()).resolves.toEqual(0)
+  await expect(wallet.balance.getBalance()).resolves.toEqual(0)
 })
