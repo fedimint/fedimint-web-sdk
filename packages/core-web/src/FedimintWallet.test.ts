@@ -64,7 +64,7 @@ test('Error on open & join if wallet is already open', async () => {
 test('getConfig', async () => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
-  const config = await wallet.getConfig()
+  const config = await wallet.federation.getConfig()
   expect(config).toBeDefined()
 })
 
@@ -72,5 +72,5 @@ test('empty getBalance', async () => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
   await expect(wallet.waitForOpen()).resolves.toBeUndefined()
-  await expect(wallet.getBalance()).resolves.toEqual(0)
+  await expect(wallet.balance.getBalance()).resolves.toEqual(0)
 })

@@ -24,7 +24,7 @@ const useBalance = (checkIsOpen: () => void) => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
-    const unsubscribe = wallet.subscribeBalance((balance: number) => {
+    const unsubscribe = wallet.balance.subscribeBalance((balance: number) => {
       // checks if the wallet is open when the first
       // subscription event fires.
       // TODO: make a subscription to the wallet open status
@@ -106,7 +106,7 @@ const JoinFederation = ({
     console.log('Joining federation:', inviteCode)
     try {
       setJoining(true)
-      const res = await wallet?.joinFederation(inviteCode)
+      const res = await wallet.joinFederation(inviteCode)
       console.log('join federation res', res)
       setJoinResult('Joined!')
       setJoinError('')
@@ -150,7 +150,7 @@ const RedeemEcash = () => {
   const handleRedeem = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const res = await wallet.redeemEcash(ecashInput)
+      const res = await wallet.mint.redeemEcash(ecashInput)
       console.log('redeem ecash res', res)
       setRedeemResult('Redeemed!')
       setRedeemError('')
@@ -187,7 +187,7 @@ const SendLightning = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await wallet.payBolt11Invoice(lightningInput)
+      await wallet.lightning.payBolt11Invoice(lightningInput)
       setLightningResult('Paid!')
       setLightningError('')
     } catch (e) {
@@ -228,7 +228,7 @@ const GenerateLightningInvoice = () => {
     setError('')
     setGenerating(true)
     try {
-      const response = await wallet.createBolt11Invoice(
+      const response = await wallet.lightning.createBolt11Invoice(
         Number(amount),
         description,
       )
