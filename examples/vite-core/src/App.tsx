@@ -5,35 +5,45 @@ const TESTNET_FEDERATION_CODE =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
 
 const useIsOpen = () => {
-  const [isOpen, setIsOpen] = useState(false)
+  const [open, setIsOpen] = useState(false)
 
   const checkIsOpen = useCallback(() => {
-    if (isOpen !== wallet.isOpen()) setIsOpen(wallet.isOpen())
-    return isOpen
-  }, [wallet])
+    if (open !== wallet.isOpen()) {
+      setIsOpen(wallet.isOpen())
+    }
+  }, [open])
 
-  return { isOpen, checkIsOpen }
+  useEffect(() => {
+    checkIsOpen()
+  }, [checkIsOpen])
+
+  return { open, checkIsOpen }
 }
 
-const useBalance = () => {
+const useBalance = (checkIsOpen: () => void) => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
     const unsubscribe = wallet.subscribeBalance((balance: number) => {
-      console.log('balance', balance)
+      // checks if the wallet is open when the first
+      // subscription event fires.
+      // TODO: make a subscription to the wallet open status
+      checkIsOpen()
       setBalance(balance)
     })
 
     return () => {
       unsubscribe()
     }
-  }, [])
+  }, [checkIsOpen])
 
   return balance
 }
 
 const App = () => {
-  const { isOpen, checkIsOpen } = useIsOpen()
+  const { open, checkIsOpen } = useIsOpen()
+  const balance = useBalance(checkIsOpen)
+
   return (
     <>
       <header>
@@ -41,8 +51,8 @@ const App = () => {
         <h2>This is a WIP</h2>
       </header>
       <main>
-        <WalletStatus isOpen={isOpen} checkIsOpen={checkIsOpen} />
-        <JoinFederation isOpen={isOpen} checkIsOpen={checkIsOpen} />
+        <WalletStatus open={open} checkIsOpen={checkIsOpen} balance={balance} />
+        <JoinFederation open={open} checkIsOpen={checkIsOpen} />
         <GenerateLightningInvoice />
         <RedeemEcash />
         <SendLightning />
@@ -52,20 +62,20 @@ const App = () => {
 }
 
 const WalletStatus = ({
-  isOpen,
+  open,
   checkIsOpen,
+  balance,
 }: {
-  isOpen: boolean
-  checkIsOpen: () => boolean
+  open: boolean
+  checkIsOpen: () => void
+  balance: number
 }) => {
-  const balance = useBalance()
-
   return (
     <div className="section">
       <h3>Wallet Status</h3>
       <div className="row">
         <strong>Is Wallet Open?</strong>
-        <div>{isOpen ? 'Yes' : 'No'}</div>
+        <div>{open ? 'Yes' : 'No'}</div>
         <button onClick={() => checkIsOpen()}>Check</button>
       </div>
       <div className="row">
@@ -78,24 +88,24 @@ const WalletStatus = ({
 }
 
 const JoinFederation = ({
-  isOpen,
+  open,
   checkIsOpen,
 }: {
-  isOpen: boolean
-  checkIsOpen: () => boolean
+  open: boolean
+  checkIsOpen: () => void
 }) => {
   const [inviteCode, setInviteCode] = useState(TESTNET_FEDERATION_CODE)
   const [joinResult, setJoinResult] = useState<string | null>(null)
   const [joinError, setJoinError] = useState('')
+  const [joining, setJoining] = useState(false)
 
   const joinFederation = async (e: React.FormEvent) => {
     e.preventDefault()
-    const open = checkIsOpen()
-    console.log('OPEN', open, wallet)
-    if (open) return
+    checkIsOpen()
 
     console.log('Joining federation:', inviteCode)
     try {
+      setJoining(true)
       const res = await wallet?.joinFederation(inviteCode)
       console.log('join federation res', res)
       setJoinResult('Joined!')
@@ -104,6 +114,8 @@ const JoinFederation = ({
       console.log('Error joining federation', e)
       setJoinError(typeof e === 'object' ? e.toString() : (e as string))
       setJoinResult('')
+    } finally {
+      setJoining(false)
     }
   }
 
@@ -117,13 +129,13 @@ const JoinFederation = ({
           required
           value={inviteCode}
           onChange={(e) => setInviteCode(e.target.value)}
-          disabled={isOpen}
+          disabled={open}
         />
-        <button type="submit" disabled={isOpen}>
+        <button type="submit" disabled={open || joining}>
           Join
         </button>
       </form>
-      {!joinResult && isOpen && <i>(You've already joined a federation)</i>}
+      {!joinResult && open && <i>(You've already joined a federation)</i>}
       {joinResult && <div className="success">{joinResult}</div>}
       {joinError && <div className="error">{joinError}</div>}
     </div>
@@ -208,12 +220,13 @@ const GenerateLightningInvoice = () => {
   const [description, setDescription] = useState('')
   const [invoice, setInvoice] = useState('')
   const [error, setError] = useState('')
+  const [generating, setGenerating] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setInvoice('')
     setError('')
-
+    setGenerating(true)
     try {
       const response = await wallet.createBolt11Invoice(
         Number(amount),
@@ -223,6 +236,8 @@ const GenerateLightningInvoice = () => {
     } catch (e) {
       console.error('Error generating Lightning invoice', e)
       setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setGenerating(false)
     }
   }
 
@@ -251,12 +266,17 @@ const GenerateLightningInvoice = () => {
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-        <button type="submit">Generate Invoice</button>
+        <button type="submit" disabled={generating}>
+          {generating ? 'Generating...' : 'Generate Invoice'}
+        </button>
       </form>
       {invoice && (
         <div className="success">
           <strong>Generated Invoice:</strong>
           <pre className="invoice-wrap">{invoice}</pre>
+          <button onClick={() => navigator.clipboard.writeText(invoice)}>
+            Copy
+          </button>
         </div>
       )}
       {error && <div className="error">{error}</div>}

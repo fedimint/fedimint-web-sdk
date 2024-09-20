@@ -4,7 +4,7 @@ import wasm from 'vite-plugin-wasm'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), wasm()],
 
   // These worker settings are required
   worker: {

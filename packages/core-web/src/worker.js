@@ -40,6 +40,7 @@ self.onmessage = async (event) => {
     }
   } else if (type === 'rpc') {
     const { module, method, body } = payload
+    console.log('RPC received', module, method, body)
     if (!client) {
       self.postMessage({
         type: 'error',
@@ -53,14 +54,15 @@ self.onmessage = async (event) => {
       method,
       JSON.stringify(body),
       (res) => {
+        console.log('RPC response', requestId, res)
         const data = JSON.parse(res)
         self.postMessage({ type: 'rpcResponse', requestId, ...data })
 
-        if (data.end === undefined) return
-
-        // Handle stream ending
-        const handle = streamCancelMap.get(requestId)
-        handle?.free()
+        if (data.end !== undefined) {
+          // Handle stream ending
+          const handle = streamCancelMap.get(requestId)
+          handle?.free()
+        }
       },
     )
     streamCancelMap.set(requestId, rpcHandle)
