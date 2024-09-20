@@ -1,4 +1,4 @@
-import { WorkerClient } from '../transport'
+import { WorkerClient } from '../worker'
 
 export class BalanceService {
   constructor(private client: WorkerClient) {}

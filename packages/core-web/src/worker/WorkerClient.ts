@@ -16,7 +16,7 @@ export class WorkerClient {
 
   constructor() {
     // Must create the URL inside the constructor for vite
-    this.worker = new Worker(new URL('../worker.js', import.meta.url), {
+    this.worker = new Worker(new URL('./worker.js', import.meta.url), {
       type: 'module',
     })
     this.worker.onmessage = this.handleWorkerMessage.bind(this)
