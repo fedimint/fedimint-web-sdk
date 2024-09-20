@@ -14,8 +14,11 @@ export class WorkerClient {
   private requestCallbacks = new Map<number, (value: any) => void>()
   private initPromise: Promise<void> | null = null
 
-  constructor(workerUrl: URL) {
-    this.worker = new Worker(workerUrl, { type: 'module' })
+  constructor() {
+    // Must create the URL inside the constructor for vite
+    this.worker = new Worker(new URL('./worker.js', import.meta.url), {
+      type: 'module',
+    })
     this.worker.onmessage = this.handleWorkerMessage.bind(this)
     this.worker.onerror = this.handleWorkerError.bind(this)
   }

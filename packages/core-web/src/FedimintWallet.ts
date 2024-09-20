@@ -56,7 +56,7 @@ export class FedimintWallet {
     this.openPromise = new Promise((resolve) => {
       this.resolveOpen = resolve
     })
-    this.client = new WorkerClient(new URL('worker.js', import.meta.url))
+    this.client = new WorkerClient()
     this.mint = new MintService(this.client)
     this.lightning = new LightningService(this.client)
     this.balance = new BalanceService(this.client)
