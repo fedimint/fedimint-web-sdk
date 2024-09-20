@@ -7,4 +7,7 @@ export default defineConfig({
       include: ['packages/**/*.ts'],
     },
   },
+  optimizeDeps: {
+    exclude: ['@fedimint/core-web'],
+  },
 })

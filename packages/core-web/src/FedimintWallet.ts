@@ -99,7 +99,7 @@ export class FedimintWallet {
     // TODO: Determine if this should be safe or throw
     if (this._isOpen)
       throw new Error(
-        'The FedimintWallet is already open. You can only call `FedimintWallet.joinFederation` on closed clients.',
+        'The FedimintWallet is already open. You can only call `joinFederation` on closed clients.',
       )
     const response = await this.client.sendSingleMessage('join', {
       inviteCode,
