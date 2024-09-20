@@ -4,7 +4,7 @@ import terser from '@rollup/plugin-terser'
 
 export default [
   {
-    input: { worker: 'src/worker.js', index: 'src/index.ts' },
+    input: { worker: 'src/worker/worker.js', index: 'src/index.ts' },
     output: {
       dir: 'dist',
       format: 'esm',

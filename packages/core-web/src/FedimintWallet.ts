@@ -1,4 +1,4 @@
-import { WorkerClient } from './transport/WorkerClient'
+import { WorkerClient } from './worker/WorkerClient'
 import {
   BalanceService,
   MintService,

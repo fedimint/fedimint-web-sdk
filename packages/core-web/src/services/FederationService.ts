@@ -1,5 +1,5 @@
 import { JSONValue } from '../types/wallet'
-import { WorkerClient } from '../transport'
+import { WorkerClient } from '../worker'
 
 export class FederationService {
   constructor(private client: WorkerClient) {}

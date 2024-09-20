@@ -1,4 +1,4 @@
-import { WorkerClient } from '../transport'
+import { WorkerClient } from '../worker'
 import { JSONObject, JSONValue } from '../types/wallet'
 
 export class MintService {
