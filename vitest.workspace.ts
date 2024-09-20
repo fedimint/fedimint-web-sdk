@@ -1,4 +1,4 @@
-import { defineWorkspace, configDefaults } from 'vitest/config'
+import { defineWorkspace } from 'vitest/config'
 import wasm from 'vite-plugin-wasm'
 
 export default defineWorkspace([
@@ -8,8 +8,8 @@ export default defineWorkspace([
       environment: 'happy-dom',
       browser: {
         enabled: true,
-        // name: 'chrome',
         headless: true,
+        // name: 'chrome',
         name: 'chromium',
         provider: 'playwright',
         isolate: true,
