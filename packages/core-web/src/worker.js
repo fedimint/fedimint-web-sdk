@@ -1,5 +1,8 @@
 // Web Worker for fedimint-client-wasm to run in the browser
 
+// HACK: Fixes vitest browser runner
+globalThis.__vitest_browser_runner__ = { wrapDynamicImport: (foo) => foo() }
+
 let WasmClient = null
 let client = null
 
@@ -76,3 +79,5 @@ self.onmessage = async (event) => {
     })
   }
 }
+
+self.postMessage({ type: 'init', data: {} })

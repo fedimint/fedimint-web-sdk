@@ -16,3 +16,9 @@ tsconfig.tsbuildinfo
 .env.test.local
 .env.production.local
 .envrc
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+__screenshots__

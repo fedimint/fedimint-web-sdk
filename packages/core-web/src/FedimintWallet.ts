@@ -18,7 +18,7 @@ const DEFAULT_CLIENT_NAME = 'fm-default' as const
 export class FedimintWallet {
   private worker: Worker | null = null
   private initPromise: Promise<void> | null = null
-  private openPromise: Promise<void>
+  private openPromise: Promise<void> | null = null
   private resolveOpen: () => void = () => {}
   private _isOpen: boolean = false
   private requestCounter: number = 0
@@ -33,7 +33,7 @@ export class FedimintWallet {
   }
 
   async waitForOpen() {
-    if (this._isOpen) return
+    if (this._isOpen) return Promise.resolve()
     return this.openPromise
   }
 
@@ -62,8 +62,11 @@ export class FedimintWallet {
   // Setup
   initialize() {
     if (this.initPromise) return this.initPromise
-    this.worker = new Worker(new URL('./worker.js', import.meta.url))
+    this.worker = new Worker(new URL('worker.js?worker', import.meta.url), {
+      type: 'module',
+    })
     this.worker.onmessage = this.handleWorkerMessage.bind(this)
+    // TODO: HANDLE RETURNED INIT
     this.initPromise = this.sendSingleMessage('init')
     return this.initPromise
   }
@@ -100,13 +103,16 @@ export class FedimintWallet {
     // TODO: Determine if this should be safe or throw
     if (this._isOpen)
       throw new Error(
-        'Failed to Join Federation. You have already joined a federation, and you can only join one federation per wallet.',
+        'The FedimintWallet is already open. You can only call `FedimintWallet.joinFederation` on closed clients.',
       )
     const response = await this.sendSingleMessage('join', {
       inviteCode,
       clientName,
     })
-    if (response.success) this._isOpen = true
+    if (response.success) {
+      this._isOpen = true
+      this.resolveOpen()
+    }
   }
 
   /**
@@ -223,7 +229,7 @@ export class FedimintWallet {
     })
   }
 
-  private async _rpcSingle<Response extends JSONValue = JSONValue>(
+  private _rpcSingle<Response extends JSONValue = JSONValue>(
     module: ModuleKind,
     method: string,
     body: JSONValue,
@@ -271,7 +277,7 @@ export class FedimintWallet {
       'mint',
       'subscribe_reissue_external_notes',
       { operation_id: operationId },
-      (res) => onSuccess(res),
+      onSuccess,
       onError,
     )
 
@@ -333,8 +339,10 @@ export class FedimintWallet {
   async cleanup() {
     this.worker?.terminate()
     this.worker = null
-    this.openPromise = Promise.resolve()
+    this.openPromise = null
+    this.initPromise = null
     this.requestCallbacks.clear()
+    this._isOpen = false
   }
 
   isOpen() {
