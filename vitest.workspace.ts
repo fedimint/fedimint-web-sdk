@@ -4,6 +4,9 @@ import wasm from 'vite-plugin-wasm'
 export default defineWorkspace([
   {
     plugins: [wasm()],
+    optimizeDeps: {
+      include: ['./packages/core-web/wasm'],
+    },
     test: {
       environment: 'happy-dom',
       browser: {

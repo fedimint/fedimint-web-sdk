@@ -56,7 +56,7 @@ jobs:
 
   test:
     name: Test
-    needs: build
+    needs: lint
     runs-on: ubuntu-latest
 
     steps:
@@ -66,8 +66,12 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-deps
 
+      - name: Setup Playwright
+        run: pnpm exec playwright install
+
       - name: Run Tests
         uses: nick-fields/retry@v3
         with:
           command: pnpm test
           max_attempts: 3
+          timeout_seconds: 180
