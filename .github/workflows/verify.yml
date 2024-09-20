@@ -53,3 +53,21 @@ jobs:
 
       - name: Check types
         run: pnpm typecheck
+
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-deps
+
+      - name: Run Tests
+        uses: nick-fields/retry@v3
+        with:
+          command: pnpm test
+          max_attempts: 3
