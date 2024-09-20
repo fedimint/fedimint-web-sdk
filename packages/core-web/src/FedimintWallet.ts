@@ -24,7 +24,37 @@ export class FedimintWallet {
   private requestCounter: number = 0
   private requestCallbacks: Map<number, (value: any) => void> = new Map()
 
-  constructor(lazy: boolean = false, open: boolean = true) {
+  /**
+   * Creates a new instance of FedimintWallet.
+   *
+   * @description
+   * This constructor initializes a FedimintWallet instance, which manages communication
+   * with a Web Worker. The Web Worker is responsible for running WebAssembly code that
+   * handles the core Fedimint Client operations.
+   *
+   * (default) When not in lazy mode, the constructor immediately initializes the
+   * Web Worker and begins loading the WebAssembly module in the background. This
+   * allows for faster subsequent operations but may increase initial load time.
+   *
+   * In lazy mode, the Web Worker and WebAssembly initialization are deferred until
+   * the first operation that requires them, reducing initial overhead at the cost
+   * of a slight delay on the first operation.
+   *
+   * @param {boolean} lazy - If true, delays Web Worker and WebAssembly initialization
+   *                         until needed. Default is false.
+   *
+   * @example
+   * // Create a wallet with immediate initialization
+   * const wallet = new FedimintWallet();
+   * wallet.open();
+   *
+   * // Create a wallet with lazy initialization
+   * const lazyWallet = new FedimintWallet(true);
+   * // Some time later...
+   * wallet.initialize();
+   * wallet.open();
+   */
+  constructor(lazy: boolean = false) {
     this.openPromise = new Promise((resolve) => {
       this.resolveOpen = resolve
     })
@@ -62,7 +92,7 @@ export class FedimintWallet {
   // Setup
   initialize() {
     if (this.initPromise) return this.initPromise
-    this.worker = new Worker(new URL('worker.js?worker', import.meta.url), {
+    this.worker = new Worker(new URL('worker.js', import.meta.url), {
       type: 'module',
     })
     this.worker.onmessage = this.handleWorkerMessage.bind(this)
@@ -220,7 +250,6 @@ export class FedimintWallet {
     })
 
     unsubscribePromise.then(() => {
-      console.trace('UNSUBSCRIBING', requestId)
       this.worker?.postMessage({
         type: 'unsubscribe',
         requestId,
@@ -516,8 +545,7 @@ export class FedimintWallet {
     return await this._rpcSingle('ln', 'list_gateways', {})
   }
 
-  async updateGatewayCache(): Promise<void> {
-    console.trace('Updating gateway cache')
-    await this._rpcSingle('ln', 'update_gateway_cache', {})
+  async updateGatewayCache(): Promise<JSONValue> {
+    return await this._rpcSingle('ln', 'update_gateway_cache', {})
   }
 }

@@ -17,6 +17,9 @@ export default defineWorkspace([
         provider: 'playwright',
         isolate: true,
         ui: false, // no ui for the core library
+        api: {
+          port: 63315,
+        },
       },
     },
   },
