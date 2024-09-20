@@ -1,5 +1,3 @@
-// services/LightningService.ts
-
 import { WorkerClient } from '../transport'
 import {
   CreateBolt11Response,
