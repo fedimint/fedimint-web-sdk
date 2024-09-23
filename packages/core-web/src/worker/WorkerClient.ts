@@ -5,6 +5,7 @@ import {
   StreamError,
   StreamResult,
 } from '../types/wallet'
+import { logger } from '../utils/logger'
 
 // Handles communication with the wasm worker
 // TODO: Move rpc stream management to a separate "SubscriptionManager" class
@@ -21,6 +22,8 @@ export class WorkerClient {
     })
     this.worker.onmessage = this.handleWorkerMessage.bind(this)
     this.worker.onerror = this.handleWorkerError.bind(this)
+    logger.info('WorkerClient instantiated')
+    logger.debug('WorkerClient', this.worker)
   }
 
   // Idempotent setup - Loads the wasm module
@@ -30,16 +33,31 @@ export class WorkerClient {
     return this.initPromise
   }
 
+  private handleWorkerLogs(event: MessageEvent) {
+    const { type, level, message, ...data } = event.data
+    logger.log(level, message, ...data)
+  }
+
   private handleWorkerError(event: ErrorEvent) {
-    console.error('Worker error', JSON.stringify(event))
+    logger.error('Worker error', event)
   }
 
   private handleWorkerMessage(event: MessageEvent) {
     const { type, requestId, ...data } = event.data
+    if (type === 'log') {
+      this.handleWorkerLogs(event.data)
+    }
     const streamCallback = this.requestCallbacks.get(requestId)
     // TODO: Handle errors... maybe have another callbacks list for errors?
+    logger.debug('WorkerClient - handleWorkerMessage', event.data)
     if (streamCallback) {
       streamCallback(data) // {data: something} OR {error: something}
+    } else {
+      logger.warn(
+        'WorkerClient - handleWorkerMessage - received message with no callback',
+        requestId,
+        event.data,
+      )
     }
   }
 
@@ -50,10 +68,22 @@ export class WorkerClient {
   sendSingleMessage(type: string, payload?: any): Promise<any> {
     return new Promise((resolve, reject) => {
       const requestId = ++this.requestCounter
+      logger.debug('WorkerClient - sendSingleMessage', requestId, type, payload)
       this.requestCallbacks.set(requestId, (response) => {
         this.requestCallbacks.delete(requestId)
+        logger.debug(
+          'WorkerClient - sendSingleMessage - response',
+          requestId,
+          response,
+        )
         if (response.data) resolve(response.data)
         else if (response.error) reject(response.error)
+        else
+          logger.warn(
+            'WorkerClient - sendSingleMessage - malformed response',
+            requestId,
+            response,
+          )
       })
       this.worker.postMessage({ type, payload, requestId })
     })
@@ -95,7 +125,7 @@ export class WorkerClient {
     onEnd: () => void = () => {},
   ): CancelFunction {
     const requestId = ++this.requestCounter
-
+    logger.debug('WorkerClient - rpcStream', requestId, module, method, body)
     let unsubscribe: (value: void) => void = () => {}
     let isSubscribed = false
 
@@ -177,6 +207,7 @@ export class WorkerClient {
     method: string,
     body: JSONValue,
   ): Promise<Response> {
+    logger.debug('WorkerClient - rpcSingle', module, method, body)
     return new Promise((resolve, reject) => {
       this.rpcStream<Response>(module, method, body, resolve, reject)
     })

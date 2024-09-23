@@ -6,6 +6,7 @@ import {
   FederationService,
   RecoveryService,
 } from './services'
+import { logger, type LogLevel } from './utils/logger'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
@@ -63,13 +64,17 @@ export class FedimintWallet {
     this.federation = new FederationService(this.client)
     this.recovery = new RecoveryService(this.client)
 
+    logger.info('FedimintWallet instantiated')
+
     if (!lazy) {
       this.initialize()
     }
   }
 
   async initialize() {
+    logger.info('Initializing WorkerClient')
     await this.client.initialize()
+    logger.info('WorkerClient initialized')
   }
 
   async waitForOpen() {
@@ -123,5 +128,14 @@ export class FedimintWallet {
 
   isOpen() {
     return this._isOpen
+  }
+
+  /**
+   * Sets the log level for the library.
+   * @param level The desired log level ('DEBUG', 'INFO', 'WARN', 'ERROR', 'NONE').
+   */
+  setLogLevel(level: LogLevel) {
+    logger.setLevel(level)
+    logger.info(`Log level set to ${level}.`)
   }
 }
