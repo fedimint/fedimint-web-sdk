@@ -1,5 +1,13 @@
 # @fedimint/core-web
 
+## 0.0.4
+
+### Patch Changes
+
+- 012e4a1: Added workflows for pull request checks including calculating the compressed size of packages
+- 779e924: Set up vitest testing framework
+- 3038557: Refactor FedimintWallet into many composable services"
+
 ## 0.0.3
 
 ### Patch Changes
