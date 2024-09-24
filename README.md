@@ -35,6 +35,7 @@ fedimint-web-sdk
 ### Examples
 
 - [`vite-core`](./examples/vite-core/README.md): Simple example of how to use the `core-web` package within a React app bundled with Vite [(demo)](https://fedimint.github.io/fedimint-web-sdk/)
+- [`bare-js`](./examples/bare-js/README.md): Simple example of how to use the `core-web` package in a bare javascript environment (no bundler)
 
 ### Credit
 
