@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Testy Fedimint Web SDK Bare</title>
+  </head>
+
+<body>
+  <script type="module">
+    import * as Default from './index.js';
+    const { FedimintWallet } = Default;
+
+    (async () => {
+      console.log('FedimintWallet', FedimintWallet);
+      try {
+        const wallet = new FedimintWallet();
+        wallet.setLogLevel('debug')
+        console.log('test', wallet);
+
+        console.log('wallet is open', wallet.isOpen())
+
+        const openRes = await wallet.open()
+        if (!openRes) {
+          console.log('Wallet not open, joining federation')
+          const joinRes = await wallet.joinFederation('fed11qgqzc2nhwden5te0vejkg6tdd9h8gepwvejkg6tdd9h8garhduhx6at5d9h8jmn9wshxxmmd9uqqzgxg6s3evnr6m9zdxr6hxkdkukexpcs3mn7mj3g5pc5dfh63l4tj6g9zk4er')
+          console.log('join result', joinRes)
+        }
+        console.log('wallet is open', wallet.isOpen())
+        globalThis.wallet = wallet
+
+      } catch (e) {
+        console.error(e);
+      }
+    })()
+
+  </script>
+</body>
+
+</html>

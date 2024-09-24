@@ -8,6 +8,7 @@
     "clean:deep": "rm -rf node_modules && pnpm run --r --parallel clean:deep",
     "dev": "pnpm dev:core",
     "dev:core": "pnpm --filter vite-core dev",
+    "dev:bare": "pnpm run --filter bare-js server",
     "lint": "prettier --check .",
     "lint:fix": "prettier --write .",
     "lint:repo": "sherif",
