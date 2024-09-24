@@ -1,0 +1,21 @@
+{
+  "name": "@fedimint/fedimint-client-wasm-web",
+  "type": "module",
+  "description": "Wasm-pack output (target web) for fedimint-client-wasm",
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fedimint/fedimint"
+  },
+  "files": [
+    "fedimint_client_wasm_bg.wasm",
+    "fedimint_client_wasm.js",
+    "fedimint_client_wasm.d.ts"
+  ],
+  "main": "fedimint_client_wasm.js",
+  "types": "fedimint_client_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
