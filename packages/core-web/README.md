@@ -57,19 +57,19 @@ if (!wallet.isOpen()) {
 }
 
 // Get Wallet Balance (sync)
-const balance = await wallet.getBalance()
+const balance = await wallet.balance.getBalance()
 
 // Subscribe to Balance Updates
-const unsubscribe = wallet.subscribeBalance((balance: number) => {
+const unsubscribe = wallet.balance.subscribeBalance((balance: number) => {
   console.log('updated balance', balance)
 })
 // Make sure to call `unsubscribe()` when you're done
 
 // Receive Ecash Payments
-await wallet.reissueNotes('A11qgqpw9thwvaz7t...')
+await wallet.mint.reissueNotes('A11qgqpw9thwvaz7t...')
 
 // Pay Lightning Invoice
-await wallet.payBolt11Invoice('lnbc...')
+await wallet.lightning.payBolt11Invoice('lnbc...')
 ```
 
 ### Check out the example

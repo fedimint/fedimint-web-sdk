@@ -3,5 +3,6 @@ pnpm-lock.yaml
 tsconfig.base.json
 packages/wasm-web/** 
 packages/wasm-bundler/**
+examples/bare-js/**
 tmp/**
 *.html
