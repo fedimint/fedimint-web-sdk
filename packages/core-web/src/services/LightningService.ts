@@ -58,7 +58,7 @@ export class LightningService {
     })
   }
 
-  async _getDefaultGatewayInfo(): Promise<LightningGateway> {
+  private async _getDefaultGatewayInfo(): Promise<LightningGateway> {
     const gateways = await this.listGateways()
     return gateways[0]
   }
