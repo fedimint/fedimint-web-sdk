@@ -16,16 +16,21 @@ This monorepo is structured as a pnpm workspace. There are some helpful scripts 
 fedimint-web-sdk
 ├── README.md
 ├── examples
-│   └── vite-core
+│   ├── vite-core
+│   └── bare-js
 └── packages
     ├── core-web
-    └── react
+    ├── react
+    ├── wasm-web
+    └── wasm-bundler
 ```
 
 ### Packages
 
 - [`core-web`](./packages/core-web/README.md): Provides a typescript interface for the Fedimint client wasm.
 - `react`: TBD - React components and hooks for interacting with the Fedimint client
+- [`wasm-web`](./packages/wasm-web/README.md): Not intended for direct use. Contains the wasm pack output (target web) for the Fedimint client wasm.
+- [`wasm-bundler`](./packages/wasm-bundler/README.md): Not intended for direct use. Contains the wasm pack output (target bundler) for the Fedimint client wasm.
 
 ### Examples
 
