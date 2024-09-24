@@ -1,8 +1,7 @@
 {
-  "name": "@fedimint/fedimint-client-wasm",
-  "private": true,
+  "name": "@fedimint/fedimint-client-wasm-bundler",
   "type": "module",
-  "description": "Wasm-pack output for fedimint-client-wasm",
+  "description": "Wasm-pack output (target bundler) for fedimint-client-wasm",
   "license": "MIT",
   "repository": {
     "type": "git",

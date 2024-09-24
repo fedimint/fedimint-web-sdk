@@ -25,11 +25,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@fedimint/fedimint-client-wasm": "file:./wasm"
+    "@fedimint/fedimint-client-wasm-bundler": "workspace:*"
   },
-  "bundleDependencies": [
-    "@fedimint/fedimint-client-wasm"
-  ],
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",

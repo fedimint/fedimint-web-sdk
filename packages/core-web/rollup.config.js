@@ -14,6 +14,6 @@ export default [
       sourcemap: true,
     },
     plugins: [typescript(), terser()],
-    external: ['@fedimint/fedimint-client-wasm'],
+    external: ['@fedimint/fedimint-client-wasm-bundler'],
   },
 ]
