@@ -1,6 +1,7 @@
 CHANGELOG.md
 pnpm-lock.yaml
 tsconfig.base.json
-packages/core-web/wasm/**
+packages/wasm-web/** 
+packages/wasm-bundler/**
 tmp/**
 *.html

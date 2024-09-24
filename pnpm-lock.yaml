@@ -87,9 +87,9 @@ importers:
 
   packages/core-web:
     dependencies:
-      '@fedimint/fedimint-client-wasm':
-        specifier: file:./wasm
-        version: file:packages/core-web/wasm
+      '@fedimint/fedimint-client-wasm-bundler':
+        specifier: workspace:*
+        version: link:../wasm-bundler
     devDependencies:
       '@rollup/plugin-terser':
         specifier: ^0.4.4
@@ -152,6 +152,8 @@ importers:
       vite:
         specifier: ^5.3.2
         version: 5.4.2(@types/node@22.5.5)(terser@5.32.0)
+
+  packages/wasm-bundler: {}
 
 packages:
 
@@ -472,9 +474,6 @@ packages:
   '@eslint/js@8.57.0':
     resolution: {integrity: sha512-Ys+3g2TaW7gADOJzPt83SJtCDhMjndcDMFVQ/Tj9iA1BfJzFKD9mAUXT3OenpuPHbI6P/myECxRJrofUsDx/5g==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-
-  '@fedimint/fedimint-client-wasm@file:packages/core-web/wasm':
-    resolution: {directory: packages/core-web/wasm, type: directory}
 
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -2652,8 +2651,6 @@ snapshots:
       - supports-color
 
   '@eslint/js@8.57.0': {}
-
-  '@fedimint/fedimint-client-wasm@file:packages/core-web/wasm': {}
 
   '@humanwhocodes/config-array@0.11.14':
     dependencies:

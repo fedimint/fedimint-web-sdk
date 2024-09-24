@@ -19,7 +19,8 @@ self.onmessage = async (event) => {
 
   try {
     if (type === 'init') {
-      WasmClient = (await import('@fedimint/fedimint-client-wasm')).WasmClient
+      WasmClient = (await import('@fedimint/fedimint-client-wasm-bundler'))
+        .WasmClient
       self.postMessage({ type: 'initialized', data: {}, requestId })
     } else if (type === 'open') {
       const { clientName } = payload
