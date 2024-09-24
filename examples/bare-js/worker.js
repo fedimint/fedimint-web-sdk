@@ -33,7 +33,6 @@ self.onmessage = async (event) => {
         data: { success: !!client },
         requestId,
       })
-      globalThis.client = client
     } else if (type === 'join') {
       const { inviteCode, clientName: joinClientName } = payload
       try {
