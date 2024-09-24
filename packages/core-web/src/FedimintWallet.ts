@@ -7,11 +7,12 @@ import {
   RecoveryService,
 } from './services'
 import { logger, type LogLevel } from './utils/logger'
+import { TestingService } from './services/TestingService'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
 export class FedimintWallet {
-  private client: WorkerClient
+  private _client: WorkerClient
 
   public balance: BalanceService
   public mint: MintService
@@ -19,8 +20,10 @@ export class FedimintWallet {
   public federation: FederationService
   public recovery: RecoveryService
 
-  private openPromise: Promise<void> | null = null
-  private resolveOpen: () => void = () => {}
+  public _testing?: TestingService
+
+  private _openPromise: Promise<void> | null = null
+  private _resolveOpen: () => void = () => {}
   private _isOpen: boolean = false
 
   /**
@@ -54,15 +57,18 @@ export class FedimintWallet {
    * lazyWallet.open();
    */
   constructor(lazy: boolean = false) {
-    this.openPromise = new Promise((resolve) => {
-      this.resolveOpen = resolve
+    this._openPromise = new Promise((resolve) => {
+      this._resolveOpen = resolve
     })
-    this.client = new WorkerClient()
-    this.mint = new MintService(this.client)
-    this.lightning = new LightningService(this.client)
-    this.balance = new BalanceService(this.client)
-    this.federation = new FederationService(this.client)
-    this.recovery = new RecoveryService(this.client)
+    this._client = new WorkerClient()
+    this.mint = new MintService(this._client)
+    this.lightning = new LightningService(this._client)
+    this.balance = new BalanceService(this._client)
+    this.federation = new FederationService(this._client)
+    this.recovery = new RecoveryService(this._client)
+    if (process.env.NODE_ENV === 'test') {
+      this._testing = new TestingService(this._client)
+    }
 
     logger.info('FedimintWallet instantiated')
 
@@ -73,25 +79,25 @@ export class FedimintWallet {
 
   async initialize() {
     logger.info('Initializing WorkerClient')
-    await this.client.initialize()
+    await this._client.initialize()
     logger.info('WorkerClient initialized')
   }
 
   async waitForOpen() {
     if (this._isOpen) return Promise.resolve()
-    return this.openPromise
+    return this._openPromise
   }
 
   async open(clientName: string = DEFAULT_CLIENT_NAME) {
-    await this.client.initialize()
+    await this._client.initialize()
     // TODO: Determine if this should be safe or throw
     if (this._isOpen) throw new Error('The FedimintWallet is already open.')
-    const { success } = await this.client.sendSingleMessage('open', {
+    const { success } = await this._client.sendSingleMessage('open', {
       clientName,
     })
     if (success) {
       this._isOpen = !!success
-      this.resolveOpen()
+      this._resolveOpen()
     }
     return success
   }
@@ -100,19 +106,19 @@ export class FedimintWallet {
     inviteCode: string,
     clientName: string = DEFAULT_CLIENT_NAME,
   ) {
-    await this.client.initialize()
+    await this._client.initialize()
     // TODO: Determine if this should be safe or throw
     if (this._isOpen)
       throw new Error(
         'The FedimintWallet is already open. You can only call `joinFederation` on closed clients.',
       )
-    const response = await this.client.sendSingleMessage('join', {
+    const response = await this._client.sendSingleMessage('join', {
       inviteCode,
       clientName,
     })
     if (response.success) {
       this._isOpen = true
-      this.resolveOpen()
+      this._resolveOpen()
     }
   }
 
@@ -121,9 +127,9 @@ export class FedimintWallet {
    * After this call, the FedimintWallet instance should be discarded.
    */
   async cleanup() {
-    this.openPromise = null
+    this._openPromise = null
     this._isOpen = false
-    this.client.cleanup()
+    this._client.cleanup()
   }
 
   isOpen() {

@@ -11,6 +11,8 @@ const TESTING_FEDERATION =
 beforeAll(() => {
   randomTestingId = Math.random().toString(36).substring(2, 15)
   wallet = new FedimintWallet()
+  expect(wallet._testing).toBeDefined()
+  expect(wallet._testing!.getRequestCounter()).toBe(1)
   expect(wallet).toBeDefined()
 
   // Cleanup after all tests
@@ -30,9 +32,11 @@ test('initial open & join', async () => {
   // On initial open, it should return false
   // because no federations have been joined
   await expect(wallet.open(randomTestingId)).resolves.toBe(false)
+  const beforeJoin = wallet._testing!.getRequestCounter()
   await expect(
     wallet.joinFederation(TESTING_FEDERATION, randomTestingId),
   ).resolves.toBeUndefined()
+  expect(wallet._testing!.getRequestCounter()).toBe(beforeJoin + 1)
   expect(wallet.isOpen()).toBe(true)
   await expect(wallet.waitForOpen()).resolves.toBeUndefined()
 })
@@ -44,6 +48,7 @@ test('Error on open & join if wallet is already open', async () => {
   // Test opening an already open wallet
   try {
     await wallet.open(randomTestingId)
+    expect.unreachable('Opening a wallet should fail on an already open wallet')
   } catch (error) {
     expect(error).toBeInstanceOf(Error)
     expect((error as Error).message).toBe('The FedimintWallet is already open.')
@@ -52,6 +57,7 @@ test('Error on open & join if wallet is already open', async () => {
   // Test joining federation on an already open wallet
   try {
     await wallet.joinFederation(TESTING_FEDERATION, randomTestingId)
+    expect.unreachable('Joining a federation should fail on an open wallet')
   } catch (error) {
     expect(error).toBeInstanceOf(Error)
     expect((error as Error).message).toBe(
