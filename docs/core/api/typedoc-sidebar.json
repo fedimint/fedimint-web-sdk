@@ -1,0 +1,37 @@
+[
+  {
+    "text": "Classes",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "FedimintWallet",
+        "link": "/core/api/classes/FedimintWallet.md"
+      }
+    ]
+  },
+  {
+    "text": "Type Aliases",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "CreateBolt11Response",
+        "link": "/core/api/type-aliases/CreateBolt11Response.md"
+      },
+      {
+        "text": "FeeToAmount",
+        "link": "/core/api/type-aliases/FeeToAmount.md"
+      },
+      {
+        "text": "LightningGateway",
+        "link": "/core/api/type-aliases/LightningGateway.md"
+      },
+      { "text": "LnPayState", "link": "/core/api/type-aliases/LnPayState.md" },
+      {
+        "text": "OutgoingLightningPayment",
+        "link": "/core/api/type-aliases/OutgoingLightningPayment.md"
+      },
+      { "text": "PayType", "link": "/core/api/type-aliases/PayType.md" },
+      { "text": "RouteHint", "link": "/core/api/type-aliases/RouteHint.md" }
+    ]
+  }
+]

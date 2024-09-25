@@ -1,0 +1,13 @@
+{
+  "plugin": ["typedoc-plugin-markdown", "typedoc-vitepress-theme"],
+  "entryPoints": ["src/index.ts"],
+  "out": "../../docs/core/api",
+  "docsRoot": "../../docs",
+  "name": "Core Web",
+  "visibilityFilters": {
+    "protected": false,
+    "private": false,
+    "inherited": true,
+    "external": false
+  }
+}

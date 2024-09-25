@@ -11,7 +11,8 @@
     "build": "rollup --config",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "clean:deep": "pnpm run clean && rm -rf node_modules",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "typedoc": "typedoc"
   },
   "files": [
     "dist",
