@@ -7,8 +7,8 @@ export function getSidebar() {
       {
         text: 'Getting Started',
         items: [
-          { text: 'Overview', link: '/core/getting-started' },
-          { text: 'Installation', link: '/core/installation' },
+          { text: 'Overview', link: '/core/overview' },
+          { text: 'Installation', link: '/core/getting-started' },
           { text: 'Architecture', link: '/core/architecture' },
         ],
       },

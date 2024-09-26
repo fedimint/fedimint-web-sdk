@@ -8,7 +8,7 @@ export default withMermaid({
   ignoreDeadLinks: false,
   lang: 'en-US',
   lastUpdated: true,
-  base: '/fedimint-web-sdk/',
+  // base: '/fedimint-web-sdk/',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     editLink: {
