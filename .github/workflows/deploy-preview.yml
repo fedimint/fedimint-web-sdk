@@ -1,9 +1,11 @@
 name: Deploy Vite-Core Example to GitHub Pages
 
 on:
-  push:
-    branches: ['main']
-    paths: ['packages/core-web/**', 'examples/vite-core/**']
+  # Using github pages for docs instead of preview
+
+  # push:
+  # branches: ['main']
+  # paths: ['packages/core-web/**', 'examples/vite-core/**']
   workflow_dispatch:
 
 permissions:

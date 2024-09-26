@@ -29,7 +29,6 @@ export class FedimintWallet {
   /**
    * Creates a new instance of FedimintWallet.
    *
-   * @description
    * This constructor initializes a FedimintWallet instance, which manages communication
    * with a Web Worker. The Web Worker is responsible for running WebAssembly code that
    * handles the core Fedimint Client operations.

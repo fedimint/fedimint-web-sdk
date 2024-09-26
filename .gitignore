@@ -22,3 +22,6 @@ tsconfig.tsbuildinfo
 /playwright/.cache/
 
 __screenshots__
+
+docs/.vitepress/dist
+docs/.vitepress/cache

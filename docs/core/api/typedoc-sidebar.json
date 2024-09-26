@@ -1,0 +1,58 @@
+[
+  {
+    "text": "FedimintWallet",
+    "link": "/core/FedimintWallet/index.md",
+    "collapsed": false,
+    "items": [
+      {
+        "text": "constructor",
+        "link": "/core/api/FedimintWallet/constructor"
+      },
+      {
+        "text": "setLogLevel",
+        "link": "/core/api/FedimintWallet/setLogLevel"
+      },
+      {
+        "text": "joinFederation",
+        "link": "/core/api/FedimintWallet/joinFederation"
+      },
+      {
+        "text": "initialize",
+        "link": "/core/api/FedimintWallet/initialize"
+      },
+      {
+        "text": "isOpen",
+        "link": "/core/api/FedimintWallet/isOpen"
+      },
+      {
+        "text": "cleanup",
+        "link": "/core/api/FedimintWallet/cleanup"
+      }
+    ]
+  },
+  {
+    "text": "Type Aliases",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "CreateBolt11Response",
+        "link": "/core/api/type-aliases/CreateBolt11Response.md"
+      },
+      {
+        "text": "FeeToAmount",
+        "link": "/core/api/type-aliases/FeeToAmount.md"
+      },
+      {
+        "text": "LightningGateway",
+        "link": "/core/api/type-aliases/LightningGateway.md"
+      },
+      { "text": "LnPayState", "link": "/core/api/type-aliases/LnPayState.md" },
+      {
+        "text": "OutgoingLightningPayment",
+        "link": "/core/api/type-aliases/OutgoingLightningPayment.md"
+      },
+      { "text": "PayType", "link": "/core/api/type-aliases/PayType.md" },
+      { "text": "RouteHint", "link": "/core/api/type-aliases/RouteHint.md" }
+    ]
+  }
+]
