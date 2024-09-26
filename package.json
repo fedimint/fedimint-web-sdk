@@ -55,6 +55,6 @@
     "node": "20.x"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm lint:fix"
+    "pre-commit": "pnpm lint"
   }
 }

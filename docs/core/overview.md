@@ -1,18 +1,18 @@
-# @fedimint/core-web
+# Overview
 
-This package provides a typescript interface for a fedimint client in the browser.
+The `@fedimint/core-web` package provides a typescript interface for a fedimint client in the browser.
 
-It contains the wasm-pack output of the rust-based [fedimint client](https://github.com/fedimint/fedimint/tree/master/fedimint-client-wasm).
+It contains a fully-functioning fedimint client as a [wasm](https://webassembly.org/) module that runs in a web worker. This wasm module is compiled from the rust-based [fedimint client](https://github.com/fedimint/fedimint/tree/master/fedimint-client-wasm).
 
 ::: danger Disclaimer
-This is still an unstable work in progress and should not be used for any serious applications. The api's are not settled and may change often.
+This is very new. It is still a work in progress and should not be used for any serious applications. The api's are not settled and may change often.
 :::
 
 ## Key Features:
 
-- **WebAssembly-powered Client**: Exposes the robust, fault-tolerant fedimint-client (built in Rust) via WebAssembly. Lazy-Loads within a web worker for performance.
-- **eCash Payments**: Includes support for joining federations, sending/receiving eCash, and managing balances.
-- **Lightning Payments**: Ships with zero-setup Lightning Network payments.
+- 🚀 **WebAssembly-powered Client**: Exposes the robust, fault-tolerant fedimint-client (built in Rust) via WebAssembly. Lazy-Loads within a web worker for performance.
+- 💰 **eCash Payments**: Includes support for joining federations, sending/receiving eCash, and managing balances.
+- ⚡ **Lightning Payments**: Ships with zero-setup Lightning Network payments.
 - 🛠️ **State Management**: Handles the complex state management and storage challenges for browser wallets.
 - 🤫 **Privacy Included**: Offers a privacy-centric wallet by default.
 - ⚙️ **Framework Agnostic**: Designed as a "core" library compatible with vanilla JavaScript, laying the groundwork for future framework-specific packages.

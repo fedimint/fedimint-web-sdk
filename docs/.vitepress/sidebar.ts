@@ -5,7 +5,7 @@ export function getSidebar() {
   return {
     '/core/': [
       {
-        text: 'Getting Started',
+        text: 'Introduction',
         items: [
           { text: 'Overview', link: '/core/overview' },
           { text: 'Installation', link: '/core/getting-started' },

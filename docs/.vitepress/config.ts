@@ -8,9 +8,36 @@ export default withMermaid({
   ignoreDeadLinks: false,
   lang: 'en-US',
   lastUpdated: true,
-  // base: '/fedimint-web-sdk/',
+  head: [
+    [
+      'meta',
+      {
+        name: 'keywords',
+        content: 'bitcoin, lightning, ecash, fedimint, typescript, wasm, react',
+      },
+    ],
+    ['link', { rel: 'icon', href: '/favicon.ico' }],
+    ['meta', { name: 'theme-color', content: '#346cff' }],
+    // Open Graph
+    ['meta', { property: 'og:type', content: 'website' }],
+    [
+      'meta',
+      {
+        property: 'og:image',
+        content: 'https://web.fedimint.org/og.png',
+      },
+    ],
+    ['meta', { property: 'og:url', content: 'https://web.fedimint.org' }],
+    // Twitter
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:creator', content: '@fedimint' }],
+    [
+      'meta',
+      { name: 'twitter:image', content: 'https://web.fedimint.org/og.png' },
+    ],
+    ['meta', { name: 'twitter:site', content: 'https://web.fedimint.org' }],
+  ],
   themeConfig: {
-    // https://vitepress.dev/reference/default-theme-config
     editLink: {
       pattern:
         'https://github.com/fedimint/fedimint-web-sdk/edit/main/docs/:path',
