@@ -48,9 +48,7 @@ export default withMermaid({
         'Released under the <a href="https://github.com/fedimint/fedimint-web-sdk/blob/main/LICENSE">MIT License</a>.',
     },
     nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Core', link: '/core/getting-started' },
-      { text: 'Packages', link: '/packages' },
+      { text: 'Documentation', link: '/core/getting-started' },
       { text: 'Examples', link: '/examples' },
       {
         text: 'More',
@@ -81,6 +79,10 @@ export default withMermaid({
       {
         icon: 'github',
         link: 'https://github.com/fedimint/fedimint-web-sdk',
+      },
+      {
+        icon: 'npm',
+        link: 'https://www.npmjs.com/package/@fedimint/core-web',
       },
       {
         icon: 'discord',

@@ -1,8 +1,9 @@
 # Getting Started
 
-## Overview
+::: danger READ THIS FIRST (Disclaimer)
 
-@fedimint/core-web is a VanillaJS library for running a fedimint client in the browser. It provides a WebAssembly-powered client that exposes the robust, fault-tolerant fedimint-client (built in Rust) via WebAssembly.
+This is very new. It is still a work in progress and should not be used for any serious applications. The api's are not settled and may change often.
+:::
 
 ## Installation
 
@@ -30,9 +31,9 @@ bun add @fedimint/core-web
 
 ## Setup
 
-This package relies on the WebAssembly binary to be bundled with your application. You will likely need to update your bundler's or framework's configuration to load the WASM file. Setup guides for popular frameworks are coming soon.
+This package relies on a [wasm](https://webassembly.org/) module to be bundled with your application. You will likely need to update your bundler's or framework's configuration to load the wasm file. Setup guides for popular frameworks are coming soon.
 
-For an example of configuring WASM within a web-worker using Vite, check out the `vite.config.ts` file in the [vite-core example](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/vite-core/vite.config.ts).
+See the [Framework Setup](#framework-setup) section for more information.
 
 ## Usage
 
@@ -81,10 +82,56 @@ Check out the Vite + React example in the [`examples/vite-core`](https://github.
 
 For a list of public federations with invite codes, visit [Bitcoin Mints](https://bitcoinmints.com/?tab=mints&showFedimint=true).
 
-## Next Steps
+## Framework Setup
 
-To learn more about @fedimint/core-web and how to use it effectively in your projects, explore the following topics:
+### Next.js
+
+::: details Next.js Setup
+
+:::
+
+### React
+
+::: details React.js Setup
+
+:::
+
+### VanillaJS
+
+::: details VanillaJS Setup
+
+:::
+
+### Svelte
+
+::: details Svelte Setup
+
+:::
+
+### Webpack
+
+::: details Webpack Setup
+
+:::
+
+### Vite
+
+::: details Vite Setup
+
+:::
+
+## Next Steps
 
 - **API Reference**: Browse the collection of available methods and learn how to use them.
 - **Advanced Usage**: Discover more complex scenarios and best practices for using @fedimint/core-web.
 - **Framework Integration**: Learn how to integrate @fedimint/core-web with popular front-end frameworks.
+
+## What's Next?
+
+- To see the sdk in action, check out the [examples](../examples)
+- To learn more about @fedimint/core-web and how to use it effectively in your projects, explore the following topics:
+  - [Overview](./overview.md)
+  - [API Reference](./api/index.md)
+  - [Architecture](./architecture.md)
+- Vite + React: [`examples/vite-core`](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/vite-core) [(demo)](https://fedimint.github.io/fedimint-web-sdk/)
+- VanillaJS + HTML example: [`examples/bare-js`](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/bare-js)

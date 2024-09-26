@@ -8,17 +8,18 @@ export function getSidebar() {
         text: 'Introduction',
         items: [
           { text: 'Overview', link: '/core/overview' },
-          { text: 'Installation', link: '/core/getting-started' },
+          { text: 'Getting Started', link: '/core/getting-started' },
           { text: 'Architecture', link: '/core/architecture' },
+          { text: 'test' },
         ],
       },
       {
-        text: 'API',
+        text: 'API Reference',
         link: '/core/api/index.md',
         items: typedocSidebar,
       },
       {
-        text: 'TEMP',
+        text: 'TEMP (Delete me)',
         items: [
           { text: 'Markdown Examples', link: '/temp/markdown-examples' },
           { text: 'Runtime API Examples', link: '/temp/api-examples' },
