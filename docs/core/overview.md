@@ -1,10 +1,12 @@
 # @fedimint/core-web
 
-### THIS IS A WORK IN PROGRESS AND NOT READY FOR SERIOUS USE
-
 This package provides a typescript interface for a fedimint client in the browser.
 
 It contains the wasm-pack output of the rust-based [fedimint client](https://github.com/fedimint/fedimint/tree/master/fedimint-client-wasm).
+
+::: danger Disclaimer
+This is still an unstable work in progress and should not be used for any serious applications. The api's are not settled and may change often.
+:::
 
 ## Key Features:
 
