@@ -1,12 +1,10 @@
-[Core Web](../globals.md) / FedimintWallet
-
 # Class: FedimintWallet
 
 ## Constructors
 
 ### new FedimintWallet()
 
-> **new FedimintWallet**(`lazy`): [`FedimintWallet`](FedimintWallet.md)
+> **new FedimintWallet**(`lazy`): [`FedimintWallet`](./constructor)
 
 Creates a new instance of FedimintWallet.
 
@@ -31,7 +29,7 @@ until needed. Default is false.
 
 #### Returns
 
-<!-- [`FedimintWallet`](/core/api/FedimintWallet) -->
+<!-- [`FedimintWallet`](.) -->
 
 `FedimintWallet`
 
@@ -125,6 +123,8 @@ After this call, the FedimintWallet instance should be discarded.
 ### initialize()
 
 > **initialize**(): `Promise`\<`void`\>
+
+https://wagmi.sh/react/api/hooks/useAccount
 
 #### Returns
 

@@ -26,7 +26,7 @@ pnpm add @fedimint/core-web
 
 This package relies on the wasm binary to be bundled with your application. You will likely need to update your bundler's or framework's configuration to load the wasm file. Setup guides for popular frameworks are coming soon.
 
-See the `vite.config.ts` file in the [vite-core example](../../examples/vite-core/vite.config.ts) for an example of configuring wasm within a web-worker using Vite.
+See the `vite.config.ts` file in the [vite-core example](_media/vite.config.ts) for an example of configuring wasm within a web-worker using Vite.
 
 ## Usage
 
@@ -74,7 +74,8 @@ await wallet.lightning.payBolt11Invoice('lnbc...')
 
 ### Check out the example
 
-- Vite + React: [`examples/vite-core`](../../examples/vite-core/README.md) [(demo)](https://fedimint.github.io/fedimint-web-sdk/)
+- Vite + React: [`examples/vite-core`](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/vite-core) [(demo)](https://fedimint.github.io/fedimint-web-sdk/)
+- VanillaJS + HTML example: [`examples/bare-js`](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/bare-js)
 
 ### Resources
 

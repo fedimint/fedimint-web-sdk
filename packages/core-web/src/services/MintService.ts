@@ -45,6 +45,10 @@ export class MintService {
 
   async spendNotes(
     minAmount: number,
+    // Tells the wallet to automatically try to cancel the spend if it hasn't completed
+    // after the specified number of milliseconds.
+    // If the receiver has already redeemed the notes at this time,
+    // the notes will not be cancelled
     tryCancelAfter: number,
     includeInvite: boolean,
     extraMeta: JSONValue,

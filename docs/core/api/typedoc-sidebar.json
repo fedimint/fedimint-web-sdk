@@ -1,11 +1,32 @@
 [
   {
-    "text": "Classes",
-    "collapsed": true,
+    "text": "FedimintWallet",
+    "link": "/core/FedimintWallet/index.md",
+    "collapsed": false,
     "items": [
       {
-        "text": "FedimintWallet",
-        "link": "/core/api/classes/FedimintWallet.md"
+        "text": "constructor",
+        "link": "/core/api/FedimintWallet/constructor"
+      },
+      {
+        "text": "setLogLevel",
+        "link": "/core/api/FedimintWallet/setLogLevel"
+      },
+      {
+        "text": "joinFederation",
+        "link": "/core/api/FedimintWallet/joinFederation"
+      },
+      {
+        "text": "initialize",
+        "link": "/core/api/FedimintWallet/initialize"
+      },
+      {
+        "text": "isOpen",
+        "link": "/core/api/FedimintWallet/isOpen"
+      },
+      {
+        "text": "cleanup",
+        "link": "/core/api/FedimintWallet/cleanup"
       }
     ]
   },

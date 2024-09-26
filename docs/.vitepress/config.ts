@@ -1,8 +1,8 @@
-import { defineConfig } from 'vitepress'
 import { getSidebar } from './sidebar'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
 // https://vitepress.dev/reference/site-config
-export default defineConfig({
+export default withMermaid({
   title: 'Fedimint Web Sdk',
   description: 'Building Fedimint Ecash into the web',
   ignoreDeadLinks: false,
@@ -21,12 +21,16 @@ export default defineConfig({
     },
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Getting Started', link: '/getting-started' },
+      { text: 'Core', link: '/core/getting-started' },
       { text: 'Packages', link: '/packages' },
       { text: 'Examples', link: '/examples' },
       {
         text: 'More',
         items: [
+          {
+            text: 'Contributing',
+            link: '/dev/contributing',
+          },
           {
             text: 'Discussions ',
             link: 'https://chat.fedimint.org',
@@ -34,10 +38,6 @@ export default defineConfig({
           {
             text: 'Release Notes ',
             link: 'https://github.com/fedimint/fedimint-web-sdk/releases',
-          },
-          {
-            text: 'Github ',
-            link: 'https://github.com/fedimint/fedimint-web-sdk',
           },
         ],
       },
