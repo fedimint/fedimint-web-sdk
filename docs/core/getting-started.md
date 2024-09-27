@@ -195,10 +195,10 @@ For a list of public federations with invite codes, visit [Bitcoin Mints](https:
 
 ## What's Next?
 
-- To see the sdk in action, check out the [examples](../examples/index.md)
+- To see the sdk in action, check out the [examples](../examples/vite-react.md)
+  - Vite + React: [`examples/vite-react`](../examples/vite-react.md)
+  - VanillaJS + HTML example: [`examples/bare-js`](../examples/bare-js.md)
 - To learn more about @fedimint/core-web and how to use it effectively in your projects, explore the following topics:
   - [Overview](overview)
   - [API Reference](FedimintWallet/index)
   - [Architecture](architecture)
-- Vite + React: [`examples/vite-core`](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/vite-core) [(demo)](https://fedimint.github.io/fedimint-web-sdk/)
-- VanillaJS + HTML example: [`examples/bare-js`](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/bare-js)
