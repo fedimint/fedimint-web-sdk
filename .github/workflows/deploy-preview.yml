@@ -1,3 +1,4 @@
+# NO LONGER USED - the docs site is now being deployed to github pages instead of the example
 name: Deploy Vite-Core Example to GitHub Pages
 
 on:

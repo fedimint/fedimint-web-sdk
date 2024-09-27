@@ -69,7 +69,7 @@ const unsubscribe = wallet.balance.subscribeBalance((balance: number) => {
 await wallet.mint.reissueNotes('A11qgqpw9thwvaz7t...')
 
 // Pay Lightning Invoice
-await wallet.lightning.payBolt11Invoice('lnbc...')
+await wallet.lightning.payInvoice('lnbc...')
 ```
 
 ### Check out the example
