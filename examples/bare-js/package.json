@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "node ./bundle.mjs",
-    "server": "http-server",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "pnpm run server",
+    "server": "http-server"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +14,5 @@
   "devDependencies": {
     "http-server": "^14.1.1"
   },
-  "dependencies": {
-    "@fedimint/core-web": "workspace:*"
-  }
+  "packageManager": "pnpm@9.4.0"
 }

@@ -4,24 +4,24 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "build:pages": "tsc && vite build --base /fedimint-web-sdk/",
-    "preview": "vite preview --base /fedimint-web-sdk/",
-    "preview:pages": "vite preview --base /fedimint-web-sdk/",
+    "build": "vite build",
+    "preview": "vite preview",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "clean:deep": "pnpm run clean && rm -rf node_modules"
   },
   "dependencies": {
-    "@fedimint/core-web": "workspace:*",
+    "@fedimint/core-web": "canary",
     "react": "^18.3.1",
-    "react-dom": ">=18.3.1"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/react": ">=18.3.1",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "buffer": "^6.0.3",
+    "typescript": "^5.2.2",
     "vite": "^5.3.2",
     "vite-plugin-wasm": "^3.3.0"
-  }
+  },
+  "packageManager": "pnpm@9.4.0"
 }

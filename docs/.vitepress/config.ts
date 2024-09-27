@@ -49,7 +49,7 @@ export default withMermaid({
     },
     nav: [
       { text: 'Documentation', link: '/core/getting-started' },
-      { text: 'Examples', link: '/examples' },
+      { text: 'Examples', link: '/examples/vite-react' },
       {
         text: 'More',
         items: [

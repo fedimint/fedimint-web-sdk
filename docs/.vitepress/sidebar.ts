@@ -22,6 +22,16 @@ export function getSidebar() {
         ],
       },
     ],
+    '/examples/': [
+      {
+        base: '/examples/',
+        text: 'Examples',
+        items: [
+          { text: 'Vite + React', link: 'vite-react' },
+          { text: 'Vanilla JS', link: 'bare-js' },
+        ],
+      },
+    ],
   } satisfies DefaultTheme.Sidebar
 }
 
