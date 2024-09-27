@@ -1,16 +1,16 @@
 import { test, expect } from 'vitest'
-import { FedimintWallet } from '../FedimintWallet'
+import { TestFedimintWallet } from '../test/TestFedimintWallet'
 import { beforeAll } from 'vitest'
 
 let randomTestingId: string
-let wallet: FedimintWallet
+let wallet: TestFedimintWallet
 // Testnet
 const TESTING_FEDERATION =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
 
 beforeAll(async () => {
   randomTestingId = Math.random().toString(36).substring(2, 15)
-  wallet = new FedimintWallet()
+  wallet = new TestFedimintWallet()
   expect(wallet).toBeDefined()
   await expect(
     wallet.joinFederation(TESTING_FEDERATION, randomTestingId),
@@ -32,7 +32,7 @@ test('createInvoice should create a bolt11 invoice', async () => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
 
-  const counterBefore = wallet._testing!.getRequestCounter()
+  const counterBefore = wallet.testing.getRequestCounter()
   const invoice = await wallet.lightning.createInvoice(100, 'test')
   expect(invoice).toBeDefined()
   expect(invoice).toMatchObject({
@@ -41,7 +41,7 @@ test('createInvoice should create a bolt11 invoice', async () => {
   })
   // 3 requests were made, one for the invoice, one for refreshing the
   // gateway cache, one for getting the gateway info
-  expect(wallet._testing!.getRequestCounter()).toBe(counterBefore + 3)
+  expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 3)
 
   // Test with expiry time
   await expect(
@@ -53,9 +53,9 @@ test('listGateways should return a list of gateways', async () => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
 
-  const counterBefore = wallet._testing!.getRequestCounter()
+  const counterBefore = wallet.testing.getRequestCounter()
   const gateways = await wallet.lightning.listGateways()
-  expect(wallet._testing!.getRequestCounter()).toBe(counterBefore + 1)
+  expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 1)
   expect(gateways).toBeDefined()
   expect(gateways).toMatchObject([
     {
@@ -68,18 +68,18 @@ test('updateGatewayCache should update the gateway cache', async () => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
 
-  const counterBefore = wallet._testing!.getRequestCounter()
+  const counterBefore = wallet.testing.getRequestCounter()
   await expect(wallet.lightning.updateGatewayCache()).resolves.toBeDefined()
-  expect(wallet._testing!.getRequestCounter()).toBe(counterBefore + 1)
+  expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 1)
 })
 
 test('getGateway should return a gateway', async () => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
 
-  const counterBefore = wallet._testing!.getRequestCounter()
+  const counterBefore = wallet.testing.getRequestCounter()
   const gateway = await wallet.lightning.getGateway()
-  expect(wallet._testing!.getRequestCounter()).toBe(counterBefore + 1)
+  expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 1)
   expect(gateway).toMatchObject({
     api: expect.any(String),
     fees: expect.any(Object),
@@ -100,7 +100,7 @@ test('createInvoiceWithGateway should create a bolt11 invoice with a gateway', a
   const gateway = gateways[0]
   expect(gateway).toBeDefined()
 
-  const counterBefore = wallet._testing!.getRequestCounter()
+  const counterBefore = wallet.testing.getRequestCounter()
   const invoice = await wallet.lightning.createInvoiceWithGateway(
     100,
     'test',
@@ -113,7 +113,7 @@ test('createInvoiceWithGateway should create a bolt11 invoice with a gateway', a
     invoice: expect.any(String),
     operation_id: expect.any(String),
   })
-  expect(wallet._testing!.getRequestCounter()).toBe(counterBefore + 1)
+  expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 1)
   await expect(
     wallet.lightning.createInvoiceWithGateway(
       100,
@@ -136,7 +136,7 @@ test('payInvoice should pay a bolt11 invoice', async () => {
     operation_id: expect.any(String),
   })
 
-  const counterBefore = wallet._testing!.getRequestCounter()
+  const counterBefore = wallet.testing.getRequestCounter()
   // Insufficient funds
   try {
     await wallet.lightning.payInvoice(invoice.invoice, {})
@@ -146,5 +146,5 @@ test('payInvoice should pay a bolt11 invoice', async () => {
   }
   // 3 requests were made, one for paying the invoice, one for refreshing the
   // gateway cache, one for getting the gateway info
-  expect(wallet._testing!.getRequestCounter()).toBe(counterBefore + 3)
+  expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 3)
 })

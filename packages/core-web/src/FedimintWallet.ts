@@ -7,7 +7,6 @@ import {
   RecoveryService,
 } from './services'
 import { logger, type LogLevel } from './utils/logger'
-import { TestingService } from './services/TestingService'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
@@ -19,8 +18,6 @@ export class FedimintWallet {
   public lightning: LightningService
   public federation: FederationService
   public recovery: RecoveryService
-
-  public _testing?: TestingService
 
   private _openPromise: Promise<void> | null = null
   private _resolveOpen: () => void = () => {}
@@ -65,9 +62,6 @@ export class FedimintWallet {
     this.balance = new BalanceService(this._client)
     this.federation = new FederationService(this._client)
     this.recovery = new RecoveryService(this._client)
-    if (process.env.NODE_ENV === 'test') {
-      this._testing = new TestingService(this._client)
-    }
 
     logger.info('FedimintWallet instantiated')
 
