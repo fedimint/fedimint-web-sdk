@@ -2,19 +2,58 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Testy Fedimint Web SDK Bare</title>
+    <link rel="stylesheet" href="style.css">
   </head>
 
 <body>
+  <div class="container">
+    <h2>Fedimint Web SDK Bare html/js example</h2>
+    <div id="actions">
+      <button id="getBalance">wallet.balance.getBalance()</button>
+      <button id="createInvoice">wallet.lightning.createInvoice(1000, 'Test Invoice')</button>
+    </div>
+    <p>Console output:</p>
+    <div id="console"></div>
+    <p>Faucet Link: <a href="https://faucet.mutinynet.com/" target="_blank">https://faucet.mutinynet.com/</a></p>
+  </div>
   <script type="module">
     import * as Default from './index.js';
     const { FedimintWallet } = Default;
 
+    ////////////////////////////////
+    //////////// Setup /////////////
+    ////////////////////////////////
+
+    // Override console methods to display in UI
+    const consoleDiv = document.getElementById('console');
+    ['log', 'error', 'warn', 'info'].forEach(method => {
+      const original = console[method];
+      console[method] = (...args) => {
+        original.apply(console, args);
+        const message = args.map(arg => 
+          typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
+        ).join(' ');
+        consoleDiv.innerHTML += `${message}\n`;
+        consoleDiv.scrollTop = consoleDiv.scrollHeight;
+      };
+    });
+
+    /////////////////////////////////
+    ///////// Wallet Setup //////////
+    ////////////////////////////////
+
+    let wallet;
     const TESTNET_INVITE_CODE = 'fed11qgqzc2nhwden5te0vejkg6tdd9h8gepwvejkg6tdd9h8garhduhx6at5d9h8jmn9wshxxmmd9uqqzgxg6s3evnr6m9zdxr6hxkdkukexpcs3mn7mj3g5pc5dfh63l4tj6g9zk4er';
 
     (async () => {
       try {
-        const wallet = new FedimintWallet();
+        wallet = new FedimintWallet();
+
+        // HACK: Expose client to global for testing in the browser console
+        globalThis.wallet = wallet
+
         wallet.setLogLevel('debug')
 
         // Tries to open the wallet. If it's not open (new user), it joins the federation
@@ -23,8 +62,21 @@
           const joinRes = await wallet.joinFederation(TESTNET_INVITE_CODE)
         }
         
-        // HACK: Expose client to global for testing in the browser console
-        globalThis.wallet = wallet
+
+      /////////////////////////////////
+      ////////// UI Actions //////////
+      ////////////////////////////////
+
+        // Set up event listeners for buttons
+        document.getElementById('getBalance').addEventListener('click', async () => {
+          const balance = await wallet.balance.getBalance();
+          console.log('Balance Response:', balance);
+        });
+
+        document.getElementById('createInvoice').addEventListener('click', async () => {
+          const createInvoice = await wallet.lightning.createInvoice(1000, "Test Invoice");
+          console.log('Invoice Response:', createInvoice);
+        });
 
       } catch (e) {
         console.error(e);
@@ -33,5 +85,4 @@
 
   </script>
 </body>
-
 </html>
