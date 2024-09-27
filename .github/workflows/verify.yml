@@ -75,3 +75,18 @@ jobs:
           command: pnpm test
           max_attempts: 3
           timeout_seconds: 180
+
+  build-docs:
+    name: Build Docs
+    needs: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-deps
+
+      - name: Build Docs
+        run: pnpm docs:build
