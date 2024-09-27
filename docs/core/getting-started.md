@@ -1,8 +1,11 @@
 # Getting Started
 
-## Overview
+::: danger READ THIS FIRST (Disclaimer)
 
-@fedimint/core-web is a VanillaJS library for running a fedimint client in the browser. It provides a WebAssembly-powered client that exposes the robust, fault-tolerant fedimint-client (built in Rust) via WebAssembly.
+This is very new. It is still a work in progress and should not be used for any serious applications. The api's are not settled and may change often.
+:::
+
+[[toc]]
 
 ## Installation
 
@@ -28,20 +31,123 @@ bun add @fedimint/core-web
 
 :::
 
-## Setup
+## Framework Setup
 
-This package relies on the WebAssembly binary to be bundled with your application. You will likely need to update your bundler's or framework's configuration to load the WASM file. Setup guides for popular frameworks are coming soon.
+This package relies on a [wasm](https://webassembly.org/) module to be bundled with your application. You will likely need to update your bundler's or framework's configuration to load the wasm file.
 
-For an example of configuring WASM within a web-worker using Vite, check out the `vite.config.ts` file in the [vite-core example](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/vite-core/vite.config.ts).
+See setup guides for some popular choices below. If your tool is not listed or the setup does not work, feel free to [open an issue](https://github.com/fedimint/fedimint-web-sdk/issues/new) or [contribute a guide](https://github.com/fedimint/fedimint-web-sdk/edit/main/docs/core/getting-started.md).
 
-## Usage
+### Next.js
 
-Here's a basic example of how to use the @fedimint/core-web library:
+::: details Next.js Setup
+
+To use wasm in a Next.js project, you'll need to add the following to your `next.config.ts` file:
 
 ::: code-group
 
-```tsx [index.ts]
-import { FedimintWallet } from '@fedimint/core-web'
+```ts{5-12} [next.config.ts]
+/** @type {import('next').NextConfig} */
+
+const nextConfig = {
+
+  webpack(config) {
+    config.experiments = {
+      asyncWebAssembly: true,
+      layers: true,
+    };
+    return config;
+  },
+
+};
+
+export default nextConfig;
+```
+
+Check out the [nextjs sample app](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/nextjs) for a full working example.
+
+:::
+
+### React
+
+::: details React.js Setup
+
+TODO: Add setup guide for React.js
+
+Will be similar to Next.js setup above... perhaps even simpler.
+
+:::
+
+### VanillaJS
+
+::: details VanillaJS Setup
+
+TODO: Add setup guide for vanilla js.
+
+Currently requires modifying the library and utilizing the `@fedimint/wasm-web` package directly.
+
+See the [bare-js sample app](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/bare-js) for a full working example.
+
+### Webpack
+
+::: details Webpack Setup
+
+TODO: Verify this setup still works.
+
+To use wasm in a webpack project, you'll need to modify your webpack configuration file.
+
+::: code-group
+
+```ts{2-5} [webpack.config.js]
+module.exports = {
+  experiments = {
+      asyncWebAssembly: true,
+      layers: true,
+  }
+}
+```
+
+:::
+
+### Vite
+
+::: details Vite Setup
+
+To use wasm in a vite project, you'll need to install the `vite-plugin-wasm` plugin.
+
+```bash
+pnpm add vite-plugin-wasm
+```
+
+Then update your `vite.config.ts` file with the following:
+
+::: code-group
+
+```ts{1,5,7-10} [vite.config.ts]
+import wasm from 'vite-plugin-wasm'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [wasm()], // required for wasm
+
+  worker: {
+    format: 'es',
+    plugins: () => [wasm()],
+  },
+})
+```
+
+Check out the [vite-core sample app](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/vite-core) for a full working example.
+
+:::
+
+## Usage
+
+Here's a basic example of how to use the `@fedimint/core-web` library:
+
+::: code-group
+
+```ts [main.ts]
+import { wallet } from '@fedimint/core-web'
 
 // Create the Wallet client
 const wallet = new FedimintWallet()
@@ -83,8 +189,16 @@ For a list of public federations with invite codes, visit [Bitcoin Mints](https:
 
 ## Next Steps
 
-To learn more about @fedimint/core-web and how to use it effectively in your projects, explore the following topics:
-
 - **API Reference**: Browse the collection of available methods and learn how to use them.
 - **Advanced Usage**: Discover more complex scenarios and best practices for using @fedimint/core-web.
 - **Framework Integration**: Learn how to integrate @fedimint/core-web with popular front-end frameworks.
+
+## What's Next?
+
+- To see the sdk in action, check out the [examples](../examples/index.md)
+- To learn more about @fedimint/core-web and how to use it effectively in your projects, explore the following topics:
+  - [Overview](overview)
+  - [API Reference](FedimintWallet/index)
+  - [Architecture](architecture)
+- Vite + React: [`examples/vite-core`](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/vite-core) [(demo)](https://fedimint.github.io/fedimint-web-sdk/)
+- VanillaJS + HTML example: [`examples/bare-js`](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/bare-js)
