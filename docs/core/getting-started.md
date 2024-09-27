@@ -124,7 +124,7 @@ Then update your `vite.config.ts` file with the following:
 
 ::: code-group
 
-```ts{1,5,7-10} [vite.config.ts]
+```ts{1,5,7-10,12-14} [vite.config.ts]
 import wasm from 'vite-plugin-wasm'
 
 // https://vitejs.dev/config/
@@ -135,10 +135,14 @@ export default defineConfig({
     format: 'es',
     plugins: () => [wasm()],
   },
+
+  optimizeDeps: {
+    exclude: ['@fedimint/core-web'],
+  },
 })
 ```
 
-Check out the [vite-core sample app](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/vite-core) for a full working example.
+Check out the [vite-react sample app](../examples/vite-react) for a full working example.
 
 :::
 

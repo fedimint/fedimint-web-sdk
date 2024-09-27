@@ -1,6 +1,12 @@
+---
+aside: false
+---
+
 # Vite + React Example
 
 This is an example application demonstrating the usage of Fedimint client in React Application application.
+
+[Code on Github](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/bare-js)
 
 ## Live Preview
 
