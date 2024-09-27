@@ -18,7 +18,7 @@ graph TD
     Services --> RecoveryService
 ```
 
-## [**FedimintWallet**](./api/FedimintWallet/index)
+## [**FedimintWallet**](FedimintWallet/index)
 
 The `FedimintWallet` class serves as the main entry point for the library. It orchestrates the various services and the WorkerClient.
 

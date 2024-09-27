@@ -77,7 +77,7 @@ Once a playground dev server is running, you can make changes to any of the pack
 ## 5. Running the test suite
 
 Fedimint web SDK uses [Vitest](https://vitest.dev) to run tests.
-See the [testing docs](/dev/testing) for more information.
+See the [testing docs](/core/dev/testing) for more information.
 
 ## 6. Writing documentation
 
