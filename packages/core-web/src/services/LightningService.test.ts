@@ -28,12 +28,12 @@ beforeAll(async () => {
   }
 })
 
-test('createBolt11Invoice should create a bolt11 invoice', async () => {
+test('createInvoice should create a bolt11 invoice', async () => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
 
   const counterBefore = wallet._testing!.getRequestCounter()
-  const invoice = await wallet.lightning.createBolt11Invoice(100, 'test')
+  const invoice = await wallet.lightning.createInvoice(100, 'test')
   expect(invoice).toBeDefined()
   expect(invoice).toMatchObject({
     invoice: expect.any(String),
@@ -45,7 +45,7 @@ test('createBolt11Invoice should create a bolt11 invoice', async () => {
 
   // Test with expiry time
   await expect(
-    wallet.lightning.createBolt11Invoice(100, 'test', 1000, {}),
+    wallet.lightning.createInvoice(100, 'test', 1000, {}),
   ).resolves.toBeDefined()
 })
 
@@ -92,7 +92,7 @@ test('getGateway should return a gateway', async () => {
   })
 })
 
-test('createBolt11InvoiceWithGateway should create a bolt11 invoice with a gateway', async () => {
+test('createInvoiceWithGateway should create a bolt11 invoice with a gateway', async () => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
 
@@ -101,7 +101,7 @@ test('createBolt11InvoiceWithGateway should create a bolt11 invoice with a gatew
   expect(gateway).toBeDefined()
 
   const counterBefore = wallet._testing!.getRequestCounter()
-  const invoice = await wallet.lightning.createBolt11InvoiceWithGateway(
+  const invoice = await wallet.lightning.createInvoiceWithGateway(
     100,
     'test',
     null,
@@ -115,7 +115,7 @@ test('createBolt11InvoiceWithGateway should create a bolt11 invoice with a gatew
   })
   expect(wallet._testing!.getRequestCounter()).toBe(counterBefore + 1)
   await expect(
-    wallet.lightning.createBolt11InvoiceWithGateway(
+    wallet.lightning.createInvoiceWithGateway(
       100,
       'test',
       1000,
@@ -125,11 +125,11 @@ test('createBolt11InvoiceWithGateway should create a bolt11 invoice with a gatew
   ).resolves.toBeDefined()
 })
 
-test('payBolt11Invoice should pay a bolt11 invoice', async () => {
+test('payInvoice should pay a bolt11 invoice', async () => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
 
-  const invoice = await wallet.lightning.createBolt11Invoice(100, 'test')
+  const invoice = await wallet.lightning.createInvoice(100, 'test')
   expect(invoice).toBeDefined()
   expect(invoice).toMatchObject({
     invoice: expect.any(String),
@@ -139,7 +139,7 @@ test('payBolt11Invoice should pay a bolt11 invoice', async () => {
   const counterBefore = wallet._testing!.getRequestCounter()
   // Insufficient funds
   try {
-    await wallet.lightning.payBolt11Invoice(invoice.invoice, {})
+    await wallet.lightning.payInvoice(invoice.invoice, {})
     expect.unreachable('Should throw error')
   } catch (error) {
     expect(error).toBeDefined()

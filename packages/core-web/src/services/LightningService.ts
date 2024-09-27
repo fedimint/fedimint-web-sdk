@@ -13,7 +13,7 @@ import {
 export class LightningService {
   constructor(private client: WorkerClient) {}
 
-  async createBolt11InvoiceWithGateway(
+  async createInvoiceWithGateway(
     amount: number,
     description: string,
     expiryTime: number | null = null,
@@ -29,7 +29,7 @@ export class LightningService {
     })
   }
 
-  async createBolt11Invoice(
+  async createInvoice(
     amount: number,
     description: string,
     expiryTime: number | null = null,
@@ -46,7 +46,7 @@ export class LightningService {
     })
   }
 
-  async payBolt11InvoiceWithGateway(
+  async payInvoiceWithGateway(
     invoice: string,
     gatewayInfo: GatewayInfo,
     extraMeta: JSONObject = {},
@@ -63,7 +63,7 @@ export class LightningService {
     return gateways[0]
   }
 
-  async payBolt11Invoice(
+  async payInvoice(
     invoice: string,
     extraMeta: JSONObject = {},
   ): Promise<OutgoingLightningPayment> {
