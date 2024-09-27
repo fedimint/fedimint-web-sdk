@@ -18,6 +18,7 @@
     "lint:fix": "prettier --write .",
     "lint:repo": "sherif",
     "preinstall": "pnpx only-allow pnpm",
+    "postinstall": "pnpm run build",
     "prepare": "pnpm simple-git-hooks",
     "preview": "pnpm --filter vite-core preview",
     "release": "pnpm run build && pnpm changeset publish",
