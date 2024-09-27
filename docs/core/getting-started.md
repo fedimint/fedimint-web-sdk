@@ -87,6 +87,8 @@ Currently requires modifying the library and utilizing the `@fedimint/wasm-web` 
 
 See the [bare-js sample app](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/bare-js) for a full working example.
 
+:::
+
 ### Webpack
 
 ::: details Webpack Setup
@@ -186,12 +188,6 @@ Check out the Vite + React example in the [`examples/vite-core`](https://github.
 ## Resources
 
 For a list of public federations with invite codes, visit [Bitcoin Mints](https://bitcoinmints.com/?tab=mints&showFedimint=true).
-
-## Next Steps
-
-- **API Reference**: Browse the collection of available methods and learn how to use them.
-- **Advanced Usage**: Discover more complex scenarios and best practices for using @fedimint/core-web.
-- **Framework Integration**: Learn how to integrate @fedimint/core-web with popular front-end frameworks.
 
 ## What's Next?
 

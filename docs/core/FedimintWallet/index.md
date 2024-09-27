@@ -1,4 +1,4 @@
-# Wallet Overview
+# FedimintWallet Overview
 
 The `FedimintWallet` class serves as the main entry point for the library. It orchestrates the various services and the WorkerClient.
 

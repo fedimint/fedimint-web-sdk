@@ -1,4 +1,4 @@
-# FedimintWallet
+# new FedimintWallet()t
 
 Creates a new instance of FedimintWallet.
 
@@ -39,15 +39,13 @@ until needed. Default is false.
 import { FedimintWallet } from '@fedimint/core-web'
 
 // Create a wallet with immediate initialization
-const wallet = new FedimintWallet()
+const wallet = new FedimintWallet() // wasm gets initialized here
 wallet.open()
 
 // Create a wallet with lazy initialization
-const lazyWallet = new FedimintWallet(true)
+const lazyWallet = new FedimintWallet(true) // lazy = true
 // Some time later...
-lazyWallet.initialize().then(() => {
-  lazyWallet.open()
-})
+lazyWallet.open() // wasm gets initialized here
 ```
 
 #### Defined in
