@@ -48,7 +48,28 @@ const App = () => {
     <>
       <header>
         <h1>Fedimint Typescript Library Demo</h1>
-        <h2>This is a WIP</h2>
+
+        <div className="steps">
+          <strong>Steps to get started:</strong>
+          <ol>
+            <li>Join a Federation (persists across sessions)</li>
+            <li>Generate an Invoice</li>
+            <li>
+              Pay the Invoice using the{' '}
+              <a href="https://faucet.mutinynet.com/" target="_blank">
+                mutinynet faucet
+              </a>
+            </li>
+            <li>
+              Investigate the Browser Tools
+              <ul>
+                <li>Browser Console for logs</li>
+                <li>Network Tab (websocket) for guardian requests</li>
+                <li>Application Tab for state</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
       </header>
       <main>
         <WalletStatus open={open} checkIsOpen={checkIsOpen} balance={balance} />
@@ -270,6 +291,12 @@ const GenerateLightningInvoice = () => {
           {generating ? 'Generating...' : 'Generate Invoice'}
         </button>
       </form>
+      <div>
+        mutinynet faucet:{' '}
+        <a href="https://faucet.mutinynet.com/" target="_blank">
+          https://faucet.mutinynet.com/
+        </a>
+      </div>
       {invoice && (
         <div className="success">
           <strong>Generated Invoice:</strong>

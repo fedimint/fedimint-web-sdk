@@ -37,6 +37,12 @@ header {
   text-align: center;
 }
 
+.steps {
+  text-align: left;
+  display: inline-block;
+  font-size: 1.2rem;
+}
+
 main {
   display: flex;
   flex-direction: column;
