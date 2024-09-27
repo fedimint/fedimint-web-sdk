@@ -1,39 +1,116 @@
 import type { DefaultTheme } from 'vitepress'
-import typedocSidebar from '../core/api/typedoc-sidebar.json'
 
 export function getSidebar() {
   return {
     '/core/': [
       {
+        base: '/core/',
         text: 'Introduction',
         items: [
-          { text: 'Overview', link: '/core/overview' },
-          { text: 'Getting Started', link: '/core/getting-started' },
-          { text: 'Architecture', link: '/core/architecture' },
-          { text: 'test' },
+          { text: 'Overview', link: 'overview' },
+          { text: 'Getting Started', link: 'getting-started' },
+          { text: 'Architecture', link: 'architecture' },
         ],
       },
-      {
-        text: 'API Reference',
-        link: '/core/api/index.md',
-        items: typedocSidebar,
-      },
-      {
-        text: 'TEMP (Delete me)',
-        items: [
-          { text: 'Markdown Examples', link: '/temp/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/temp/api-examples' },
-        ],
-      },
-    ],
-    '/dev/': [
+      ...FedimintWalletSidebar,
       {
         text: 'Dev',
+        base: '/core/dev/',
         items: [
-          { text: 'Contributing', link: '/dev/contributing' },
-          { text: 'Testing', link: '/dev/testing' },
+          { text: 'Contributing', link: 'contributing' },
+          { text: 'Testing', link: 'testing' },
         ],
       },
     ],
   } satisfies DefaultTheme.Sidebar
 }
+
+const FedimintWalletSidebar = [
+  {
+    text: 'FedimintWallet',
+    link: '.',
+    base: '/core/FedimintWallet/',
+    items: [
+      {
+        text: 'new FedimintWallet()',
+        link: 'constructor',
+      },
+      {
+        text: 'setLogLevel()',
+        link: 'setLogLevel',
+      },
+      {
+        text: 'joinFederation()',
+        link: 'joinFederation',
+      },
+      {
+        text: 'initialize()',
+        link: 'initialize',
+      },
+      {
+        text: 'isOpen()',
+        link: 'isOpen',
+      },
+      {
+        text: 'cleanup()',
+        link: 'cleanup',
+      },
+      {
+        text: 'BalanceService',
+        base: '/core/FedimintWallet/BalanceService/',
+        items: [
+          { text: 'getBalance()', link: 'getBalance' },
+          { text: 'subscribeBalance()', link: 'subscribeBalance' },
+        ],
+      },
+      {
+        text: 'LightningService',
+        base: '/core/FedimintWallet/LightningService/',
+        items: [
+          { text: 'Docs TODO' },
+          // { text: 'payInvoice()', link: 'payInvoice' },
+          // { text: 'createInvoice()', link: 'createInvoice' },
+          // {
+          //   text: 'createInvoiceWithGateway()',
+          //   link: 'createInvoiceWithGateway',
+          // },
+          // { text: 'subscribeInvoiceStatus()', link: 'subscribeInvoiceStatus' },
+          // { text: 'subscribeLnPay()', link: 'subscribeLnPay' },
+          // { text: 'subscribeLnReceive()', link: 'subscribeLnReceive' },
+          // { text: 'listGateways()', link: 'listGateways' },
+          // { text: 'getGateway()', link: 'getGateway' },
+          // { text: 'updateGatewayCache()', link: 'updateGatewayCache' },
+        ],
+      },
+      {
+        text: 'MintService',
+        base: '/core/FedimintWallet/MintService/',
+        items: [{ text: 'Docs TODO' }],
+      },
+      {
+        text: 'FederationService',
+        base: '/core/FedimintWallet/FederationService/',
+        items: [{ text: 'Docs TODO' }],
+      },
+      {
+        text: 'RecoveryService',
+        base: '/core/FedimintWallet/RecoveryService/',
+        items: [{ text: 'Docs TODO' }],
+      },
+    ],
+  },
+  {
+    text: 'Type Aliases',
+    collapsed: true,
+    base: '/core/type-aliases/',
+    items: [
+      { text: 'CreateResponse', link: 'CreateResponse' },
+      { text: 'FeeToAmount', link: 'FeeToAmount' },
+      { text: 'LightningGateway', link: 'LightningGateway' },
+      { text: 'LnPayState', link: 'LnPayState' },
+      { text: 'OutgoingLightningPayment', link: 'OutgoingLightningPayment' },
+      { text: 'PayType', link: 'PayType' },
+      { text: 'RouteHint', link: 'RouteHint' },
+    ],
+  },
+]

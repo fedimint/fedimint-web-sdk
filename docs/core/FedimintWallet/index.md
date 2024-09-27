@@ -1,57 +1,20 @@
-[Core Web](../globals.md) / FedimintWallet
+# Wallet Overview
 
-# Class: FedimintWallet
+The `FedimintWallet` class serves as the main entry point for the library. It orchestrates the various services and the WorkerClient.
 
-## Constructors
+```mermaid
+graph TD
+    FedimintWallet
+    FedimintWallet ---> Services
+    FedimintWallet --> WorkerClient
+    FedimintWallet --> Logger
 
-### new FedimintWallet()
-
-> **new FedimintWallet**(`lazy`): [`FedimintWallet`](FedimintWallet.md)
-
-Creates a new instance of FedimintWallet.
-
-This constructor initializes a FedimintWallet instance, which manages communication
-with a Web Worker. The Web Worker is responsible for running WebAssembly code that
-handles the core Fedimint Client operations.
-
-(default) When not in lazy mode, the constructor immediately initializes the
-Web Worker and begins loading the WebAssembly module in the background. This
-allows for faster subsequent operations but may increase initial load time.
-
-In lazy mode, the Web Worker and WebAssembly initialization are deferred until
-the first operation that requires them, reducing initial overhead at the cost
-of a slight delay on the first operation.
-
-#### Parameters
-
-• **lazy**: `boolean` = `false`
-
-If true, delays Web Worker and WebAssembly initialization
-until needed. Default is false.
-
-#### Returns
-
-<!-- [`FedimintWallet`](/core/api/FedimintWallet) -->
-
-`FedimintWallet`
-
-#### Example
-
-```ts
-// Create a wallet with immediate initialization
-const wallet = new FedimintWallet()
-wallet.open()
-
-// Create a wallet with lazy initialization
-const lazyWallet = new FedimintWallet(true)
-// Some time later...
-lazyWallet.initialize()
-lazyWallet.open()
+    Services --> MintService
+    Services --> LightningService
+    Services --> FederationService
+    Services --> BalanceService
+    Services --> RecoveryService
 ```
-
-#### Defined in
-
-[FedimintWallet.ts:63](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L63)
 
 ## Properties
 
@@ -125,6 +88,8 @@ After this call, the FedimintWallet instance should be discarded.
 ### initialize()
 
 > **initialize**(): `Promise`\<`void`\>
+
+https://wagmi.sh/react/api/hooks/useAccount
 
 #### Returns
 

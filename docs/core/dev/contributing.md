@@ -1,5 +1,5 @@
 <script setup>
-import packageJson from '../../package.json'
+import packageJson from '../../../package.json'
 
 const nodeVersion = packageJson.engines.node
 const packageManager = packageJson.packageManager

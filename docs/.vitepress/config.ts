@@ -55,7 +55,7 @@ export default withMermaid({
         items: [
           {
             text: 'Contributing',
-            link: '/dev/contributing',
+            link: '/core/dev/contributing',
           },
           {
             text: 'Discussions ',
