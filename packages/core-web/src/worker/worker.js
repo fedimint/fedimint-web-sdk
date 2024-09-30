@@ -1,9 +1,12 @@
 // Web Worker for fedimint-client-wasm to run in the browser
 
 // HACK: Fixes vitest browser runner
+// TODO: remove once https://github.com/vitest-dev/vitest/pull/6569 lands in a release
 globalThis.__vitest_browser_runner__ = { wrapDynamicImport: (foo) => foo() }
 
+// dynamically imported Constructor for WasmClient
 let WasmClient = null
+// client instance
 let client = null
 
 const streamCancelMap = new Map()

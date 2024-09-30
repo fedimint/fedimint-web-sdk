@@ -17,6 +17,7 @@ export default defineWorkspace([
         api: {
           port: 63315,
         },
+        screenshotFailures: false,
       },
     },
   },
