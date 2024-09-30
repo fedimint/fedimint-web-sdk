@@ -187,7 +187,9 @@ await wallet.lightning.payBolt11Invoice('lnbc...')
 
 ## Examples
 
-Check out the Vite + React example in the [`examples/vite-core`](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/vite-core) directory. You can also view a live demo [here](https://fedimint.github.io/fedimint-web-sdk/).
+Check out an example app using [Vite + React example](../examples/vite-react.md).
+
+Check out an example app using [VanillaJS + HTML](../examples/bare-js.md).
 
 ## Resources
 
