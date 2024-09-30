@@ -16,7 +16,7 @@ There's no ui, so open your browser's console to see the library in action.
 You might need to disable your adblocker or Brave Shields to see the preview.
 :::
 
-<iframe src="https://stackblitz.com/github/fedimint/fedimint-web-sdk/tree/main/examples/bare-js?embed=1" style=" width: 100%; height: 600px; border: 0;"></iframe>
+<iframe src="https://stackblitz.com/github/fedimint/fedimint-web-sdk/tree/main/examples/bare-js?embed=1&file=index.html" style=" width: 100%; height: 600px; border: 0;"></iframe>
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/fedimint/fedimint-web-sdk/tree/main/examples/bare-js)
 

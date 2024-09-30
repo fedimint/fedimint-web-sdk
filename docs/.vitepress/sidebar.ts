@@ -62,6 +62,10 @@ const FedimintWalletSidebar = [
         link: 'isOpen',
       },
       {
+        text: 'open()',
+        link: 'open',
+      },
+      {
         text: 'cleanup()',
         link: 'cleanup',
       },
