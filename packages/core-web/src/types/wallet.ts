@@ -105,6 +105,11 @@ type Duration = {
   secs: number
 }
 
+type MintSpendNotesResponse = {
+  notes: string
+  operation_id: string
+}
+
 export {
   JSONValue,
   JSONObject,
@@ -124,4 +129,5 @@ export {
   CancelFunction,
   ReissueExternalNotesState,
   Duration,
+  MintSpendNotesResponse,
 }
