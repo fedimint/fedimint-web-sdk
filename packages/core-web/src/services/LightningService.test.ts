@@ -110,26 +110,57 @@ walletTest(
   },
 )
 
-walletTest('payInvoice should pay a bolt11 invoice', async ({ wallet }) => {
-  expect(wallet).toBeDefined()
-  expect(wallet.isOpen()).toBe(true)
+walletTest(
+  'payInvoice should throw on insufficient funds',
+  async ({ wallet }) => {
+    expect(wallet).toBeDefined()
+    expect(wallet.isOpen()).toBe(true)
 
-  const invoice = await wallet.lightning.createInvoice(100, 'test')
-  expect(invoice).toBeDefined()
-  expect(invoice).toMatchObject({
-    invoice: expect.any(String),
-    operation_id: expect.any(String),
-  })
+    const invoice = await wallet.lightning.createInvoice(100, 'test')
+    expect(invoice).toBeDefined()
+    expect(invoice).toMatchObject({
+      invoice: expect.any(String),
+      operation_id: expect.any(String),
+    })
 
-  const counterBefore = wallet.testing.getRequestCounter()
-  // Insufficient funds
-  try {
-    await wallet.lightning.payInvoice(invoice.invoice, {})
-    expect.unreachable('Should throw error')
-  } catch (error) {
-    expect(error).toBeDefined()
-  }
-  // 3 requests were made, one for paying the invoice, one for refreshing the
-  // gateway cache, one for getting the gateway info
-  expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 3)
-})
+    const counterBefore = wallet.testing.getRequestCounter()
+    // Insufficient funds
+    try {
+      await wallet.lightning.payInvoice(invoice.invoice, {})
+      expect.unreachable('Should throw error')
+    } catch (error) {
+      expect(error).toBeDefined()
+    }
+    // 3 requests were made, one for paying the invoice, one for refreshing the
+    // gateway cache, one for getting the gateway info
+    expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 3)
+  },
+)
+
+walletTest(
+  'payInvoice should pay a bolt11 invoice',
+  { timeout: 45000 },
+  async ({ wallet }) => {
+    expect(wallet).toBeDefined()
+    expect(wallet.isOpen()).toBe(true)
+
+    const gateways = await wallet.lightning.listGateways()
+    const gateway = gateways[0]
+    if (!gateway) {
+      expect.unreachable('Gateway not found')
+    }
+    const invoice = await wallet.lightning.createInvoice(10000, 'test')
+    await expect(
+      wallet.testing.payWithFaucet(invoice.invoice),
+    ).resolves.toBeDefined()
+    await expect(wallet.lightning.waitForReceive(invoice.operation_id)).resolves
+    const externalInvoice = await wallet.testing.getExternalInvoice(10)
+    const payment = await wallet.lightning.payInvoice(externalInvoice.pr)
+    expect(payment).toBeDefined()
+    expect(payment).toMatchObject({
+      contract_id: expect.any(String),
+      fee: expect.any(Number),
+      payment_type: expect.any(Object),
+    })
+  },
+)

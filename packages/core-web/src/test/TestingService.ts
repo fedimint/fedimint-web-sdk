@@ -19,4 +19,41 @@ export class TestingService {
   getRequestCallbackMap() {
     return this.client._getRequestCallbackMap()
   }
+
+  async payWithFaucet(invoice: string) {
+    try {
+      const response = await fetch(
+        `https://faucet.mutinynet.com/api/lnurlw/callback?k1=k1&pr=${invoice}`,
+      )
+
+      if (!response.ok) {
+        throw new Error(
+          `HTTP error! Failed to pay invoice. status: ${response.status}`,
+        )
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Error paying with faucet', error)
+      throw error
+    }
+  }
+
+  async getExternalInvoice(amount: number) {
+    try {
+      const response = await fetch(
+        `https://lnurl-staging.mutinywallet.com/lnurlp/refund/callback?amount=${amount}`,
+      )
+      if (!response.ok) {
+        throw new Error(
+          `HTTP error! Failed to get external invoice. status: ${response.status}`,
+        )
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Error getting external invoice', error)
+      throw error
+    }
+  }
 }

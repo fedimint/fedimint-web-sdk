@@ -47,22 +47,22 @@ type PayType = {
 }
 
 type LnPayState =
-  | 'Created'
-  | 'Canceled'
-  | { Funded: { block_height: number } }
-  | { WaitingForRefund: { error_reason: string } }
-  | 'AwaitingChange'
+  | 'created'
+  | 'canceled'
+  | { funded: { block_height: number } }
+  | { waiting_for_refund: { error_reason: string } }
+  | 'awaiting_change'
   | { Success: { preimage: string } }
-  | { Refunded: { gateway_error: string } }
-  | { UnexpectedError: { error_message: string } }
+  | { refunded: { gateway_error: string } }
+  | { unexpected_error: { error_message: string } }
 
 type LnReceiveState =
-  | 'Created'
-  | { WaitingForPayment: { invoice: string; timeout: number } }
-  | { Canceled: { reason: string } }
-  | 'Funded'
-  | 'AwaitingFunds'
-  | 'Claimed'
+  | 'created'
+  | { waiting_for_payment: { invoice: string; timeout: number } }
+  | { canceled: { reason: string } }
+  | 'funded'
+  | 'awaiting_funds'
+  | 'claimed'
 
 type CreateBolt11Response = {
   operation_id: string
@@ -94,6 +94,12 @@ type StreamResult<T extends JSONValue> =
 
 type CancelFunction = () => void
 
+type ReissueExternalNotesState =
+  | 'Created'
+  | 'Issuing'
+  | 'Done'
+  | { Failed: { error: string } }
+
 export {
   JSONValue,
   JSONObject,
@@ -111,4 +117,5 @@ export {
   StreamResult,
   ModuleKind,
   CancelFunction,
+  ReissueExternalNotesState,
 }

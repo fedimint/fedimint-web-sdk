@@ -108,6 +108,22 @@ export class LightningService {
     return unsubscribe
   }
 
+  async waitForReceive(operationId: string): Promise<LnReceiveState> {
+    return new Promise((resolve, reject) => {
+      const unsubscribe = this.subscribeLnReceive(
+        operationId,
+        (res) => {
+          if (res === 'claimed') resolve(res)
+        },
+        reject,
+      )
+      setTimeout(() => {
+        unsubscribe()
+        reject(new Error('Timeout waiting for receive'))
+      }, 10000)
+    })
+  }
+
   async getGateway(
     gatewayId: string | null = null,
     forceInternal: boolean = false,

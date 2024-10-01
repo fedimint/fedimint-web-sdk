@@ -1,5 +1,9 @@
 import { WorkerClient } from '../worker'
-import { JSONObject, JSONValue } from '../types/wallet'
+import {
+  JSONObject,
+  JSONValue,
+  ReissueExternalNotesState,
+} from '../types/wallet'
 
 export class MintService {
   constructor(private client: WorkerClient) {}
@@ -13,7 +17,7 @@ export class MintService {
 
   async reissueExternalNotes(
     oobNotes: string,
-    extraMeta: JSONObject,
+    extraMeta: JSONObject = {},
   ): Promise<string> {
     return await this.client.rpcSingle('mint', 'reissue_external_notes', {
       oob_notes: oobNotes,
@@ -26,12 +30,6 @@ export class MintService {
     onSuccess: (state: JSONValue) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    type ReissueExternalNotesState =
-      | 'Created'
-      | 'Issuing'
-      | 'Done'
-      | { Failed: { error: string } }
-
     const unsubscribe = this.client.rpcStream<ReissueExternalNotesState>(
       'mint',
       'subscribe_reissue_external_notes',
@@ -49,13 +47,14 @@ export class MintService {
     // after the specified number of milliseconds.
     // If the receiver has already redeemed the notes at this time,
     // the notes will not be cancelled
-    tryCancelAfter: number,
-    includeInvite: boolean,
-    extraMeta: JSONValue,
+    tryCancelAfter: number = 0,
+    includeInvite: boolean = false,
+    extraMeta: JSONValue = {},
   ): Promise<JSONValue> {
+    console.error('tryCancelAfter', tryCancelAfter)
     return await this.client.rpcSingle('mint', 'spend_notes', {
       min_amount: minAmount,
-      try_cancel_after: tryCancelAfter,
+      try_cancel_after: null,
       include_invite: includeInvite,
       extra_meta: extraMeta,
     })

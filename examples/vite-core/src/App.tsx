@@ -4,6 +4,10 @@ import { wallet } from './wallet'
 const TESTNET_FEDERATION_CODE =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
 
+// Expose the wallet to the global window object for testing
+// @ts-ignore
+globalThis.wallet = wallet
+
 const useIsOpen = () => {
   const [open, setIsOpen] = useState(false)
 

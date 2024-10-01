@@ -83,11 +83,8 @@ workerTest(
   },
 )
 
-workerTest(
-  'should handle unknown message type',
-  async ({ worker, clientName }) => {
-    worker.postMessage({ type: 'unknown', requestId: 2 })
-    const response = await waitForWorkerResponse(worker, 'error')
-    expect(response.error).toBe('Unknown message type')
-  },
-)
+workerTest('should handle unknown message type', async ({ worker }) => {
+  worker.postMessage({ type: 'unknown', requestId: 2 })
+  const response = await waitForWorkerResponse(worker, 'error')
+  expect(response.error).toBe('Unknown message type')
+})
