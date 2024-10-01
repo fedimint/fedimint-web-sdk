@@ -153,7 +153,9 @@ walletTest(
     await expect(
       wallet.testing.payWithFaucet(invoice.invoice),
     ).resolves.toBeDefined()
-    await expect(wallet.lightning.waitForReceive(invoice.operation_id)).resolves
+    await wallet.lightning.waitForReceive(invoice.operation_id)
+    // Wait for balance to fully update
+    await new Promise((resolve) => setTimeout(resolve, 1000))
     const externalInvoice = await wallet.testing.getExternalInvoice(10)
     const payment = await wallet.lightning.payInvoice(externalInvoice.pr)
     expect(payment).toBeDefined()
