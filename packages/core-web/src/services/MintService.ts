@@ -68,7 +68,6 @@ export class MintService {
         extra_meta: extraMeta,
       },
     )
-    console.error('res', res)
     const notes = res[1]
     const operationId = res[0]
 
