@@ -1,5 +1,6 @@
 import { WorkerClient } from '../worker'
 import {
+  Duration,
   JSONObject,
   JSONValue,
   ReissueExternalNotesState,
@@ -47,14 +48,18 @@ export class MintService {
     // after the specified number of milliseconds.
     // If the receiver has already redeemed the notes at this time,
     // the notes will not be cancelled
-    tryCancelAfter: number = 0,
+    tryCancelAfter: number | Duration = 0,
     includeInvite: boolean = false,
     extraMeta: JSONValue = {},
   ): Promise<JSONValue> {
-    console.error('tryCancelAfter', tryCancelAfter)
+    const duration =
+      typeof tryCancelAfter === 'number'
+        ? { nanos: 0, secs: tryCancelAfter }
+        : tryCancelAfter
+
     return await this.client.rpcSingle('mint', 'spend_notes', {
       min_amount: minAmount,
-      try_cancel_after: null,
+      try_cancel_after: duration,
       include_invite: includeInvite,
       extra_meta: extraMeta,
     })

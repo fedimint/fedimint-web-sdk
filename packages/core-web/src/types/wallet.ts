@@ -100,6 +100,11 @@ type ReissueExternalNotesState =
   | 'Done'
   | { Failed: { error: string } }
 
+type Duration = {
+  nanos: number
+  secs: number
+}
+
 export {
   JSONValue,
   JSONObject,
@@ -118,4 +123,5 @@ export {
   ModuleKind,
   CancelFunction,
   ReissueExternalNotesState,
+  Duration,
 }
