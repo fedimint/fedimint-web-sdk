@@ -1,5 +1,19 @@
 # @fedimint/core-web
 
+## 0.0.5
+
+### Patch Changes
+
+- ec6f0c2: Separated wasm dependecies into their own packages
+- 6aae407: Added cursory documentation `/docs`
+- 27d42ad: Added Example projects to docs containing Stackblitz previews
+- 908129f: Added TestingService for exposing internal state during tests. Added a bunch of tests.
+- ada54ce: Shortened lightning function names to omit "Bolt11". (createBolt11Invoice --> createInvoice
+- 20a2783: Added a docs website powered by vitepress
+- a091101: Added debug logging with configurable logging levels
+- Updated dependencies [ec6f0c2]
+  - @fedimint/fedimint-client-wasm-bundler@0.0.1
+
 ## 0.0.4
 
 ### Patch Changes
