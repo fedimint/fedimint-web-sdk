@@ -3,6 +3,7 @@ import {
   Duration,
   JSONObject,
   JSONValue,
+  MintSpendNotesResponse,
   ReissueExternalNotesState,
 } from '../types/wallet'
 
@@ -51,18 +52,30 @@ export class MintService {
     tryCancelAfter: number | Duration = 0,
     includeInvite: boolean = false,
     extraMeta: JSONValue = {},
-  ): Promise<JSONValue> {
+  ): Promise<MintSpendNotesResponse> {
     const duration =
       typeof tryCancelAfter === 'number'
         ? { nanos: 0, secs: tryCancelAfter }
         : tryCancelAfter
 
-    return await this.client.rpcSingle('mint', 'spend_notes', {
-      min_amount: minAmount,
-      try_cancel_after: duration,
-      include_invite: includeInvite,
-      extra_meta: extraMeta,
-    })
+    const res = await this.client.rpcSingle<Array<string>>(
+      'mint',
+      'spend_notes',
+      {
+        min_amount: minAmount,
+        try_cancel_after: duration,
+        include_invite: includeInvite,
+        extra_meta: extraMeta,
+      },
+    )
+    console.error('res', res)
+    const notes = res[1]
+    const operationId = res[0]
+
+    return {
+      notes,
+      operation_id: operationId,
+    }
   }
 
   async validateNotes(oobNotes: string): Promise<number> {
