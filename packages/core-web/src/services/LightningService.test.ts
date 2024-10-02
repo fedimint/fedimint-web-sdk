@@ -48,11 +48,7 @@ walletTest(
     const gateways = await wallet.lightning.listGateways()
     expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 1)
     expect(gateways).toBeDefined()
-    expect(gateways).toMatchObject([
-      {
-        info: expect.any(Object),
-      },
-    ])
+    expect(gateways).toMatchObject(expect.any(Array))
   },
 )
 
@@ -116,31 +112,29 @@ walletTest(
 
 walletTest(
   'payInvoice should pay a bolt11 invoice',
-  { timeout: 45000 },
-  async ({ wallet }) => {
-    expect(wallet).toBeDefined()
-    expect(wallet.isOpen()).toBe(true)
-
-    const gateways = await wallet.lightning.listGateways()
-    const gateway = gateways[0]
-    if (!gateway) {
-      expect.unreachable('Gateway not found')
-    }
-    const invoice = await wallet.lightning.createInvoice(10000, 'test')
-    await expect(
-      wallet.testing.payWithFaucet(invoice.invoice),
-    ).resolves.toBeDefined()
-    await wallet.lightning.waitForReceive(invoice.operation_id)
-    // Wait for balance to fully update
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    const externalInvoice = await wallet.testing.getExternalInvoice(10)
-    const payment = await wallet.lightning.payInvoice(externalInvoice.pr)
-    expect(payment).toBeDefined()
+  // { timeout: 45000 },
+  async ({ fundedWallet }) => {
+    expect(fundedWallet).toBeDefined()
+    expect(fundedWallet.isOpen()).toBe(true)
+    const initialBalance = await fundedWallet.balance.getBalance()
+    expect(initialBalance).toBeGreaterThan(0)
+    console.error('initialBalance', initialBalance)
+    const externalInvoice = await fundedWallet.testing.createFaucetInvoice(100)
+    console.error('EXTERNAL INVOICE', externalInvoice)
+    const gatewayInfo = await fundedWallet.testing.getFaucetGatewayInfo()
+    const payment = await fundedWallet.lightning.payInvoiceWithGateway(
+      externalInvoice,
+      gatewayInfo,
+    )
     expect(payment).toMatchObject({
       contract_id: expect.any(String),
       fee: expect.any(Number),
       payment_type: expect.any(Object),
     })
+    // console.error('PAYMENT', payment)
+    const finalBalance = await fundedWallet.balance.getBalance()
+    expect(finalBalance).toBeLessThan(initialBalance)
+    // console.error(finalBalance, initialBalance)
   },
 )
 

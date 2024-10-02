@@ -24,3 +24,10 @@ walletTest('spendNotes should throw if wallet is empty', async ({ wallet }) => {
 
   await expect(wallet.mint.spendNotes(100)).rejects.toThrow()
 })
+
+walletTest('parseNotes should parse notes', async ({ wallet }) => {
+  expect(wallet).toBeDefined()
+  expect(wallet.isOpen()).toBe(true)
+
+  await expect(wallet.mint.reissueExternalNotes('test')).rejects.toThrow()
+})

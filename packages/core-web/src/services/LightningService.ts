@@ -148,7 +148,7 @@ export class LightningService {
       setTimeout(() => {
         unsubscribe()
         reject(new Error('Timeout waiting for receive'))
-      }, 10000)
+      }, 15000)
     })
   }
 
