@@ -153,7 +153,7 @@ Here's a basic example of how to use the `@fedimint/core-web` library:
 ::: code-group
 
 ```ts [main.ts]
-import { wallet } from '@fedimint/core-web'
+import { FedimintWallet } from '@fedimint/core-web'
 
 // Create the Wallet client
 const wallet = new FedimintWallet()
@@ -178,6 +178,9 @@ const unsubscribe = wallet.balance.subscribeBalance((balance: number) => {
 
 // Receive Ecash Payments
 await wallet.mint.reissueNotes('A11qgqpw9thwvaz7t...')
+
+// Create Lightning Invoice
+await wallet.lightning.createInvoice(10_000, 'description')
 
 // Pay Lightning Invoice
 await wallet.lightning.payBolt11Invoice('lnbc...')
