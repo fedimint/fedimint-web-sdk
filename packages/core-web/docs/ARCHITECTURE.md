@@ -1,5 +1,7 @@
 # Core Web Architecture
 
+Docs Page: [Architecture](https://web.fedimint.org/core/architecture.html)
+
 ## **Overview**
 
 The Fedimint Web SDK **Core Web** library is a modular and extensible JavaScript library designed to interact with the Fedimint client in a web browser. It provides a high-level API for developers to manage federated e-cash wallets, perform operations like minting and spending e-cash, and interact with the Lightning Network. The library is structured to promote maintainability, scalability, and ease of use, leveraging modern software development practices.

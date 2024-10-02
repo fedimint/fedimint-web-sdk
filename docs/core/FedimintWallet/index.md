@@ -2,19 +2,7 @@
 
 The `FedimintWallet` class serves as the main entry point for the library. It orchestrates the various services and the WorkerClient.
 
-```mermaid
-graph TD
-    FedimintWallet
-    FedimintWallet ---> Services
-    FedimintWallet --> WorkerClient
-    FedimintWallet --> Logger
-
-    Services --> MintService
-    Services --> LightningService
-    Services --> FederationService
-    Services --> BalanceService
-    Services --> RecoveryService
-```
+<img src="/architecture-diagram.svg" alt="Architecture" />
 
 ## Properties
 

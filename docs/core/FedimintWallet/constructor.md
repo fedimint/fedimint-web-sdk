@@ -1,4 +1,4 @@
-# new FedimintWallet()t
+# new FedimintWallet()
 
 Creates a new instance of FedimintWallet.
 
@@ -35,7 +35,7 @@ until needed. Default is false.
 
 #### Example
 
-```ts
+```ts twoslash
 import { FedimintWallet } from '@fedimint/core-web'
 
 // Create a wallet with immediate initialization
