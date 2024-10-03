@@ -1,13 +1,19 @@
 import { getSidebar } from './sidebar'
-import { withMermaid } from 'vitepress-plugin-mermaid'
+import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
+import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
-export default withMermaid({
+export default defineConfig({
   title: 'Fedimint Web Sdk',
   description: 'Building Fedimint Ecash into the web',
   ignoreDeadLinks: false,
   lang: 'en-US',
   lastUpdated: true,
+  markdown: {
+    // TODO: Fix version conflicts
+    // @ts-ignore
+    codeTransformers: [transformerTwoslash()],
+  },
   head: [
     [
       'meta',

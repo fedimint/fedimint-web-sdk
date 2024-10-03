@@ -8,8 +8,8 @@
     "docs:preview": "vitepress preview"
   },
   "devDependencies": {
-    "mermaid": "^11.2.1",
-    "vitepress": "^1.3.4",
-    "vitepress-plugin-mermaid": "^2.0.17"
+    "@shikijs/vitepress-twoslash": "1.4.0",
+    "@fedimint/core-web": "workspace:*",
+    "vitepress": "1.1.4"
   }
 }

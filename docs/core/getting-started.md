@@ -101,7 +101,7 @@ To use wasm in a webpack project, you'll need to modify your webpack configurati
 
 ```ts{2-5} [webpack.config.js]
 module.exports = {
-  experiments = {
+  experiments: {
       asyncWebAssembly: true,
       layers: true,
   }
@@ -116,24 +116,65 @@ module.exports = {
 
 To use wasm in a vite project, you'll need to install the `vite-plugin-wasm` plugin.
 
-```bash
+If you you see errors with top level await, you may need to install the `vite-plugin-top-level-await` plugin.
+
+::: code-group
+
+```bash [pnpm]
+# Required
 pnpm add vite-plugin-wasm
+
+# Typically not needed, but may be required in some projects.
+pnpm add vite-plugin-top-level-await
+```
+
+```bash [npm]
+# Required
+npm i vite-plugin-wasm
+
+# Typically not needed, but may be required in some projects.
+npm i vite-plugin-top-level-await
+```
+
+```bash [yarn]
+# Required
+yarn add vite-plugin-wasm
+
+# Typically not needed, but may be required in some projects.
+yarn add vite-plugin-top-level-await
+```
+
+```bash [bun]
+# Required
+bun add vite-plugin-wasm
+
+# Typically not needed, but may be required in some projects.
+bun add vite-plugin-top-level-await
 ```
 
 Then update your `vite.config.ts` file with the following:
 
 ::: code-group
 
-```ts{1,5,7-10,12-14} [vite.config.ts]
+```ts{2-3,7-10,12-18,20-22} twoslash [vite.config.ts]
+// @noErrors
+import { defineConfig } from 'vite'
 import wasm from 'vite-plugin-wasm'
+import topLevelAwait from 'vite-plugin-top-level-await' // Optional
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [wasm()], // required for wasm
+  plugins: [
+    wasm(),
+    topLevelAwait(), // Optional
+  ],
 
   worker: {
     format: 'es',
-    plugins: () => [wasm()],
+    plugins: () => [
+      wasm(),
+      topLevelAwait(), // Optional
+    ],
   },
 
   optimizeDeps: {
@@ -152,7 +193,7 @@ Here's a basic example of how to use the `@fedimint/core-web` library:
 
 ::: code-group
 
-```ts [main.ts]
+```ts twoslash [example.ts]
 import { FedimintWallet } from '@fedimint/core-web'
 
 // Create the Wallet client
@@ -172,18 +213,19 @@ const balance = await wallet.balance.getBalance()
 
 // Subscribe to Balance Updates
 const unsubscribe = wallet.balance.subscribeBalance((balance: number) => {
+  // notwoslash
   console.log('Updated balance:', balance)
 })
 // Remember to call unsubscribe() when done
 
 // Receive Ecash Payments
-await wallet.mint.reissueNotes('A11qgqpw9thwvaz7t...')
+await wallet.mint.redeemEcash('A11qgqpw9thwvaz7t...')
 
 // Create Lightning Invoice
 await wallet.lightning.createInvoice(10_000, 'description')
 
 // Pay Lightning Invoice
-await wallet.lightning.payBolt11Invoice('lnbc...')
+await wallet.lightning.payInvoice('lnbc...')
 ```
 
 :::

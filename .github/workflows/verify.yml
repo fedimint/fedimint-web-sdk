@@ -84,5 +84,8 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-deps
 
+      - name: Build Packages (dependency of docs)
+        run: pnpm build
+
       - name: Build Docs
         run: pnpm docs:build

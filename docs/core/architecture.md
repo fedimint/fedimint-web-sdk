@@ -4,19 +4,7 @@ The Fedimint Web SDK **Core Web** library is a modular and extensible JavaScript
 
 The **Core Web** library is built around a set of composable services and a communication layer that interacts with a Web Worker running WebAssembly (WASM) code.
 
-```mermaid
-graph TD
-    FedimintWallet
-    FedimintWallet ---> Services
-    FedimintWallet --> WorkerClient
-    FedimintWallet --> Logger
-
-    Services --> MintService
-    Services --> LightningService
-    Services --> FederationService
-    Services --> BalanceService
-    Services --> RecoveryService
-```
+<img src="/architecture-diagram.svg" alt="Architecture" />
 
 ## [**FedimintWallet**](FedimintWallet/index)
 
