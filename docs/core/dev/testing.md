@@ -9,6 +9,30 @@ Vitest [browser mode](https://vitest.dev/guide/browser/) + playwright (provider)
 
 This framework should be suitable for all the additional libraries we have planned (e.g. react).
 
+## Nix
+
+The Fedimint Web SDK depends on several external pieces of infrastructure. In order to run high-fidelity tests, we utilize a tool from the [fedimint](https://github.com/fedimint/fedimint) repo called [Devimint](https://github.com/fedimint/fedimint/tree/master/devimint). Devimint includes several pieces of infrastructure for running a local testing environment for fedimint applications including a bitcoind node (regtest), multiple guardian servers (fedimintd), multiple lightning gateways (lnd, cln), and a faucet for minting tokens.
+
+## Nix Installation & Setup
+
+To setup nix, use the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer)
+
+```sh
+# The exact version might be different.
+> nix --version
+nix (Nix) 2.9.1
+```
+
+Next, [install direnv](https://direnv.net/docs/installation.html) and run the following command to initialize direnv in your shell:
+
+```sh
+direnv allow
+```
+
+::: tip
+This takes a really long time to run for the first time. All future runs will be relatively quick.
+:::
+
 ## Usage
 
 ```bash
