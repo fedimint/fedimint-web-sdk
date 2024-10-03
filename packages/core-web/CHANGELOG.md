@@ -1,5 +1,11 @@
 # @fedimint/core-web
 
+## 0.0.6
+
+### Patch Changes
+
+- 3a08209: Fix mint bugs
+
 ## 0.0.5
 
 ### Patch Changes
