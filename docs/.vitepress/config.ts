@@ -14,34 +14,23 @@ export default defineConfig({
     // @ts-ignore
     codeTransformers: [transformerTwoslash()],
   },
+  /* prettier-ignore */
   head: [
-    [
-      'meta',
-      {
-        name: 'keywords',
-        content: 'bitcoin, lightning, ecash, fedimint, typescript, wasm, react',
-      },
-    ],
+    ['meta', { name: 'keywords', content: 'bitcoin, lightning, ecash, fedimint, typescript, wasm, react' } ],
     ['link', { rel: 'icon', href: '/favicon.ico' }],
     ['meta', { name: 'theme-color', content: '#346cff' }],
+
     // Open Graph
     ['meta', { property: 'og:type', content: 'website' }],
-    [
-      'meta',
-      {
-        property: 'og:image',
-        content: 'https://web.fedimint.org/og.png',
-      },
-    ],
     ['meta', { property: 'og:url', content: 'https://web.fedimint.org' }],
+    ['meta', { property: 'og:title', content: 'Fedimint Web SDK | Building Ecash into the web' } ],
+    ['meta', { property: 'og:site_name', content: 'Fedimint Web SDK' }],
+    ['meta', { property: 'og:image', content: 'https://web.fedimint.org/og.png' } ],
+
     // Twitter
-    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:card', content: 'summary' }],
     ['meta', { name: 'twitter:creator', content: '@fedimint' }],
-    [
-      'meta',
-      { name: 'twitter:image', content: 'https://web.fedimint.org/og.png' },
-    ],
-    ['meta', { name: 'twitter:site', content: 'https://web.fedimint.org' }],
+    ['meta', { name: 'twitter:site', content: '@fedimint' }],
   ],
   themeConfig: {
     editLink: {
