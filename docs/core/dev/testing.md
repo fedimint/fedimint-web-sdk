@@ -11,7 +11,13 @@ This framework should be suitable for all the additional libraries we have plann
 
 ## Nix
 
-The Fedimint Web SDK depends on several external pieces of infrastructure. In order to run high-fidelity tests, we utilize a tool from the [fedimint](https://github.com/fedimint/fedimint) repo called [Devimint](https://github.com/fedimint/fedimint/tree/master/devimint). Devimint includes several pieces of infrastructure for running a local testing environment for fedimint applications including a bitcoind node (regtest), multiple guardian servers (fedimintd), multiple lightning gateways (lnd, cln), and a faucet for minting tokens.
+The Fedimint Web SDK depends on several external pieces of infrastructure. In order to run high-fidelity tests, we utilize a tool from the [fedimint](https://github.com/fedimint/fedimint) repo called [Devimint](https://github.com/fedimint/fedimint/tree/master/devimint). Devimint includes several pieces of infrastructure for running a local testing environment for fedimint applications including a bitcoind node (regtest), multiple guardian servers (fedimintd), multiple lightning gateways (lnd, cln, ldk), and a faucet for minting tokens.
+
+::: warning Note
+
+Nix is NOT required to build or use the Fedimint Web SDK. It is ONLY required to run the tests.
+
+:::
 
 ## Nix Installation & Setup
 
