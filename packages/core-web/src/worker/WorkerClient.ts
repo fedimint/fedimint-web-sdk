@@ -6,6 +6,7 @@ import {
   StreamResult,
 } from '../types/wallet'
 import { logger } from '../utils/logger'
+import { WorkerMessageType } from './types'
 
 // Handles communication with the wasm worker
 // TODO: Move rpc stream management to a separate "SubscriptionManager" class
@@ -29,7 +30,7 @@ export class WorkerClient {
   // Idempotent setup - Loads the wasm module
   initialize() {
     if (this.initPromise) return this.initPromise
-    this.initPromise = this.sendSingleMessage('init')
+    this.initPromise = this.sendSingleMessage(WorkerMessageType.Init)
     return this.initPromise
   }
 
@@ -65,7 +66,7 @@ export class WorkerClient {
   // TODO: Handle timeouts
   // TODO: Handle multiple errors
 
-  sendSingleMessage(type: string, payload?: any): Promise<any> {
+  sendSingleMessage(type: WorkerMessageType, payload?: any): Promise<any> {
     return new Promise((resolve, reject) => {
       const requestId = ++this.requestCounter
       logger.debug('WorkerClient - sendSingleMessage', requestId, type, payload)
@@ -188,14 +189,14 @@ export class WorkerClient {
       }
     })
     this.worker.postMessage({
-      type: 'rpc',
+      type: WorkerMessageType.Rpc,
       payload: { module, method, body },
       requestId,
     })
 
     unsubscribePromise.then(() => {
       this.worker?.postMessage({
-        type: 'unsubscribe',
+        type: WorkerMessageType.Unsubscribe,
         requestId,
       })
       this.requestCallbacks.delete(requestId)
