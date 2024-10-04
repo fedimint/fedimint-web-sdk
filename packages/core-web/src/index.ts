@@ -1,16 +1,4 @@
-import { FedimintWallet } from './FedimintWallet.js'
-import {
-  LightningGateway,
-  RouteHint,
-  FeeToAmount,
-  OutgoingLightningPayment,
-  PayType,
-  LnPayState,
-  CreateBolt11Response,
-} from './types/wallet.js'
-
-export { FedimintWallet }
-
+export { FedimintWallet } from './FedimintWallet'
 export type {
   LightningGateway,
   RouteHint,
@@ -19,4 +7,4 @@ export type {
   PayType,
   LnPayState,
   CreateBolt11Response,
-}
+} from './types/wallet'
