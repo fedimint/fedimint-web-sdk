@@ -20,12 +20,22 @@ You might need to disable your adblocker or Brave Shields to see the preview.
 
 ## Running the Example Locally
 
-```bash
-# from the root of the repo
+Clone the repo
 
-# install dependencies
+```sh
+git clone https://github.com/fedimint/fedimint-web-sdk.git
+cd fedimint-web-sdk
+```
+
+Install the package manager with [Corepack](https://nodejs.org/api/corepack.html) & install dependencies.
+
+```sh
+corepack enable
 pnpm i
+```
 
-# run the dev server
+Run the Example
+
+```sh
 pnpm run dev:vite
 ```

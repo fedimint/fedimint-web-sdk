@@ -1,47 +1,35 @@
 import type { DefaultTheme } from 'vitepress'
 
 export function getSidebar() {
-  return {
-    '/core/': [
-      {
-        base: '/core/',
-        text: 'Introduction',
-        items: [
-          { text: 'Overview', link: 'overview' },
-          { text: 'Getting Started', link: 'getting-started' },
-          { text: 'Architecture', link: 'architecture' },
-        ],
-      },
-      ...FedimintWalletSidebar,
-      {
-        base: '/examples/',
-        text: 'Examples',
-        items: [
-          { text: 'Vite + React', link: 'vite-react' },
-          { text: 'Vanilla JS', link: 'bare-js' },
-        ],
-      },
-      {
-        text: 'Dev',
-        collapsed: true,
-        base: '/core/dev/',
-        items: [
-          { text: 'Contributing', link: 'contributing' },
-          { text: 'Testing', link: 'testing' },
-        ],
-      },
-    ],
-    '/examples/': [
-      {
-        base: '/examples/',
-        text: 'Examples',
-        items: [
-          { text: 'Vite + React', link: 'vite-react' },
-          { text: 'Vanilla JS', link: 'bare-js' },
-        ],
-      },
-    ],
-  } satisfies DefaultTheme.Sidebar
+  return [
+    {
+      base: '/core/',
+      text: 'Introduction',
+      items: [
+        { text: 'Overview', link: 'overview' },
+        { text: 'Getting Started', link: 'getting-started' },
+        { text: 'Architecture', link: 'architecture' },
+      ],
+    },
+    ...FedimintWalletSidebar,
+    {
+      base: '/examples/',
+      text: 'Examples',
+      items: [
+        { text: 'Vite + React', link: 'vite-react' },
+        { text: 'Vanilla JS', link: 'bare-js' },
+      ],
+    },
+    {
+      text: 'Dev',
+      collapsed: true,
+      base: '/core/dev/',
+      items: [
+        { text: 'Contributing', link: 'contributing' },
+        { text: 'Testing', link: 'testing' },
+      ],
+    },
+  ] satisfies DefaultTheme.Sidebar
 }
 
 const FedimintWalletSidebar = [
