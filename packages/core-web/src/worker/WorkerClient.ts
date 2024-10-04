@@ -1,12 +1,12 @@
-import {
+import type {
   CancelFunction,
   JSONValue,
   ModuleKind,
   StreamError,
   StreamResult,
-} from '../types/wallet'
+  WorkerMessageType,
+} from '../types'
 import { logger } from '../utils/logger'
-import { WorkerMessageType } from './types'
 
 // Handles communication with the wasm worker
 // TODO: Move rpc stream management to a separate "SubscriptionManager" class
@@ -30,7 +30,7 @@ export class WorkerClient {
   // Idempotent setup - Loads the wasm module
   initialize() {
     if (this.initPromise) return this.initPromise
-    this.initPromise = this.sendSingleMessage(WorkerMessageType.Init)
+    this.initPromise = this.sendSingleMessage('init')
     return this.initPromise
   }
 
@@ -189,14 +189,14 @@ export class WorkerClient {
       }
     })
     this.worker.postMessage({
-      type: WorkerMessageType.Rpc,
+      type: 'rpc',
       payload: { module, method, body },
       requestId,
     })
 
     unsubscribePromise.then(() => {
       this.worker?.postMessage({
-        type: WorkerMessageType.Unsubscribe,
+        type: 'unsubscribe',
         requestId,
       })
       this.requestCallbacks.delete(requestId)

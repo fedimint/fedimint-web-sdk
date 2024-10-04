@@ -1,8 +1,7 @@
 import { expect } from 'vitest'
-import { JSONObject } from '../types/wallet'
 import { TESTING_INVITE } from '../test/TestingService'
 import { workerTest } from '../test/setupTests'
-import { WorkerMessageType } from './types'
+import { JSONObject } from '../types'
 
 // Waits for a message of a given type from the worker
 const waitForWorkerResponse = (
@@ -13,7 +12,7 @@ const waitForWorkerResponse = (
     worker.onmessage = (event) => {
       if (event.data.type === messageType) {
         resolve(event.data)
-      } else if (event.data.type === WorkerMessageType.Error) {
+      } else if (event.data.type === 'error') {
         reject(event.data.error)
       }
     }
@@ -26,11 +25,8 @@ const waitForWorkerResponse = (
 workerTest(
   'should initialize WasmClient on init message',
   async ({ worker }) => {
-    worker.postMessage({ type: WorkerMessageType.Init, requestId: 1 })
-    const response = await waitForWorkerResponse(
-      worker,
-      WorkerMessageType.Initialized,
-    )
+    worker.postMessage({ type: 'init', requestId: 1 })
+    const response = await waitForWorkerResponse(worker, 'initialized')
     expect(response.data).toEqual({})
   },
 )
@@ -38,15 +34,15 @@ workerTest(
 workerTest(
   'should return false on open for a new client',
   async ({ worker, clientName }) => {
-    worker.postMessage({ type: WorkerMessageType.Init, requestId: 1 })
-    await waitForWorkerResponse(worker, WorkerMessageType.Initialized)
+    worker.postMessage({ type: 'init', requestId: 1 })
+    await waitForWorkerResponse(worker, 'initialized')
 
     worker.postMessage({
-      type: WorkerMessageType.Open,
+      type: 'open',
       requestId: 2,
       payload: { clientName },
     })
-    const response = await waitForWorkerResponse(worker, WorkerMessageType.Open)
+    const response = await waitForWorkerResponse(worker, 'open')
     expect(response.data).toEqual({ success: false })
   },
 )
@@ -54,16 +50,16 @@ workerTest(
 workerTest(
   'should error on fake federation invitation',
   async ({ worker, clientName }) => {
-    worker.postMessage({ type: WorkerMessageType.Init, requestId: 1 })
-    await waitForWorkerResponse(worker, WorkerMessageType.Initialized)
+    worker.postMessage({ type: 'init', requestId: 1 })
+    await waitForWorkerResponse(worker, 'initialized')
 
     worker.postMessage({
-      type: WorkerMessageType.Join,
+      type: 'join',
       requestId: 2,
       payload: { inviteCode: 'fakefederationinvitation', clientName },
     })
     try {
-      await waitForWorkerResponse(worker, WorkerMessageType.Open)
+      await waitForWorkerResponse(worker, 'open')
       expect.unreachable()
     } catch (e) {
       expect(e).toBe('parsing failed')
@@ -74,21 +70,21 @@ workerTest(
 workerTest(
   'should handle joining a federation',
   async ({ worker, clientName }) => {
-    worker.postMessage({ type: WorkerMessageType.Init, requestId: 1 })
-    await waitForWorkerResponse(worker, WorkerMessageType.Initialized)
+    worker.postMessage({ type: 'init', requestId: 1 })
+    await waitForWorkerResponse(worker, 'initialized')
 
     worker.postMessage({
-      type: WorkerMessageType.Join,
+      type: 'join',
       requestId: 2,
       payload: { inviteCode: TESTING_INVITE, clientName },
     })
-    const response = await waitForWorkerResponse(worker, WorkerMessageType.Join)
+    const response = await waitForWorkerResponse(worker, 'join')
     expect(response.data).toEqual({ success: true })
   },
 )
 
 workerTest('should handle unknown message type', async ({ worker }) => {
   worker.postMessage({ type: 'unknown', requestId: 2 })
-  const response = await waitForWorkerResponse(worker, WorkerMessageType.Error)
+  const response = await waitForWorkerResponse(worker, 'error')
   expect(response.error).toBe('Unknown message type')
 })
