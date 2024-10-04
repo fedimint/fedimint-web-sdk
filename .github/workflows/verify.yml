@@ -63,6 +63,9 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-deps
 
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
+
       - name: Setup Playwright
         run: pnpm exec playwright install
 
