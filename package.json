@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm run --r --filter \"./packages/**\" build",
+    "build": "pnpm clean && pnpm run --r --filter \"./packages/**\" build",
     "clean": "pnpm run --r --parallel clean && rm -rf packages/**/*.json.tmp",
     "clean:deep": "rm -rf node_modules && pnpm run --r --parallel clean:deep",
     "deps": "pnpx taze -r",
