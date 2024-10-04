@@ -1,5 +1,5 @@
 import { expect } from 'vitest'
-import { walletTest } from '../test/setupTests'
+import { walletTest } from '../test/fixtures'
 
 walletTest(
   'getConfig should return the federation config',

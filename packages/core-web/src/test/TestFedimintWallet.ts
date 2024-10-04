@@ -17,9 +17,10 @@ export class TestFedimintWallet extends FedimintWallet {
       '',
       info,
     )
-    const res = await this.testing.payFaucetInvoice(invoice.invoice)
-    await this.lightning.waitForReceive(invoice.operation_id)
-    console.error('FUNDED', res)
+    await Promise.all([
+      this.testing.payFaucetInvoice(invoice.invoice),
+      this.lightning.waitForReceive(invoice.operation_id),
+    ])
   }
 
   // Method to expose the WorkerClient

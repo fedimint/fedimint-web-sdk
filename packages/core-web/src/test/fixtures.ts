@@ -17,29 +17,24 @@ export const walletTest = test.extend<{
     await expect(
       wallet.joinFederation(inviteCode, randomTestingId),
     ).resolves.toBeUndefined()
+
     await use(wallet)
 
     // clear up browser resources
     await wallet.cleanup()
+
     // remove the wallet db
-    indexedDB.deleteDatabase(randomTestingId)
+    await new Promise((resolve) => {
+      const request = indexedDB.deleteDatabase(randomTestingId)
+      request.onsuccess = resolve
+      request.onerror = resolve
+      request.onblocked = resolve
+    })
   },
 
-  fundedWallet: async ({}, use) => {
-    const wallet = new TestFedimintWallet()
-    const inviteCode = await wallet.testing.getInviteCode()
-    const randomTestingId = Math.random().toString(36).substring(2, 15)
-    await expect(
-      wallet.joinFederation(inviteCode, randomTestingId),
-    ).resolves.toBeUndefined()
-    await wallet.fundWallet(10_000_000)
-
+  fundedWallet: async ({ wallet }, use) => {
+    await wallet.fundWallet(10_000)
     await use(wallet)
-
-    // clear up browser resources
-    await wallet.cleanup()
-    // remove the wallet db
-    indexedDB.deleteDatabase(randomTestingId)
   },
 })
 

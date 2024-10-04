@@ -1,6 +1,6 @@
 import { expect } from 'vitest'
-import { walletTest } from '../test/setupTests'
 import { keyPair } from '../test/crypto'
+import { walletTest } from '../test/fixtures'
 
 walletTest(
   'createInvoice should create a bolt11 invoice',
@@ -112,15 +112,13 @@ walletTest(
 
 walletTest(
   'payInvoice should pay a bolt11 invoice',
-  // { timeout: 45000 },
+  { timeout: 20_000 },
   async ({ fundedWallet }) => {
     expect(fundedWallet).toBeDefined()
     expect(fundedWallet.isOpen()).toBe(true)
     const initialBalance = await fundedWallet.balance.getBalance()
     expect(initialBalance).toBeGreaterThan(0)
-    console.error('initialBalance', initialBalance)
-    const externalInvoice = await fundedWallet.testing.createFaucetInvoice(100)
-    console.error('EXTERNAL INVOICE', externalInvoice)
+    const externalInvoice = await fundedWallet.testing.createFaucetInvoice(1)
     const gatewayInfo = await fundedWallet.testing.getFaucetGatewayInfo()
     const payment = await fundedWallet.lightning.payInvoiceWithGateway(
       externalInvoice,
@@ -131,10 +129,8 @@ walletTest(
       fee: expect.any(Number),
       payment_type: expect.any(Object),
     })
-    // console.error('PAYMENT', payment)
     const finalBalance = await fundedWallet.balance.getBalance()
     expect(finalBalance).toBeLessThan(initialBalance)
-    // console.error(finalBalance, initialBalance)
   },
 )
 
