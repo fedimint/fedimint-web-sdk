@@ -3,10 +3,10 @@ import {
   BalanceService,
   MintService,
   LightningService,
-  FederationService,
   RecoveryService,
 } from './services'
 import { logger, type LogLevel } from './utils/logger'
+import { Federation } from './federation'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
@@ -16,7 +16,7 @@ export class FedimintWallet {
   public balance: BalanceService
   public mint: MintService
   public lightning: LightningService
-  public federation: FederationService
+  public federation: Federation
   public recovery: RecoveryService
 
   private _openPromise: Promise<void> | null = null
@@ -60,7 +60,7 @@ export class FedimintWallet {
     this.mint = new MintService(this._client)
     this.lightning = new LightningService(this._client)
     this.balance = new BalanceService(this._client)
-    this.federation = new FederationService(this._client)
+    this.federation = new Federation(this._client)
     this.recovery = new RecoveryService(this._client)
 
     logger.info('FedimintWallet instantiated')
