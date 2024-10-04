@@ -13,8 +13,12 @@ There's no ui, so open your browser's console to see the library in action.
 ## Live Preview
 
 ::: tip
-You might need to disable your adblocker or Brave Shields to see the preview.
+The Live Previews don't always work. If you're having trouble, try running the example locally OR using the [StackBlitz link](https://stackblitz.com/github/fedimint/fedimint-web-sdk/tree/main/examples/bare-js).
+
+Also, you might need to disable your adblocker or Brave Shields to see the preview.
 :::
+
+<br>
 
 <iframe src="https://stackblitz.com/github/fedimint/fedimint-web-sdk/tree/main/examples/bare-js?embed=1&file=index.html" style=" width: 100%; height: 600px; border: 0;"></iframe>
 
@@ -22,12 +26,22 @@ You might need to disable your adblocker or Brave Shields to see the preview.
 
 ## Running the Example Locally
 
-```bash
-# from the root of the repo
+Clone the repo
 
-# install dependencies
+```sh
+git clone https://github.com/fedimint/fedimint-web-sdk.git
+cd fedimint-web-sdk
+```
+
+Install the package manager with [Corepack](https://nodejs.org/api/corepack.html) & install dependencies.
+
+```sh
+corepack enable
 pnpm i
+```
 
-# run the dev server
+Run the Example
+
+```sh
 pnpm run dev:bare
 ```

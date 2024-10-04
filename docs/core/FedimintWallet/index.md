@@ -77,8 +77,6 @@ After this call, the FedimintWallet instance should be discarded.
 
 > **initialize**(): `Promise`\<`void`\>
 
-https://wagmi.sh/react/api/hooks/useAccount
-
 #### Returns
 
 `Promise`\<`void`\>

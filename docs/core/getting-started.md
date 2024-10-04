@@ -1,11 +1,10 @@
 # Getting Started
 
-::: danger READ THIS FIRST (Disclaimer)
+::: danger Disclaimer
+This is very new. Use with caution. [Report bugs](https://github.com/fedimint/fedimint-web-sdk/issues).
 
-This is very new. It is still a work in progress and should not be used for any serious applications. The api's are not settled and may change often.
+APIs may change.
 :::
-
-[[toc]]
 
 ## Installation
 
@@ -242,10 +241,15 @@ For a list of public federations with invite codes, visit [Bitcoin Mints](https:
 
 ## What's Next?
 
-- To see the sdk in action, check out the [examples](../examples/vite-react.md)
-  - Vite + React: [`examples/vite-react`](../examples/vite-react.md)
-  - VanillaJS + HTML example: [`examples/bare-js`](../examples/bare-js.md)
-- To learn more about @fedimint/core-web and how to use it effectively in your projects, explore the following topics:
-  - [Overview](overview)
-  - [API Reference](FedimintWallet/index)
-  - [Architecture](architecture)
+#### Check out the Example Projects
+
+- [Vite + React](../examples/vite-react.md)
+- [VanillaJS + HTML example](../examples/bare-js.md)
+
+<br>
+
+#### To learn more about Web SDK, explore the docs
+
+- [SDK Overview](overview)
+- [Library Architecture](architecture)
+- [API Reference](FedimintWallet/index)
