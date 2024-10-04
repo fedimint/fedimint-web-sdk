@@ -1,5 +1,5 @@
 import { WorkerClient } from '../worker'
-import {
+import type {
   CreateBolt11Response,
   GatewayInfo,
   JSONObject,
@@ -7,16 +7,17 @@ import {
   LightningGateway,
   LnPayState,
   LnReceiveState,
+  MSats,
   OutgoingLightningPayment,
-} from '../types/wallet'
+} from '../types'
 
 export class LightningService {
   constructor(private client: WorkerClient) {}
 
   async createInvoiceWithGateway(
-    amount: number,
+    amount: MSats,
     description: string,
-    expiryTime: number | null = null,
+    expiryTime: number | null = null, // in seconds
     extraMeta: JSONObject = {},
     gatewayInfo: GatewayInfo,
   ) {
@@ -30,9 +31,9 @@ export class LightningService {
   }
 
   async createInvoice(
-    amount: number,
+    amount: MSats,
     description: string,
-    expiryTime: number | null = null,
+    expiryTime: number | null = null, // in seconds
     extraMeta: JSONObject = {},
   ): Promise<CreateBolt11Response> {
     await this.updateGatewayCache()

@@ -14,7 +14,7 @@ export class WorkerClient {
   private worker: Worker
   private requestCounter = 0
   private requestCallbacks = new Map<number, (value: any) => void>()
-  private initPromise: Promise<void> | null = null
+  private initPromise: Promise<boolean> | undefined = undefined
 
   constructor() {
     // Must create the URL inside the constructor for vite
@@ -66,26 +66,32 @@ export class WorkerClient {
   // TODO: Handle timeouts
   // TODO: Handle multiple errors
 
-  sendSingleMessage(type: WorkerMessageType, payload?: any): Promise<any> {
+  sendSingleMessage<
+    Response extends JSONValue = JSONValue,
+    Payload extends JSONValue = JSONValue,
+  >(type: WorkerMessageType, payload?: Payload): Promise<Response> {
     return new Promise((resolve, reject) => {
       const requestId = ++this.requestCounter
       logger.debug('WorkerClient - sendSingleMessage', requestId, type, payload)
-      this.requestCallbacks.set(requestId, (response) => {
-        this.requestCallbacks.delete(requestId)
-        logger.debug(
-          'WorkerClient - sendSingleMessage - response',
-          requestId,
-          response,
-        )
-        if (response.data) resolve(response.data)
-        else if (response.error) reject(response.error)
-        else
-          logger.warn(
-            'WorkerClient - sendSingleMessage - malformed response',
+      this.requestCallbacks.set(
+        requestId,
+        (response: StreamResult<Response>) => {
+          this.requestCallbacks.delete(requestId)
+          logger.debug(
+            'WorkerClient - sendSingleMessage - response',
             requestId,
             response,
           )
-      })
+          if (response.data) resolve(response.data)
+          else if (response.error) reject(response.error)
+          else
+            logger.warn(
+              'WorkerClient - sendSingleMessage - malformed response',
+              requestId,
+              response,
+            )
+        },
+      )
       this.worker.postMessage({ type, payload, requestId })
     })
   }
@@ -216,7 +222,7 @@ export class WorkerClient {
 
   cleanup() {
     this.worker.terminate()
-    this.initPromise = null
+    this.initPromise = undefined
     this.requestCallbacks.clear()
   }
 

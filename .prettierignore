@@ -6,3 +6,4 @@ packages/wasm-bundler/**
 examples/bare-js/**
 tmp/**
 *.html
+packages/*/dist/**

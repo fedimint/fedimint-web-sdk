@@ -1,4 +1,4 @@
-type Alias<T> = T extends T ? T : T
+type Alias<T> = T & {}
 type Resolve<T> = T & unknown
 
 type Seconds = Alias<number>

@@ -1,15 +1,7 @@
+import { MSats, Duration, JSONValue } from './utils'
+
 const MODULE_KINDS = ['', 'ln', 'mint'] as const
 type ModuleKind = (typeof MODULE_KINDS)[number]
-type JSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: JSONValue }
-  | JSONValue[]
-
-type JSONObject = Record<string, JSONValue>
-
 type GatewayInfo = {
   gateway_id: string
   api: string
@@ -21,10 +13,7 @@ type GatewayInfo = {
 type LightningGateway = {
   info: GatewayInfo
   vetted: boolean
-  ttl: {
-    nanos: number
-    secs: number
-  }
+  ttl: Duration
 }
 
 type RouteHint = {
@@ -38,7 +27,7 @@ type FeeToAmount = {
 type OutgoingLightningPayment = {
   payment_type: PayType
   contract_id: string
-  fee: number
+  fee: MSats
 }
 
 type PayType = {
@@ -100,19 +89,12 @@ type ReissueExternalNotesState =
   | 'Done'
   | { Failed: { error: string } }
 
-type Duration = {
-  nanos: number
-  secs: number
-}
-
 type MintSpendNotesResponse = {
   notes: string
   operation_id: string
 }
 
 export {
-  JSONValue,
-  JSONObject,
   LightningGateway,
   RouteHint,
   FeeToAmount,
@@ -128,6 +110,5 @@ export {
   ModuleKind,
   CancelFunction,
   ReissueExternalNotesState,
-  Duration,
   MintSpendNotesResponse,
 }
