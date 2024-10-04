@@ -20,7 +20,7 @@ Also, you might need to disable your adblocker or Brave Shields to see the previ
 
 <br>
 
-<iframe src="https://stackblitz.com/github/fedimint/fedimint-web-sdk/tree/main/examples/bare-js?embed=1&file=index.html" style=" width: 100%; height: 600px; border: 0;"></iframe>
+<iframe src="https://stackblitz.com/github/fedimint/fedimint-web-sdk/tree/main/examples/bare-js?embed=1&theme=dark&file=index.html" style=" width: 100%; height: 600px; border: 0;"></iframe>
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/fedimint/fedimint-web-sdk/tree/main/examples/bare-js)
 
