@@ -1,11 +1,12 @@
 import { WorkerClient } from '../worker'
-import {
+import type {
   Duration,
   JSONObject,
   JSONValue,
   MintSpendNotesResponse,
+  MSats,
   ReissueExternalNotesState,
-} from '../types/wallet'
+} from '../types'
 
 export class MintService {
   constructor(private client: WorkerClient) {}
@@ -44,12 +45,12 @@ export class MintService {
   }
 
   async spendNotes(
-    minAmount: number,
+    minAmount: MSats,
     // Tells the wallet to automatically try to cancel the spend if it hasn't completed
     // after the specified number of milliseconds.
     // If the receiver has already redeemed the notes at this time,
     // the notes will not be cancelled
-    tryCancelAfter: number | Duration = 0,
+    tryCancelAfter: number | Duration = 0, // in seconds or Duration object
     includeInvite: boolean = false,
     extraMeta: JSONValue = {},
   ): Promise<MintSpendNotesResponse> {
@@ -77,7 +78,7 @@ export class MintService {
     }
   }
 
-  async validateNotes(oobNotes: string): Promise<number> {
+  async parseNotes(oobNotes: string): Promise<MSats> {
     return await this.client.rpcSingle('mint', 'validate_notes', {
       oob_notes: oobNotes,
     })

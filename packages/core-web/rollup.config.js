@@ -1,6 +1,7 @@
 /** @type {import('rollup').RollupOptions} */
 import typescript from '@rollup/plugin-typescript'
 import terser from '@rollup/plugin-terser'
+import { dts } from 'rollup-plugin-dts'
 
 export default [
   {
@@ -15,5 +16,10 @@ export default [
     },
     plugins: [typescript(), terser()],
     external: ['@fedimint/fedimint-client-wasm-bundler'],
+  },
+  {
+    input: './dist/dts/index.d.ts',
+    output: [{ file: 'dist/index.d.ts', format: 'es' }],
+    plugins: [dts()],
   },
 ]

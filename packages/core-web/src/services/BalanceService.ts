@@ -1,3 +1,4 @@
+import type { MSats } from '../types'
 import { WorkerClient } from '../worker'
 
 /**
@@ -9,19 +10,19 @@ export class BalanceService {
   constructor(private client: WorkerClient) {}
 
   /**
-   * Get the balance of the current wallet
+   * Get the balance of the current wallet in milli-satoshis (MSats)
    *
    * @example
    * ```ts
    * const balance = await wallet.balance.getBalance()
    * ```
    */
-  async getBalance(): Promise<number> {
+  async getBalance(): Promise<MSats> {
     return await this.client.rpcSingle('', 'get_balance', {})
   }
 
   /**
-   * Subscribe to the balance of the current wallet
+   * Subscribe to the balance of the current wallet in milli-satoshis (MSats)
    *
    * @example
    * ```ts
@@ -34,7 +35,7 @@ export class BalanceService {
    * ```
    */
   subscribeBalance(
-    onSuccess: (balance: number) => void = () => {},
+    onSuccess: (balance: MSats) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
     const unsubscribe = this.client.rpcStream<string>(

@@ -1,4 +1,4 @@
-import { WorkerClient, WorkerMessageType } from './worker'
+import { WorkerClient } from './worker'
 import {
   BalanceService,
   MintService,
@@ -19,7 +19,7 @@ export class FedimintWallet {
   public federation: FederationService
   public recovery: RecoveryService
 
-  private _openPromise: Promise<void> | null = null
+  private _openPromise: Promise<void> | undefined = undefined
   private _resolveOpen: () => void = () => {}
   private _isOpen: boolean = false
 
@@ -85,12 +85,9 @@ export class FedimintWallet {
     await this._client.initialize()
     // TODO: Determine if this should be safe or throw
     if (this._isOpen) throw new Error('The FedimintWallet is already open.')
-    const { success } = await this._client.sendSingleMessage(
-      WorkerMessageType.Open,
-      {
-        clientName,
-      },
-    )
+    const { success } = await this._client.sendSingleMessage<{
+      success: boolean
+    }>('open', { clientName })
     if (success) {
       this._isOpen = !!success
       this._resolveOpen()
@@ -108,12 +105,9 @@ export class FedimintWallet {
       throw new Error(
         'The FedimintWallet is already open. You can only call `joinFederation` on closed clients.',
       )
-    const response = await this._client.sendSingleMessage(
-      WorkerMessageType.Join,
-      {
-        inviteCode,
-        clientName,
-      },
+    const response = await this._client.sendSingleMessage<{ success: boolean }>(
+      'join',
+      { inviteCode, clientName },
     )
     if (response.success) {
       this._isOpen = true
@@ -126,7 +120,7 @@ export class FedimintWallet {
    * After this call, the FedimintWallet instance should be discarded.
    */
   async cleanup() {
-    this._openPromise = null
+    this._openPromise = undefined
     this._isOpen = false
     this._client.cleanup()
   }

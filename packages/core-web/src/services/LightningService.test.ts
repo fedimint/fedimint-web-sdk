@@ -25,6 +25,18 @@ walletTest(
   },
 )
 
+walletTest('createInvoice with expiry', async ({ wallet }) => {
+  expect(wallet).toBeDefined()
+  expect(wallet.isOpen()).toBe(true)
+
+  const invoice = await wallet.lightning.createInvoice(100, 'test', 1000, {})
+  expect(invoice).toBeDefined()
+  expect(invoice).toMatchObject({
+    invoice: expect.any(String),
+    operation_id: expect.any(String),
+  })
+})
+
 walletTest(
   'listGateways should return a list of gateways',
   async ({ wallet }) => {

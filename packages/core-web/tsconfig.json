@@ -5,6 +5,7 @@
     "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
+    "declarationDir": "./dist/dts",
     "sourceMap": true,
     "lib": ["ES2020", "DOM"],
     "types": ["node"]

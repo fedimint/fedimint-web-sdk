@@ -9,7 +9,7 @@ walletTest('redeemEcash should error on invalid ecash', async ({ wallet }) => {
 })
 
 walletTest(
-  'reissueExternalNotes should reissue external notes',
+  'reissueExternalNotes should throw if wallet is empty',
   async ({ wallet }) => {
     expect(wallet).toBeDefined()
     expect(wallet.isOpen()).toBe(true)
@@ -17,3 +17,10 @@ walletTest(
     await expect(wallet.mint.reissueExternalNotes('test')).rejects.toThrow()
   },
 )
+
+walletTest('spendNotes should throw if wallet is empty', async ({ wallet }) => {
+  expect(wallet).toBeDefined()
+  expect(wallet.isOpen()).toBe(true)
+
+  await expect(wallet.mint.spendNotes(100)).rejects.toThrow()
+})

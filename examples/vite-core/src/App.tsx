@@ -28,7 +28,7 @@ const useBalance = (checkIsOpen: () => void) => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
-    const unsubscribe = wallet.balance.subscribeBalance((balance: number) => {
+    const unsubscribe = wallet.balance.subscribeBalance((balance) => {
       // checks if the wallet is open when the first
       // subscription event fires.
       // TODO: make a subscription to the wallet open status
