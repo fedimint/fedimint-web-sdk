@@ -122,7 +122,7 @@ export class FedimintWallet {
   async cleanup() {
     this._openPromise = undefined
     this._isOpen = false
-    this._client.cleanup()
+    await this._client.cleanup()
   }
 
   isOpen() {

@@ -1,5 +1,5 @@
 import { expect } from 'vitest'
-import { walletTest } from './test/setupTests'
+import { walletTest } from './test/fixtures'
 
 walletTest('get invite code from devimint', async ({ wallet }) => {
   expect(wallet).toBeDefined()

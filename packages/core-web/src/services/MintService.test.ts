@@ -1,5 +1,5 @@
 import { expect } from 'vitest'
-import { walletTest } from '../test/setupTests'
+import { walletTest } from '../test/fixtures'
 
 walletTest('redeemEcash should error on invalid ecash', async ({ wallet }) => {
   expect(wallet).toBeDefined()
