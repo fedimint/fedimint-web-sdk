@@ -14,7 +14,16 @@ export function getSidebar() {
       },
       ...FedimintWalletSidebar,
       {
+        base: '/examples/',
+        text: 'Examples',
+        items: [
+          { text: 'Vite + React', link: 'vite-react' },
+          { text: 'Vanilla JS', link: 'bare-js' },
+        ],
+      },
+      {
         text: 'Dev',
+        collapsed: true,
         base: '/core/dev/',
         items: [
           { text: 'Contributing', link: 'contributing' },
@@ -113,18 +122,18 @@ const FedimintWalletSidebar = [
       },
     ],
   },
-  {
-    text: 'Type Aliases',
-    collapsed: true,
-    base: '/core/type-aliases/',
-    items: [
-      { text: 'CreateResponse', link: 'CreateResponse' },
-      { text: 'FeeToAmount', link: 'FeeToAmount' },
-      { text: 'LightningGateway', link: 'LightningGateway' },
-      { text: 'LnPayState', link: 'LnPayState' },
-      { text: 'OutgoingLightningPayment', link: 'OutgoingLightningPayment' },
-      { text: 'PayType', link: 'PayType' },
-      { text: 'RouteHint', link: 'RouteHint' },
-    ],
-  },
+  // {
+  //   text: 'Type Aliases',
+  //   collapsed: true,
+  //   base: '/core/type-aliases/',
+  //   items: [
+  //     { text: 'CreateResponse', link: 'CreateResponse' },
+  //     { text: 'FeeToAmount', link: 'FeeToAmount' },
+  //     { text: 'LightningGateway', link: 'LightningGateway' },
+  //     { text: 'LnPayState', link: 'LnPayState' },
+  //     { text: 'OutgoingLightningPayment', link: 'OutgoingLightningPayment' },
+  //     { text: 'PayType', link: 'PayType' },
+  //     { text: 'RouteHint', link: 'RouteHint' },
+  //   ],
+  // },
 ]
