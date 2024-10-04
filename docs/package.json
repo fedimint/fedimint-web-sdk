@@ -8,8 +8,8 @@
     "docs:preview": "vitepress preview"
   },
   "devDependencies": {
-    "@shikijs/vitepress-twoslash": "1.4.0",
     "@fedimint/core-web": "workspace:*",
+    "@shikijs/vitepress-twoslash": "1.4.0",
     "vitepress": "1.1.4"
   }
 }
