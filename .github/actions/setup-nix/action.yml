@@ -1,6 +1,11 @@
 name: Setup Nix
 description: Sets up nix for running tests with devimint
 
+inputs:
+  cachix_auth_token:
+    description: 'Cachix authentication token'
+    required: true
+
 runs:
   using: 'composite'
   steps:
@@ -12,12 +17,12 @@ runs:
           connect-timeout = 15
           stalled-download-timeout = 15
 
-    # - name: Setup Cachix
-    #   uses: cachix/cachix-action@v15
-    #   with:
-    #     name: fedimint
-    #     authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-    #   continue-on-error: true
+    - name: Setup Cachix
+      uses: cachix/cachix-action@v15
+      with:
+        name: fedimint
+        authToken: ${{ inputs.cachix_auth_token }}
+      continue-on-error: true
 
     - name: Run nix develop
       run: nix develop

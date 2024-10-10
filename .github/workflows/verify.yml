@@ -65,6 +65,8 @@ jobs:
 
       - name: Setup Nix
         uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Setup Playwright
         run: pnpm exec playwright install
