@@ -1,6 +1,7 @@
 import { expect } from 'vitest'
 import { walletTest } from '../test/setupTests'
 import { keyPair } from '../utils/crypto'
+
 walletTest(
   'createInvoice should create a bolt11 invoice',
   async ({ wallet }) => {
