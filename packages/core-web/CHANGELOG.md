@@ -1,5 +1,11 @@
 # @fedimint/core-web
 
+## 0.0.7
+
+### Patch Changes
+
+- cc9a50b: declare worker message types
+
 ## 0.0.6
 
 ### Patch Changes
