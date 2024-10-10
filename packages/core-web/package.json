@@ -26,12 +26,14 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@fedimint/fedimint-client-wasm-bundler": "workspace:*"
+    "@fedimint/fedimint-client-wasm-bundler": "workspace:*",
+    "secp256k1": "^5.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "^20.16.10",
+    "@types/secp256k1": "^4.0.6",
     "rollup": "^4.24.0",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-typescript2": "^0.36.0",

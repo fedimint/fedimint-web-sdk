@@ -73,9 +73,10 @@ export class LightningService {
     amount: MSats,
     description: string,
     expiryTime: number | null = null, // in seconds
+    publicKey: string,
     index: number,
     extraMeta: JSONObject = {},
-  ) {
+  ): Promise<CreateBolt11Response> {
     await this.updateGatewayCache()
     const gateway = await this._getDefaultGatewayInfo()
     return await this.client.rpcSingle(
@@ -85,6 +86,7 @@ export class LightningService {
         amount,
         description,
         expiry_time: expiryTime,
+        user_key: publicKey,
         index,
         extra_meta: extraMeta,
         gateway: gateway.info,
@@ -92,11 +94,12 @@ export class LightningService {
     )
   }
 
+  // Returns the operation ids of payments received to the tweaks of the user secret key
   async scanReceivesForTweaks(
     userKey: string,
     indices: number[],
     extraMeta: JSONObject = {},
-  ) {
+  ): Promise<string[]> {
     return await this.client.rpcSingle('ln', 'scan_receive_for_user_tweaks', {
       user_key: userKey,
       indices,

@@ -1,6 +1,6 @@
 import { expect } from 'vitest'
 import { walletTest } from '../test/setupTests'
-
+import { keyPair } from '../utils/crypto'
 walletTest(
   'createInvoice should create a bolt11 invoice',
   async ({ wallet }) => {
@@ -176,5 +176,52 @@ walletTest(
       fee: expect.any(Number),
       payment_type: expect.any(Object),
     })
+  },
+)
+
+walletTest(
+  'createInvoiceTweaked should create a bolt11 invoice paying to a tweaked public key, ' +
+    'once it is paid scanReceivesForTweaks should return the operation id, ',
+  async ({ wallet }) => {
+    expect(wallet).toBeDefined()
+    expect(wallet.isOpen()).toBe(true)
+
+    // Make an ephemeral key pair
+    const { publicKey, secretKey } = keyPair()
+    const tweak = 1
+
+    // Create an invoice paying to the tweaked public key
+    const invoice = await wallet.lightning.createInvoiceTweaked(
+      1000,
+      'test tweaked',
+      null,
+      publicKey,
+      tweak,
+      {},
+    )
+    await expect(
+      wallet.testing.payWithFaucet(invoice.invoice),
+    ).resolves.toBeDefined()
+
+    // Scan for the receive
+    const operationIds = await wallet.lightning.scanReceivesForTweaks(
+      secretKey,
+      [tweak],
+      {},
+    )
+    expect(operationIds).toBeDefined()
+    expect(operationIds).toHaveLength(1)
+
+    // Subscribe to claiming the receive
+    const subscription = await wallet.lightning.subscribeLnClaim(
+      operationIds[0],
+      (state) => {
+        expect(state).toBeDefined()
+        expect(state).toMatchObject({
+          state: 'claimed',
+        })
+      },
+    )
+    expect(subscription).toBeDefined()
   },
 )
