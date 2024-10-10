@@ -181,8 +181,34 @@ walletTest(
 )
 
 walletTest(
-  'createInvoiceTweaked should create a bolt11 invoice paying to a tweaked public key, ' +
-    'once it is paid scanReceivesForTweaks should return the operation id, ',
+  'createInvoiceTweaked should create a bolt11 invoice with a tweaked public key',
+  async ({ wallet }) => {
+    expect(wallet).toBeDefined()
+    expect(wallet.isOpen()).toBe(true)
+
+    // Make an ephemeral key pair
+    const { publicKey, secretKey } = keyPair()
+    const tweak = 1
+
+    // Create an invoice paying to the tweaked public key
+    const invoice = await wallet.lightning.createInvoiceTweaked(
+      1000,
+      'test tweaked',
+      null,
+      publicKey,
+      tweak,
+      {},
+    )
+    expect(invoice).toBeDefined()
+    expect(invoice).toMatchObject({
+      invoice: expect.any(String),
+      operation_id: expect.any(String),
+    })
+  },
+)
+
+walletTest(
+  'scanReceivesForTweaks should return the operation id, ',
   async ({ wallet }) => {
     expect(wallet).toBeDefined()
     expect(wallet.isOpen()).toBe(true)
