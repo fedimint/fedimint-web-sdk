@@ -47,6 +47,66 @@ export class LightningService {
     })
   }
 
+  async createInvoiceTweakedWithGateway(
+    amount: MSats,
+    description: string,
+    expiryTime: number | null = null, // in seconds
+    index: number,
+    extraMeta: JSONObject = {},
+    gatewayInfo: GatewayInfo,
+  ): Promise<CreateBolt11Response> {
+    return await this.client.rpcSingle(
+      'ln',
+      'create_bolt11_invoice_for_user_tweaked',
+      {
+        amount,
+        description,
+        expiry_time: expiryTime,
+        index,
+        extra_meta: extraMeta,
+        gateway: gatewayInfo,
+      },
+    )
+  }
+
+  async createInvoiceTweaked(
+    amount: MSats,
+    description: string,
+    expiryTime: number | null = null, // in seconds
+    publicKey: string,
+    index: number,
+    extraMeta: JSONObject = {},
+  ): Promise<CreateBolt11Response> {
+    await this.updateGatewayCache()
+    const gateway = await this._getDefaultGatewayInfo()
+    return await this.client.rpcSingle(
+      'ln',
+      'create_bolt11_invoice_for_user_tweaked',
+      {
+        amount,
+        description,
+        expiry_time: expiryTime,
+        user_key: publicKey,
+        index,
+        extra_meta: extraMeta,
+        gateway: gateway.info,
+      },
+    )
+  }
+
+  // Returns the operation ids of payments received to the tweaks of the user secret key
+  async scanReceivesForTweaks(
+    userKey: string,
+    indices: number[],
+    extraMeta: JSONObject = {},
+  ): Promise<string[]> {
+    return await this.client.rpcSingle('ln', 'scan_receive_for_user_tweaks', {
+      user_key: userKey,
+      indices,
+      extra_meta: extraMeta,
+    })
+  }
+
   async payInvoiceWithGateway(
     invoice: string,
     gatewayInfo: GatewayInfo,
@@ -75,6 +135,22 @@ export class LightningService {
       invoice,
       extra_meta: extraMeta,
     })
+  }
+
+  subscribeLnClaim(
+    operationId: string,
+    onSuccess: (state: LnReceiveState) => void = () => {},
+    onError: (error: string) => void = () => {},
+  ) {
+    const unsubscribe = this.client.rpcStream(
+      'ln',
+      'subscribe_ln_claim',
+      { operation_id: operationId },
+      onSuccess,
+      onError,
+    )
+
+    return unsubscribe
   }
 
   subscribeLnPay(
