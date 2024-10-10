@@ -1,7 +1,7 @@
 import { expect } from 'vitest'
 import { TESTING_INVITE } from '../test/TestingService'
-import { workerTest } from '../test/setupTests'
 import { JSONObject } from '../types'
+import { workerTest } from '../test/fixtures'
 
 // Waits for a message of a given type from the worker
 const waitForWorkerResponse = (

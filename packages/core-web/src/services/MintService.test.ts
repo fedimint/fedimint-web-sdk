@@ -1,5 +1,5 @@
 import { expect } from 'vitest'
-import { walletTest } from '../test/setupTests'
+import { walletTest } from '../test/fixtures'
 
 walletTest('redeemEcash should error on invalid ecash', async ({ wallet }) => {
   expect(wallet).toBeDefined()
@@ -23,4 +23,11 @@ walletTest('spendNotes should throw if wallet is empty', async ({ wallet }) => {
   expect(wallet.isOpen()).toBe(true)
 
   await expect(wallet.mint.spendNotes(100)).rejects.toThrow()
+})
+
+walletTest('parseNotes should parse notes', async ({ wallet }) => {
+  expect(wallet).toBeDefined()
+  expect(wallet.isOpen()).toBe(true)
+
+  await expect(wallet.mint.reissueExternalNotes('test')).rejects.toThrow()
 })

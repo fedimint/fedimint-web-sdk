@@ -7,7 +7,20 @@ export class TestFedimintWallet extends FedimintWallet {
 
   constructor() {
     super()
-    this.testing = new TestingService(this.getWorkerClient())
+    this.testing = new TestingService(this.getWorkerClient(), this.lightning)
+  }
+
+  async fundWallet(amount: number) {
+    const info = await this.testing.getFaucetGatewayInfo()
+    const invoice = await this.lightning.createInvoiceWithGateway(
+      amount,
+      '',
+      info,
+    )
+    await Promise.all([
+      this.testing.payFaucetInvoice(invoice.invoice),
+      this.lightning.waitForReceive(invoice.operation_id),
+    ])
   }
 
   // Method to expose the WorkerClient

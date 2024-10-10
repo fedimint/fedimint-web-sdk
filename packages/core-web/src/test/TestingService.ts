@@ -1,3 +1,4 @@
+import { LightningService } from '../services'
 import { WorkerClient } from '../worker'
 
 export const TESTING_INVITE =
@@ -7,7 +8,10 @@ export const TESTING_INVITE =
 // of the WorkerClient. It is not intended for use in production.
 export class TestingService {
   public TESTING_INVITE: string
-  constructor(private client: WorkerClient) {
+  constructor(
+    private client: WorkerClient,
+    private lightning: LightningService,
+  ) {
     // Solo Mint on mutinynet
     this.TESTING_INVITE = TESTING_INVITE
   }
@@ -20,40 +24,55 @@ export class TestingService {
     return this.client._getRequestCallbackMap()
   }
 
-  async payWithFaucet(invoice: string) {
-    try {
-      const response = await fetch(
-        `https://faucet.mutinynet.com/api/lnurlw/callback?k1=k1&pr=${invoice}`,
-      )
-
-      if (!response.ok) {
-        throw new Error(
-          `HTTP error! Failed to pay invoice. status: ${response.status}`,
-        )
-      }
-
-      return await response.json()
-    } catch (error) {
-      console.error('Error paying with faucet', error)
-      throw error
+  async getInviteCode() {
+    const res = await fetch('http://localhost:15243/connect-string')
+    if (res.ok) {
+      return await res.text()
+    } else {
+      throw new Error(`Failed to get invite code: ${await res.text()}`)
     }
   }
 
-  async getExternalInvoice(amount: number) {
-    try {
-      const response = await fetch(
-        `https://lnurl-staging.mutinywallet.com/lnurlp/refund/callback?amount=${amount}`,
-      )
-      if (!response.ok) {
-        throw new Error(
-          `HTTP error! Failed to get external invoice. status: ${response.status}`,
-        )
-      }
+  private async getFaucetGatewayApi() {
+    const res = await fetch('http://localhost:15243/gateway-api')
+    if (res.ok) {
+      return await res.text()
+    } else {
+      throw new Error(`Failed to get gateway: ${await res.text()}`)
+    }
+  }
 
-      return await response.json()
-    } catch (error) {
-      console.error('Error getting external invoice', error)
-      throw error
+  async getFaucetGatewayInfo() {
+    const gateways = await this.lightning.listGateways()
+    const api = await this.getFaucetGatewayApi()
+    const gateway = gateways.find((g) => g.info.api === api)
+    if (!gateway) {
+      throw new Error(`Gateway not found: ${api}`)
+    }
+    return gateway.info
+  }
+
+  async payFaucetInvoice(invoice: string) {
+    const res = await fetch('http://localhost:15243/pay', {
+      method: 'POST',
+      body: invoice,
+    })
+    if (res.ok) {
+      return await res.text()
+    } else {
+      throw new Error(`Failed to pay faucet invoice: ${await res.text()}`)
+    }
+  }
+
+  async createFaucetInvoice(amount: number) {
+    const res = await fetch('http://localhost:15243/invoice', {
+      method: 'POST',
+      body: amount.toString(),
+    })
+    if (res.ok) {
+      return await res.text()
+    } else {
+      throw new Error(`Failed to generate faucet invoice: ${await res.text()}`)
     }
   }
 }
