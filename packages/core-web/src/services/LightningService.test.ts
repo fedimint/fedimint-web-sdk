@@ -1,5 +1,6 @@
 import { expect } from 'vitest'
 import { walletTest } from '../test/setupTests'
+import { keyPair } from '../test/crypto'
 
 walletTest(
   'createInvoice should create a bolt11 invoice',
@@ -87,42 +88,6 @@ walletTest('getGateway should return a gateway', async ({ wallet }) => {
 })
 
 walletTest(
-  'createInvoiceWithGateway should create a bolt11 invoice with a gateway',
-  async ({ wallet }) => {
-    expect(wallet).toBeDefined()
-    expect(wallet.isOpen()).toBe(true)
-
-    const gateways = await wallet.lightning.listGateways()
-    const gateway = gateways[0]
-    expect(gateway).toBeDefined()
-
-    const counterBefore = wallet.testing.getRequestCounter()
-    const invoice = await wallet.lightning.createInvoiceWithGateway(
-      100,
-      'test',
-      null,
-      {},
-      gateway.info,
-    )
-    expect(invoice).toBeDefined()
-    expect(invoice).toMatchObject({
-      invoice: expect.any(String),
-      operation_id: expect.any(String),
-    })
-    expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 1)
-    await expect(
-      wallet.lightning.createInvoiceWithGateway(
-        100,
-        'test',
-        1000,
-        {},
-        gateway.info,
-      ),
-    ).resolves.toBeDefined()
-  },
-)
-
-walletTest(
   'payInvoice should throw on insufficient funds',
   async ({ wallet }) => {
     expect(wallet).toBeDefined()
@@ -138,7 +103,7 @@ walletTest(
     const counterBefore = wallet.testing.getRequestCounter()
     // Insufficient funds
     try {
-      await wallet.lightning.payInvoice(invoice.invoice, {})
+      await wallet.lightning.payInvoice(invoice.invoice)
       expect.unreachable('Should throw error')
     } catch (error) {
       expect(error).toBeDefined()
@@ -176,5 +141,74 @@ walletTest(
       fee: expect.any(Number),
       payment_type: expect.any(Object),
     })
+  },
+)
+
+walletTest(
+  'createInvoiceTweaked should create a bolt11 invoice with a tweaked public key',
+  async ({ wallet }) => {
+    expect(wallet).toBeDefined()
+    expect(wallet.isOpen()).toBe(true)
+
+    // Make an ephemeral key pair
+    const { publicKey, secretKey } = keyPair()
+    const tweak = 1
+
+    // Create an invoice paying to the tweaked public key
+    const invoice = await wallet.lightning.createInvoiceTweaked(
+      1000,
+      'test tweaked',
+      publicKey,
+      tweak,
+    )
+    expect(invoice).toBeDefined()
+    expect(invoice).toMatchObject({
+      invoice: expect.any(String),
+      operation_id: expect.any(String),
+    })
+  },
+)
+
+walletTest(
+  'scanReceivesForTweaks should return the operation id, ',
+  async ({ wallet }) => {
+    expect(wallet).toBeDefined()
+    expect(wallet.isOpen()).toBe(true)
+
+    // Make an ephemeral key pair
+    const { publicKey, secretKey } = keyPair()
+    const tweak = 1
+
+    // Create an invoice paying to the tweaked public key
+    const invoice = await wallet.lightning.createInvoiceTweaked(
+      1000,
+      'test tweaked',
+      publicKey,
+      tweak,
+    )
+    await expect(
+      wallet.testing.payWithFaucet(invoice.invoice),
+    ).resolves.toBeDefined()
+
+    // Scan for the receive
+    const operationIds = await wallet.lightning.scanReceivesForTweaks(
+      secretKey,
+      [tweak],
+      {},
+    )
+    expect(operationIds).toBeDefined()
+    expect(operationIds).toHaveLength(1)
+
+    // Subscribe to claiming the receive
+    const subscription = await wallet.lightning.subscribeLnClaim(
+      operationIds[0],
+      (state) => {
+        expect(state).toBeDefined()
+        expect(state).toMatchObject({
+          state: 'claimed',
+        })
+      },
+    )
+    expect(subscription).toBeDefined()
   },
 )
