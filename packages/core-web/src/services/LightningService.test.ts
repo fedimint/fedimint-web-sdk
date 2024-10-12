@@ -1,6 +1,6 @@
 import { expect } from 'vitest'
 import { walletTest } from '../test/setupTests'
-import { keyPair } from '../utils/crypto'
+import { keyPair } from '../test/crypto'
 
 walletTest(
   'createInvoice should create a bolt11 invoice',
@@ -88,42 +88,6 @@ walletTest('getGateway should return a gateway', async ({ wallet }) => {
 })
 
 walletTest(
-  'createInvoiceWithGateway should create a bolt11 invoice with a gateway',
-  async ({ wallet }) => {
-    expect(wallet).toBeDefined()
-    expect(wallet.isOpen()).toBe(true)
-
-    const gateways = await wallet.lightning.listGateways()
-    const gateway = gateways[0]
-    expect(gateway).toBeDefined()
-
-    const counterBefore = wallet.testing.getRequestCounter()
-    const invoice = await wallet.lightning.createInvoiceWithGateway(
-      100,
-      'test',
-      null,
-      {},
-      gateway.info,
-    )
-    expect(invoice).toBeDefined()
-    expect(invoice).toMatchObject({
-      invoice: expect.any(String),
-      operation_id: expect.any(String),
-    })
-    expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 1)
-    await expect(
-      wallet.lightning.createInvoiceWithGateway(
-        100,
-        'test',
-        1000,
-        {},
-        gateway.info,
-      ),
-    ).resolves.toBeDefined()
-  },
-)
-
-walletTest(
   'payInvoice should throw on insufficient funds',
   async ({ wallet }) => {
     expect(wallet).toBeDefined()
@@ -139,7 +103,7 @@ walletTest(
     const counterBefore = wallet.testing.getRequestCounter()
     // Insufficient funds
     try {
-      await wallet.lightning.payInvoice(invoice.invoice, {})
+      await wallet.lightning.payInvoice(invoice.invoice)
       expect.unreachable('Should throw error')
     } catch (error) {
       expect(error).toBeDefined()
@@ -194,10 +158,8 @@ walletTest(
     const invoice = await wallet.lightning.createInvoiceTweaked(
       1000,
       'test tweaked',
-      null,
       publicKey,
       tweak,
-      {},
     )
     expect(invoice).toBeDefined()
     expect(invoice).toMatchObject({
@@ -221,10 +183,8 @@ walletTest(
     const invoice = await wallet.lightning.createInvoiceTweaked(
       1000,
       'test tweaked',
-      null,
       publicKey,
       tweak,
-      {},
     )
     await expect(
       wallet.testing.payWithFaucet(invoice.invoice),

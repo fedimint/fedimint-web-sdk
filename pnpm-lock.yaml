@@ -76,7 +76,7 @@ importers:
     dependencies:
       '@fedimint/core-web':
         specifier: canary
-        version: 0.0.0-canary-20240927003217
+        version: 0.0.0-canary-20241004231619
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -595,11 +595,11 @@ packages:
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@fedimint/core-web@0.0.0-canary-20240927003217':
-    resolution: {integrity: sha512-fuFuCktNP7HYSLDL5DYNkgbHsRseRXN026+wXPS6K9qr7m+HebPGRSIzMSm7ieg5mdg6c34z4BMDa/4Y1kAr9w==}
+  '@fedimint/core-web@0.0.0-canary-20241004231619':
+    resolution: {integrity: sha512-vBIaRhRe1SJJzLrpMStieXZvWpSLxQgvNofxavOOMtJhllRlDnDXIicM1Ti79MtRAoUaZaP6UEigV2ABwhfQrw==}
 
-  '@fedimint/fedimint-client-wasm-bundler@0.0.0-canary-20240927003217':
-    resolution: {integrity: sha512-dwFVFBSrDqGzhRuXKDxTuYFFRJ5zIh3zpLz7185+nb3m8jxktQFGrf8LRTjZHv9BajmI6AtpAbI6QUuQfURduA==}
+  '@fedimint/fedimint-client-wasm-bundler@0.0.1':
+    resolution: {integrity: sha512-zdAgHLJgqnaVVhveSqimJzLJ8vdmzHL5Yax78RkodI3QM53+HdLMd82FvDSYbMEVVaktt988yPj4zWPP+g8UWQ==}
 
   '@floating-ui/core@1.6.8':
     resolution: {integrity: sha512-7XJ9cPU+yI2QeLS+FCSlqNFZJq8arvswefkZrYI1yQBbftw6FyrZOxYSh+9S7z7TpeWlRt9zJ5IhM1WIL334jA==}
@@ -1554,6 +1554,7 @@ packages:
   eslint@8.57.1:
     resolution: {integrity: sha512-ypowyDxpVSYpkXr9WPv2PAZCtNip1Mv5KTW0SCurXv/9iOpcrH9PaqUElksqEB6pChqHGDRCFTyrZlGhnLNGiA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   espree@9.6.1:
@@ -3556,11 +3557,11 @@ snapshots:
 
   '@eslint/js@8.57.1': {}
 
-  '@fedimint/core-web@0.0.0-canary-20240927003217':
+  '@fedimint/core-web@0.0.0-canary-20241004231619':
     dependencies:
-      '@fedimint/fedimint-client-wasm-bundler': 0.0.0-canary-20240927003217
+      '@fedimint/fedimint-client-wasm-bundler': 0.0.1
 
-  '@fedimint/fedimint-client-wasm-bundler@0.0.0-canary-20240927003217': {}
+  '@fedimint/fedimint-client-wasm-bundler@0.0.1': {}
 
   '@floating-ui/core@1.6.8':
     dependencies:

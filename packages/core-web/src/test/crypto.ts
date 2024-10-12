@@ -1,4 +1,4 @@
-import { publicKeyCreate, privateKeyVerify } from 'secp256k1'
+import * as secp256k1 from 'secp256k1'
 
 const randomBytes = (size: number): Uint8Array => {
   const array = new Uint8Array(size)
@@ -16,7 +16,7 @@ export const keyPair = (secretKey?: Uint8Array): KeyPair => {
     ? validatePrivateKey(secretKey)
     : generatePrivateKey()
 
-  const publicKey = publicKeyCreate(privateKey)
+  const publicKey = secp256k1.publicKeyCreate(privateKey)
 
   return {
     secretKey: Array.from(privateKey)
@@ -29,7 +29,7 @@ export const keyPair = (secretKey?: Uint8Array): KeyPair => {
 }
 
 const validatePrivateKey = (key: Uint8Array): Uint8Array => {
-  if (!privateKeyVerify(key)) {
+  if (!secp256k1.privateKeyVerify(key)) {
     throw new Error('Invalid private key provided')
   }
   return key
@@ -39,6 +39,6 @@ const generatePrivateKey = (): Uint8Array => {
   let key: Uint8Array
   do {
     key = randomBytes(32)
-  } while (!privateKeyVerify(key))
+  } while (!secp256k1.privateKeyVerify(key))
   return key
 }

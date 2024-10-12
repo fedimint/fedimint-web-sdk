@@ -14,126 +14,77 @@ import type {
 export class LightningService {
   constructor(private client: WorkerClient) {}
 
-  async createInvoiceWithGateway(
-    amount: MSats,
-    description: string,
-    expiryTime: number | null = null, // in seconds
-    extraMeta: JSONObject = {},
-    gatewayInfo: GatewayInfo,
-  ) {
-    return await this.client.rpcSingle('ln', 'create_bolt11_invoice', {
-      amount,
-      description,
-      expiry_time: expiryTime,
-      extra_meta: extraMeta,
-      gateway: gatewayInfo,
-    })
-  }
-
   async createInvoice(
     amount: MSats,
     description: string,
-    expiryTime: number | null = null, // in seconds
-    extraMeta: JSONObject = {},
+    expiryTime?: number, // in seconds
+    extraMeta?: JSONObject,
+    gatewayInfo?: GatewayInfo,
   ): Promise<CreateBolt11Response> {
-    await this.updateGatewayCache()
-    const gateway = await this._getDefaultGatewayInfo()
+    const gateway = gatewayInfo ?? (await this._getDefaultGatewayInfo())
     return await this.client.rpcSingle('ln', 'create_bolt11_invoice', {
       amount,
       description,
-      expiry_time: expiryTime,
-      extra_meta: extraMeta,
-      gateway: gateway.info,
+      expiry_time: expiryTime ?? null,
+      extra_meta: extraMeta ?? {},
+      gateway,
     })
-  }
-
-  async createInvoiceTweakedWithGateway(
-    amount: MSats,
-    description: string,
-    expiryTime: number | null = null, // in seconds
-    index: number,
-    extraMeta: JSONObject = {},
-    gatewayInfo: GatewayInfo,
-  ): Promise<CreateBolt11Response> {
-    return await this.client.rpcSingle(
-      'ln',
-      'create_bolt11_invoice_for_user_tweaked',
-      {
-        amount,
-        description,
-        expiry_time: expiryTime,
-        index,
-        extra_meta: extraMeta,
-        gateway: gatewayInfo,
-      },
-    )
   }
 
   async createInvoiceTweaked(
     amount: MSats,
     description: string,
-    expiryTime: number | null = null, // in seconds
-    publicKey: string,
+    tweakKey: string,
     index: number,
-    extraMeta: JSONObject = {},
+    expiryTime?: number, // in seconds
+    gatewayInfo?: GatewayInfo,
+    extraMeta?: JSONObject,
   ): Promise<CreateBolt11Response> {
-    await this.updateGatewayCache()
-    const gateway = await this._getDefaultGatewayInfo()
+    const gateway = gatewayInfo ?? (await this._getDefaultGatewayInfo())
     return await this.client.rpcSingle(
       'ln',
       'create_bolt11_invoice_for_user_tweaked',
       {
         amount,
         description,
-        expiry_time: expiryTime,
-        user_key: publicKey,
+        expiry_time: expiryTime ?? null,
+        user_key: tweakKey,
         index,
-        extra_meta: extraMeta,
-        gateway: gateway.info,
+        extra_meta: extraMeta ?? {},
+        gateway,
       },
     )
   }
 
   // Returns the operation ids of payments received to the tweaks of the user secret key
   async scanReceivesForTweaks(
-    userKey: string,
+    tweakKey: string,
     indices: number[],
-    extraMeta: JSONObject = {},
+    extraMeta?: JSONObject,
   ): Promise<string[]> {
-    return await this.client.rpcSingle('ln', 'scan_receive_for_user_tweaks', {
-      user_key: userKey,
+    return await this.client.rpcSingle('ln', 'scan_receive_for_user_tweaked', {
+      user_key: tweakKey,
       indices,
-      extra_meta: extraMeta,
+      extra_meta: extraMeta ?? {},
     })
   }
 
-  async payInvoiceWithGateway(
-    invoice: string,
-    gatewayInfo: GatewayInfo,
-    extraMeta: JSONObject = {},
-  ) {
-    return await this.client.rpcSingle('ln', 'pay_bolt11_invoice', {
-      maybe_gateway: gatewayInfo,
-      invoice,
-      extra_meta: extraMeta,
-    })
-  }
-
-  private async _getDefaultGatewayInfo(): Promise<LightningGateway> {
+  private async _getDefaultGatewayInfo(): Promise<GatewayInfo> {
+    await this.updateGatewayCache()
     const gateways = await this.listGateways()
-    return gateways[0]
+    return gateways[0]?.info
   }
 
   async payInvoice(
     invoice: string,
-    extraMeta: JSONObject = {},
+    gatewayInfo?: GatewayInfo,
+    extraMeta?: JSONObject,
   ): Promise<OutgoingLightningPayment> {
-    await this.updateGatewayCache()
-    const gateway = await this._getDefaultGatewayInfo()
+    const gateway = gatewayInfo ?? (await this._getDefaultGatewayInfo())
     return await this.client.rpcSingle('ln', 'pay_bolt11_invoice', {
-      maybe_gateway: gateway.info,
+      maybe_gateway: gateway,
       invoice,
-      extra_meta: extraMeta,
+      extra_meta: extraMeta ?? {},
     })
   }
 
