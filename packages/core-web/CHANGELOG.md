@@ -1,5 +1,13 @@
 # @fedimint/core-web
 
+## 0.0.7
+
+### Patch Changes
+
+- cc9a50b: declare worker message types
+- Updated dependencies [d0a7432]
+  - @fedimint/fedimint-client-wasm-bundler@0.0.2
+
 ## 0.0.6
 
 ### Patch Changes
