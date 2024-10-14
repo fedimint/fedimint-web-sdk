@@ -80,6 +80,15 @@ self.onmessage = async (event) => {
         rpcHandle.free()
         streamCancelMap.delete(requestId)
       }
+    } else if (type === 'cleanup') {
+      console.log('cleanup message received')
+      client?.free()
+      self.postMessage({
+        type: 'cleanup',
+        data: {},
+        requestId,
+      })
+      close()
     } else {
       self.postMessage({
         type: 'error',

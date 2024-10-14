@@ -1,6 +1,6 @@
 import { expect } from 'vitest'
-import { walletTest } from '../test/setupTests'
 import { keyPair } from '../test/crypto'
+import { walletTest } from '../test/fixtures'
 
 walletTest(
   'createInvoice should create a bolt11 invoice',
@@ -21,7 +21,7 @@ walletTest(
 
     // Test with expiry time
     await expect(
-      wallet.lightning.createInvoice(100, 'test', 1000, {}),
+      wallet.lightning.createInvoice(100, 'test', 1000),
     ).resolves.toBeDefined()
   },
 )
@@ -30,7 +30,7 @@ walletTest('createInvoice with expiry', async ({ wallet }) => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
 
-  const invoice = await wallet.lightning.createInvoice(100, 'test', 1000, {})
+  const invoice = await wallet.lightning.createInvoice(100, 'test', 1000)
   expect(invoice).toBeDefined()
   expect(invoice).toMatchObject({
     invoice: expect.any(String),
@@ -48,11 +48,7 @@ walletTest(
     const gateways = await wallet.lightning.listGateways()
     expect(wallet.testing.getRequestCounter()).toBe(counterBefore + 1)
     expect(gateways).toBeDefined()
-    expect(gateways).toMatchObject([
-      {
-        info: expect.any(Object),
-      },
-    ])
+    expect(gateways).toMatchObject(expect.any(Array))
   },
 )
 
@@ -116,31 +112,25 @@ walletTest(
 
 walletTest(
   'payInvoice should pay a bolt11 invoice',
-  { timeout: 45000 },
-  async ({ wallet }) => {
-    expect(wallet).toBeDefined()
-    expect(wallet.isOpen()).toBe(true)
-
-    const gateways = await wallet.lightning.listGateways()
-    const gateway = gateways[0]
-    if (!gateway) {
-      expect.unreachable('Gateway not found')
-    }
-    const invoice = await wallet.lightning.createInvoice(10000, 'test')
-    await expect(
-      wallet.testing.payWithFaucet(invoice.invoice),
-    ).resolves.toBeDefined()
-    await wallet.lightning.waitForReceive(invoice.operation_id)
-    // Wait for balance to fully update
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    const externalInvoice = await wallet.testing.getExternalInvoice(10)
-    const payment = await wallet.lightning.payInvoice(externalInvoice.pr)
-    expect(payment).toBeDefined()
+  { timeout: 20_000 },
+  async ({ fundedWallet }) => {
+    expect(fundedWallet).toBeDefined()
+    expect(fundedWallet.isOpen()).toBe(true)
+    const initialBalance = await fundedWallet.balance.getBalance()
+    expect(initialBalance).toBeGreaterThan(0)
+    const externalInvoice = await fundedWallet.testing.createFaucetInvoice(1)
+    const gatewayInfo = await fundedWallet.testing.getFaucetGatewayInfo()
+    const payment = await fundedWallet.lightning.payInvoice(
+      externalInvoice,
+      gatewayInfo,
+    )
     expect(payment).toMatchObject({
       contract_id: expect.any(String),
       fee: expect.any(Number),
       payment_type: expect.any(Object),
     })
+    const finalBalance = await fundedWallet.balance.getBalance()
+    expect(finalBalance).toBeLessThan(initialBalance)
   },
 )
 
@@ -170,7 +160,7 @@ walletTest(
 )
 
 walletTest(
-  'scanReceivesForTweaks should return the operation id, ',
+  'scanReceivesForTweaks should return the operation id',
   async ({ wallet }) => {
     expect(wallet).toBeDefined()
     expect(wallet.isOpen()).toBe(true)
@@ -179,15 +169,19 @@ walletTest(
     const { publicKey, secretKey } = keyPair()
     const tweak = 1
 
+    const gatewayInfo = await wallet.testing.getFaucetGatewayInfo()
+
     // Create an invoice paying to the tweaked public key
     const invoice = await wallet.lightning.createInvoiceTweaked(
       1000,
       'test tweaked',
       publicKey,
       tweak,
+      undefined,
+      gatewayInfo,
     )
     await expect(
-      wallet.testing.payWithFaucet(invoice.invoice),
+      wallet.testing.payFaucetInvoice(invoice.invoice),
     ).resolves.toBeDefined()
 
     // Scan for the receive

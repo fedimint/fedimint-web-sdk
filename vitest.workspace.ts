@@ -12,7 +12,6 @@ export default defineWorkspace([
         // name: 'chrome',
         name: 'chromium',
         provider: 'playwright',
-        isolate: true,
         ui: false, // no ui for the core library
         api: {
           port: 63315,

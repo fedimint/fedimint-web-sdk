@@ -220,8 +220,9 @@ export class WorkerClient {
     })
   }
 
-  cleanup() {
-    this.worker.terminate()
+  async cleanup() {
+    await this.sendSingleMessage('cleanup')
+    this.requestCounter = 0
     this.initPromise = undefined
     this.requestCallbacks.clear()
   }
