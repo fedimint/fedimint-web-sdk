@@ -18,8 +18,8 @@ export class LightningService {
     amount: MSats,
     description: string,
     expiryTime?: number, // in seconds
-    extraMeta?: JSONObject,
     gatewayInfo?: GatewayInfo,
+    extraMeta?: JSONObject,
   ): Promise<CreateBolt11Response> {
     const gateway = gatewayInfo ?? (await this._getDefaultGatewayInfo())
     return await this.client.rpcSingle('ln', 'create_bolt11_invoice', {

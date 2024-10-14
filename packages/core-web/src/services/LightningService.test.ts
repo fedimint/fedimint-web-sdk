@@ -21,7 +21,7 @@ walletTest(
 
     // Test with expiry time
     await expect(
-      wallet.lightning.createInvoice(100, 'test', 1000, {}),
+      wallet.lightning.createInvoice(100, 'test', 1000),
     ).resolves.toBeDefined()
   },
 )
@@ -30,7 +30,7 @@ walletTest('createInvoice with expiry', async ({ wallet }) => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
 
-  const invoice = await wallet.lightning.createInvoice(100, 'test', 1000, {})
+  const invoice = await wallet.lightning.createInvoice(100, 'test', 1000)
   expect(invoice).toBeDefined()
   expect(invoice).toMatchObject({
     invoice: expect.any(String),
@@ -120,7 +120,7 @@ walletTest(
     expect(initialBalance).toBeGreaterThan(0)
     const externalInvoice = await fundedWallet.testing.createFaucetInvoice(1)
     const gatewayInfo = await fundedWallet.testing.getFaucetGatewayInfo()
-    const payment = await fundedWallet.lightning.payInvoiceWithGateway(
+    const payment = await fundedWallet.lightning.payInvoice(
       externalInvoice,
       gatewayInfo,
     )
@@ -160,7 +160,7 @@ walletTest(
 )
 
 walletTest(
-  'scanReceivesForTweaks should return the operation id, ',
+  'scanReceivesForTweaks should return the operation id',
   async ({ wallet }) => {
     expect(wallet).toBeDefined()
     expect(wallet.isOpen()).toBe(true)
@@ -169,15 +169,19 @@ walletTest(
     const { publicKey, secretKey } = keyPair()
     const tweak = 1
 
+    const gatewayInfo = await wallet.testing.getFaucetGatewayInfo()
+
     // Create an invoice paying to the tweaked public key
     const invoice = await wallet.lightning.createInvoiceTweaked(
       1000,
       'test tweaked',
       publicKey,
       tweak,
+      undefined,
+      gatewayInfo,
     )
     await expect(
-      wallet.testing.payWithFaucet(invoice.invoice),
+      wallet.testing.payFaucetInvoice(invoice.invoice),
     ).resolves.toBeDefined()
 
     // Scan for the receive

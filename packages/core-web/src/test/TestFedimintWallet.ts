@@ -12,11 +12,7 @@ export class TestFedimintWallet extends FedimintWallet {
 
   async fundWallet(amount: number) {
     const info = await this.testing.getFaucetGatewayInfo()
-    const invoice = await this.lightning.createInvoiceWithGateway(
-      amount,
-      '',
-      info,
-    )
+    const invoice = await this.lightning.createInvoice(amount, '', 1000, info)
     await Promise.all([
       this.testing.payFaucetInvoice(invoice.invoice),
       this.lightning.waitForReceive(invoice.operation_id),
