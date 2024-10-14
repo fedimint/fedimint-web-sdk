@@ -72,11 +72,7 @@ jobs:
         run: pnpm exec playwright install
 
       - name: Run Tests
-        uses: nick-fields/retry@v3
-        with:
-          command: nix develop -c pnpm test
-          max_attempts: 3
-          timeout_seconds: 180
+        run: nix develop -c pnpm test
 
   build-docs:
     name: Build Docs
