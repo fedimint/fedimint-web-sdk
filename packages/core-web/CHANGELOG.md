@@ -1,5 +1,11 @@
 # @fedimint/core-web
 
+## 0.0.8
+
+### Patch Changes
+
+- e50ec77: Added Nix devshell to run Devimint within testing suite
+
 ## 0.0.7
 
 ### Patch Changes
