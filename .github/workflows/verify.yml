@@ -74,7 +74,7 @@ jobs:
       - name: Run Tests
         uses: nick-fields/retry@v3
         with:
-          command: pnpm test
+          command: nix develop -c pnpm test
           max_attempts: 3
           timeout_seconds: 180
 

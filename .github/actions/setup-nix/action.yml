@@ -23,7 +23,3 @@ runs:
         name: fedimint
         authToken: ${{ inputs.cachix_auth_token }}
       continue-on-error: true
-
-    - name: Run nix develop
-      run: nix develop
-      shell: bash
