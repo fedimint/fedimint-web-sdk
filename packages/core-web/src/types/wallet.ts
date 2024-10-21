@@ -1,4 +1,4 @@
-import { MSats, Duration, JSONValue } from './utils'
+import { MSats, Duration, RpcFederationMaybeLoading } from './utils'
 
 const MODULE_KINDS = ['', 'ln', 'mint'] as const
 type ModuleKind = (typeof MODULE_KINDS)[number]
@@ -64,7 +64,7 @@ type StreamError = {
   end: never
 }
 
-type StreamSuccess<T extends JSONValue> = {
+type StreamSuccess<T extends RpcFederationMaybeLoading> = {
   data: T
   error: never
   end: never
@@ -76,7 +76,7 @@ type StreamEnd = {
   error: never
 }
 
-type StreamResult<T extends JSONValue> =
+type StreamResult<T extends RpcFederationMaybeLoading> =
   | StreamSuccess<T>
   | StreamError
   | StreamEnd

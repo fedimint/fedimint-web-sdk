@@ -1,6 +1,6 @@
 import type {
   CancelFunction,
-  JSONValue,
+  RpcFederationMaybeLoading,
   ModuleKind,
   StreamError,
   StreamResult,
@@ -67,8 +67,8 @@ export class WorkerClient {
   // TODO: Handle multiple errors
 
   sendSingleMessage<
-    Response extends JSONValue = JSONValue,
-    Payload extends JSONValue = JSONValue,
+    Response extends RpcFederationMaybeLoading = RpcFederationMaybeLoading,
+    Payload extends RpcFederationMaybeLoading = RpcFederationMaybeLoading,
   >(type: WorkerMessageType, payload?: Payload): Promise<Response> {
     return new Promise((resolve, reject) => {
       const requestId = ++this.requestCounter
@@ -121,8 +121,8 @@ export class WorkerClient {
    *
    */
   rpcStream<
-    Response extends JSONValue = JSONValue,
-    Body extends JSONValue = JSONValue,
+    Response extends RpcFederationMaybeLoading = RpcFederationMaybeLoading,
+    Body extends RpcFederationMaybeLoading = RpcFederationMaybeLoading,
   >(
     module: ModuleKind,
     method: string,
@@ -167,8 +167,8 @@ export class WorkerClient {
   }
 
   private async _rpcStreamInner<
-    Response extends JSONValue = JSONValue,
-    Body extends JSONValue = JSONValue,
+    Response extends RpcFederationMaybeLoading = RpcFederationMaybeLoading,
+    Body extends RpcFederationMaybeLoading = RpcFederationMaybeLoading,
   >(
     requestId: number,
     module: ModuleKind,
@@ -209,10 +209,10 @@ export class WorkerClient {
     })
   }
 
-  rpcSingle<Response extends JSONValue = JSONValue>(
+  rpcSingle<Response extends RpcFederationMaybeLoading = RpcFederationMaybeLoading>(
     module: ModuleKind,
     method: string,
-    body: JSONValue,
+    body: RpcFederationMaybeLoading,
   ): Promise<Response> {
     logger.debug('WorkerClient - rpcSingle', module, method, body)
     return new Promise((resolve, reject) => {

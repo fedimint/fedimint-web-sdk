@@ -1,10 +1,10 @@
-import type { JSONValue } from '../types'
+import type { RpcFederationMaybeLoading } from '../types'
 import { WorkerClient } from '../worker'
 
 export class FederationService {
   constructor(private client: WorkerClient) {}
 
-  async getConfig(): Promise<JSONValue> {
+  async getConfig(): Promise<RpcFederationMaybeLoading> {
     return await this.client.rpcSingle('', 'get_config', {})
   }
 
@@ -16,7 +16,7 @@ export class FederationService {
     return await this.client.rpcSingle('', 'get_invite_code', { peer })
   }
 
-  async listOperations(): Promise<JSONValue[]> {
+  async listOperations(): Promise<RpcFederationMaybeLoading[]> {
     return await this.client.rpcSingle('', 'list_operations', {})
   }
 }

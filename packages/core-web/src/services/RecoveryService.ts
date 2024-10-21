@@ -1,4 +1,4 @@
-import type { JSONValue } from '../types'
+import type { RpcFederationMaybeLoading } from '../types'
 import { WorkerClient } from '../worker'
 
 export class RecoveryService {
@@ -13,12 +13,12 @@ export class RecoveryService {
   }
 
   subscribeToRecoveryProgress(
-    onSuccess: (progress: { module_id: number; progress: JSONValue }) => void,
+    onSuccess: (progress: { module_id: number; progress: RpcFederationMaybeLoading }) => void,
     onError: (error: string) => void,
   ): () => void {
     const unsubscribe = this.client.rpcStream<{
       module_id: number
-      progress: JSONValue
+      progress: RpcFederationMaybeLoading
     }>('', 'subscribe_to_recovery_progress', {}, onSuccess, onError)
 
     return unsubscribe

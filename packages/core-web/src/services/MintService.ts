@@ -2,7 +2,7 @@ import { WorkerClient } from '../worker'
 import type {
   Duration,
   JSONObject,
-  JSONValue,
+  RpcFederationMaybeLoading,
   MintSpendNotesResponse,
   MSats,
   ReissueExternalNotesState,
@@ -30,7 +30,7 @@ export class MintService {
 
   subscribeReissueExternalNotes(
     operationId: string,
-    onSuccess: (state: JSONValue) => void = () => {},
+    onSuccess: (state: RpcFederationMaybeLoading) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
     const unsubscribe = this.client.rpcStream<ReissueExternalNotesState>(
@@ -51,7 +51,7 @@ export class MintService {
     // the notes at this time, the notes will not be cancelled.
     tryCancelAfter: number | Duration = 3600 * 24, // defaults to 1 day
     includeInvite: boolean = false,
-    extraMeta: JSONValue = {},
+    extraMeta: RpcFederationMaybeLoading = {},
   ): Promise<MintSpendNotesResponse> {
     const duration =
       typeof tryCancelAfter === 'number'
@@ -91,7 +91,7 @@ export class MintService {
 
   subscribeSpendNotes(
     operationId: string,
-    onSuccess: (state: JSONValue) => void = () => {},
+    onSuccess: (state: RpcFederationMaybeLoading) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
     const unsubscribe = this.client.rpcStream(
@@ -105,7 +105,7 @@ export class MintService {
     return unsubscribe
   }
 
-  async awaitSpendOobRefund(operationId: string): Promise<JSONValue> {
+  async awaitSpendOobRefund(operationId: string): Promise<RpcFederationMaybeLoading> {
     return await this.client.rpcSingle('mint', 'await_spend_oob_refund', {
       operation_id: operationId,
     })

@@ -12,14 +12,22 @@ type Duration = {
 type MSats = Alias<number>
 type Sats = Alias<number>
 
-type JSONValue =
+type RpcFederationMaybeLoading =
   | string
   | number
   | boolean
   | null
-  | { [key: string]: JSONValue }
-  | JSONValue[]
+  | { [key: string]: RpcFederationMaybeLoading }
+  | RpcFederationMaybeLoading[]
 
-type JSONObject = Record<string, JSONValue>
+type JSONObject = Record<string, RpcFederationMaybeLoading>
 
-export { Alias, Resolve, Duration, MSats, Sats, JSONValue, JSONObject }
+export {
+  Alias,
+  Resolve,
+  Duration,
+  MSats,
+  Sats,
+  RpcFederationMaybeLoading,
+  JSONObject,
+}

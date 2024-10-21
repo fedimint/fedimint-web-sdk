@@ -3,7 +3,7 @@ import type {
   CreateBolt11Response,
   GatewayInfo,
   JSONObject,
-  JSONValue,
+  RpcFederationMaybeLoading,
   LightningGateway,
   LnPayState,
   LnReceiveState,
@@ -175,7 +175,7 @@ export class LightningService {
     return await this.client.rpcSingle('ln', 'list_gateways', {})
   }
 
-  async updateGatewayCache(): Promise<JSONValue> {
+  async updateGatewayCache(): Promise<RpcFederationMaybeLoading> {
     return await this.client.rpcSingle('ln', 'update_gateway_cache', {})
   }
 }
