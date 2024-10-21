@@ -1,24 +1,22 @@
-import { FedimintWallet } from '@fedimint/core-web'
 import { useEffect, useState } from 'react'
+import { useFedimintWallet, useOpenWallet } from '.'
 
-export const useBalance = (wallet: FedimintWallet) => {
-  const [balance, setBalance] = useState<number>()
+export const useBalance = () => {
+  const { wallet } = useFedimintWallet()
+  const isOpen = useOpenWallet()
+  const [balance, setBalance] = useState<number>(0)
 
   useEffect(() => {
-    console.warn('isopen', wallet.isOpen(), 'asdfasdf')
-    if (!wallet.isOpen()) return
+    if (!isOpen) return
+
     const unsubscribe = wallet.balance.subscribeBalance((balance) => {
-      // checks if the wallet is open when the first
-      // subscription event fires.
-      // TODO: make a subscription to the wallet open status
-      // checkIsOpen()
       setBalance(balance)
     })
 
     return () => {
       unsubscribe()
     }
-  }, [])
+  }, [isOpen])
 
   return balance
 }

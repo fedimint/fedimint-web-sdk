@@ -1,10 +1,10 @@
 import { FedimintWallet } from '@fedimint/core-web'
-import { createContext, createElement, useState } from 'react'
+import { createContext, createElement } from 'react'
 
 const wallet = new FedimintWallet()
 
 export const FedimintWalletContext = createContext<
-  { fedimintWallet: FedimintWallet } | undefined
+  { wallet: FedimintWallet } | undefined
 >(undefined)
 
 export type FedimintWalletProviderProps = {
@@ -16,9 +16,7 @@ export const FedimintWalletProvider = (
 ) => {
   const { lazy, children } = parameters
 
-  const props = { value: lazy }
-
-  const [wallet, setWallet] = useState<FedimintWallet | undefined>(undefined)
+  const props = { value: { wallet } }
 
   return createElement(FedimintWalletContext.Provider, props, children)
 }
