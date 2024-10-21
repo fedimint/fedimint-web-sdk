@@ -13,7 +13,10 @@ export class RecoveryService {
   }
 
   subscribeToRecoveryProgress(
-    onSuccess: (progress: { module_id: number; progress: RpcFederationMaybeLoading }) => void,
+    onSuccess: (progress: {
+      module_id: number
+      progress: RpcFederationMaybeLoading
+    }) => void,
     onError: (error: string) => void,
   ): () => void {
     const unsubscribe = this.client.rpcStream<{

@@ -105,7 +105,9 @@ export class MintService {
     return unsubscribe
   }
 
-  async awaitSpendOobRefund(operationId: string): Promise<RpcFederationMaybeLoading> {
+  async awaitSpendOobRefund(
+    operationId: string,
+  ): Promise<RpcFederationMaybeLoading> {
     return await this.client.rpcSingle('mint', 'await_spend_oob_refund', {
       operation_id: operationId,
     })

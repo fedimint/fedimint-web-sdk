@@ -209,7 +209,9 @@ export class WorkerClient {
     })
   }
 
-  rpcSingle<Response extends RpcFederationMaybeLoading = RpcFederationMaybeLoading>(
+  rpcSingle<
+    Response extends RpcFederationMaybeLoading = RpcFederationMaybeLoading,
+  >(
     module: ModuleKind,
     method: string,
     body: RpcFederationMaybeLoading,
