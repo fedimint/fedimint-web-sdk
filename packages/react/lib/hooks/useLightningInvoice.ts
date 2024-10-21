@@ -3,8 +3,8 @@ import { useFedimintWallet, useOpenWallet } from '.'
 import { LnReceiveState, type CreateBolt11Response } from '@fedimint/core-web'
 
 export const useLightningInvoice = () => {
-  const { wallet } = useFedimintWallet()
-  const isOpen = useOpenWallet()
+  const wallet = useFedimintWallet()
+  const { walletStatus } = useOpenWallet()
   const [invoice, setInvoice] = useState<CreateBolt11Response>()
   const [isPaid, setIsPaid] = useState<boolean>()
   const [invoiceStatus, setInvoiceStatus] = useState<LnReceiveState>()
@@ -12,16 +12,16 @@ export const useLightningInvoice = () => {
 
   const generateInvoice = useCallback(
     async (amount: number, description: string) => {
-      if (!isOpen) throw new Error('Wallet is not open')
+      if (walletStatus !== 'open') throw new Error('Wallet is not open')
       const response = await wallet.lightning.createInvoice(amount, description)
       setInvoice(response)
       return response.invoice
     },
-    [wallet, isOpen],
+    [wallet, walletStatus],
   )
 
   useEffect(() => {
-    if (!isOpen || !invoice) return
+    if (walletStatus !== 'open' || !invoice) return
     const unsubscribe = wallet.lightning.subscribeLnReceive(
       invoice.operation_id,
       (state) => {
@@ -35,7 +35,7 @@ export const useLightningInvoice = () => {
     return () => {
       unsubscribe()
     }
-  }, [isOpen, invoice])
+  }, [walletStatus, invoice])
 
   return {
     generateInvoice,

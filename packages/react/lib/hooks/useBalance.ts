@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import { useFedimintWallet, useOpenWallet } from '.'
 
 export const useBalance = () => {
-  const { wallet } = useFedimintWallet()
-  const isOpen = useOpenWallet()
-  const [balance, setBalance] = useState<number>(0)
+  const wallet = useFedimintWallet()
+  const { walletStatus } = useOpenWallet()
+  const [balance, setBalance] = useState<number>()
 
   useEffect(() => {
-    if (!isOpen) return
+    if (walletStatus !== 'open') return
 
     const unsubscribe = wallet.balance.subscribeBalance((balance) => {
       setBalance(balance)
@@ -16,7 +16,7 @@ export const useBalance = () => {
     return () => {
       unsubscribe()
     }
-  }, [isOpen])
+  }, [walletStatus])
 
   return balance
 }

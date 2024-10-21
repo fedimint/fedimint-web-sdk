@@ -27,6 +27,7 @@
   justify-content: center;
   width: 100%;
   border-bottom: 1px solid #ccc;
+  gap: 0.5rem;
 }
 
 .row {
