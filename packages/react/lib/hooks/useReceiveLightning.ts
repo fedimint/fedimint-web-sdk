@@ -2,12 +2,12 @@ import { useCallback, useEffect, useState } from 'react'
 import { useFedimintWallet, useOpenWallet } from '.'
 import { LnReceiveState, type CreateBolt11Response } from '@fedimint/core-web'
 
-export const useLightningInvoice = () => {
+export const useReceiveLightning = () => {
   const wallet = useFedimintWallet()
   const { walletStatus } = useOpenWallet()
   const [invoice, setInvoice] = useState<CreateBolt11Response>()
-  const [isPaid, setIsPaid] = useState<boolean>()
-  const [invoiceStatus, setInvoiceStatus] = useState<LnReceiveState>()
+  const [invoiceReceiveState, setInvoiceReceiveState] =
+    useState<LnReceiveState>()
   const [error, setError] = useState<string>()
 
   const generateInvoice = useCallback(
@@ -25,7 +25,7 @@ export const useLightningInvoice = () => {
     const unsubscribe = wallet.lightning.subscribeLnReceive(
       invoice.operation_id,
       (state) => {
-        setInvoiceStatus(state)
+        setInvoiceReceiveState(state)
       },
       (error) => {
         setError(error)
@@ -40,8 +40,7 @@ export const useLightningInvoice = () => {
   return {
     generateInvoice,
     bolt11: invoice?.invoice,
-    invoiceStatus,
-    isPaid,
+    invoiceStatus: invoiceReceiveState,
     error,
   }
 }

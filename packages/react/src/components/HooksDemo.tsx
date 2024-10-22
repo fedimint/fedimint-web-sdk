@@ -1,18 +1,15 @@
-import React, { useEffect } from 'react'
-import {
-  useBalance,
-  useLightningInvoice,
-  useOpenWallet,
-  useFedimintWallet,
-} from '../../lib'
+import React from 'react'
+import { useBalance, useReceiveLightning, useOpenWallet } from '../../lib'
+
+const TEST_FEDERATION_INVITE =
+  'fed11qgqzc2nhwden5te0vejkg6tdd9h8gepwvejkg6tdd9h8garhduhx6at5d9h8jmn9wshxxmmd9uqqzgxg6s3evnr6m9zdxr6hxkdkukexpcs3mn7mj3g5pc5dfh63l4tj6g9zk4er'
 
 function HooksDemo() {
   const balance = useBalance()
   const { walletStatus, openWallet, joinFederation } = useOpenWallet()
-  const wallet = useFedimintWallet()
   const isOpen = walletStatus === 'open'
-  const { generateInvoice, bolt11, invoiceStatus, isPaid, error } =
-    useLightningInvoice()
+  const { generateInvoice, bolt11, invoiceStatus, error } =
+    useReceiveLightning()
 
   return (
     <>
@@ -34,11 +31,7 @@ function HooksDemo() {
             <b>joinFederation(invite)</b>
             <button
               disabled={isOpen}
-              onClick={() =>
-                joinFederation(
-                  'fed11qgqzc2nhwden5te0vejkg6tdd9h8gepwvejkg6tdd9h8garhduhx6at5d9h8jmn9wshxxmmd9uqqzgxg6s3evnr6m9zdxr6hxkdkukexpcs3mn7mj3g5pc5dfh63l4tj6g9zk4er',
-                )
-              }
+              onClick={() => joinFederation(TEST_FEDERATION_INVITE)}
             >
               Join Federation
             </button>
@@ -68,7 +61,20 @@ function HooksDemo() {
           <b>bolt11:</b>
           <p className="truncate">{bolt11 ? bolt11 : 'no invoice generated'}</p>
         </div>
-        <div className="row"></div>
+        <div className="row">
+          <b>invoiceStatus:</b>
+          <p>
+            {typeof invoiceStatus === 'string'
+              ? invoiceStatus
+              : typeof invoiceStatus === 'object'
+                ? Object.keys(invoiceStatus)[0]
+                : 'no invoice status'}
+          </p>
+        </div>
+        <div className="row">
+          <b>error:</b>
+          <p>{error}</p>
+        </div>
       </div>
     </>
   )

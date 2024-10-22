@@ -1,6 +1,6 @@
 import { useBalance } from './useBalance'
 import { useOpenWallet } from './useOpenWallet'
 import { useFedimintWallet } from './useFedimintWallet'
-import { useLightningInvoice } from './useLightningInvoice'
+import { useReceiveLightning } from './useReceiveLightning'
 
-export { useBalance, useOpenWallet, useFedimintWallet, useLightningInvoice }
+export { useBalance, useOpenWallet, useFedimintWallet, useReceiveLightning }
