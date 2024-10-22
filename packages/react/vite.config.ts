@@ -17,7 +17,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'lib/index.ts'),
       name: '@fedimint/react',
-      fileName: 'fedimint-react',
+      fileName: 'index',
       formats: ['es'],
     },
     rollupOptions: {
