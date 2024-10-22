@@ -1,6 +1,5 @@
 {
   "name": "@fedimint/react",
-  "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
@@ -10,14 +9,14 @@
     "preview": "vite preview"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
-  "main": "./dist/fedimint-react.umd.cjs",
+  "main": "./dist/fedimint-react.js",
   "module": "./dist/fedimint-react.js",
   "exports": {
     ".": {
-      "import": "./dist/fedimint-react.js",
-      "require": "./dist/fedimint-react.umd.cjs"
+      "import": "./dist/fedimint-react.js"
     }
   },
   "peerDependencies": {
