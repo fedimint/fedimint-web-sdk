@@ -7,6 +7,7 @@
     "clean:deep": "rm -rf node_modules && pnpm run --r --parallel clean:deep",
     "deps": "pnpx taze -r",
     "dev": "pnpm build && pnpm dev:vite",
+    "dev:react": "pnpm --filter react dev",
     "dev:vite": "pnpm --filter vite-core dev",
     "dev:bare": "pnpm run --filter bare-js server",
     "docs:dev": "pnpm run --filter docs docs:dev",

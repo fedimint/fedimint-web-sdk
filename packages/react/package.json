@@ -5,12 +5,24 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build": "tsc --p ./tsconfig.build.json && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/fedimint-react.umd.cjs",
+  "module": "./dist/fedimint-react.js",
+  "exports": {
+    ".": {
+      "import": "./dist/fedimint-react.js",
+      "require": "./dist/fedimint-react.umd.cjs"
+    }
+  },
   "peerDependencies": {
-    "react": "^18.3.1",
-    "react-dom": ">=18.3.1"
+    "@fedimint/core-web": "workspace:*",
+    "react": "^18.3.1"
   },
   "devDependencies": {
     "@types/react": ">=18.3.11",
@@ -18,10 +30,13 @@
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "@vitejs/plugin-react": "^4.3.2",
-    "eslint": "^8.57.1",
+    "eslint": "^9.11.1",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.12",
+    "react-dom": ">=18.3.1",
     "typescript": "^5.6.2",
-    "vite": "^5.4.8"
+    "vite": "^5.4.8",
+    "vite-plugin-dts": "^4.2.4",
+    "vite-plugin-wasm": "^3.3.0"
   }
 }
