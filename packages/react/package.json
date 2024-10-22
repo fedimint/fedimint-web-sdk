@@ -10,15 +10,10 @@
   },
   "files": [
     "dist",
-    "src"
+    "lib"
   ],
-  "main": "./dist/fedimint-react.js",
-  "module": "./dist/fedimint-react.js",
-  "exports": {
-    ".": {
-      "import": "./dist/fedimint-react.js"
-    }
-  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "peerDependencies": {
     "@fedimint/core-web": "workspace:*",
     "react": "^18.3.1"
