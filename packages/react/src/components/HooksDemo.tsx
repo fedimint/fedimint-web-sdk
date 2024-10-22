@@ -10,9 +10,6 @@ function HooksDemo() {
   const balance = useBalance()
   const { walletStatus, openWallet, joinFederation } = useOpenWallet()
   const wallet = useFedimintWallet()
-  useEffect(() => {
-    wallet.setLogLevel('debug')
-  }, [])
   const isOpen = walletStatus === 'open'
   const { generateInvoice, bolt11, invoiceStatus, isPaid, error } =
     useLightningInvoice()
@@ -69,7 +66,7 @@ function HooksDemo() {
         </div>
         <div className="row">
           <b>bolt11:</b>
-          <p>{bolt11 ?? 'no invoice generated'}</p>
+          <p className="truncate">{bolt11 ? bolt11 : 'no invoice generated'}</p>
         </div>
         <div className="row"></div>
       </div>

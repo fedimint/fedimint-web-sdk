@@ -1,6 +1,7 @@
 import {
   FedimintWalletContext,
   FedimintWalletProvider,
+  setupFedimintWallet,
 } from './FedimintWalletContext'
 
-export { FedimintWalletContext, FedimintWalletProvider }
+export { FedimintWalletContext, FedimintWalletProvider, setupFedimintWallet }

@@ -6,11 +6,11 @@ import reactImage from './assets/react.svg'
 
 function App() {
   return (
-    <>
+    <div className="App">
       <img height={200} src={reactImage} />
       <h2>Fedimint Web SDK - React</h2>
       <HooksDemo />
-    </>
+    </div>
   )
 }
 

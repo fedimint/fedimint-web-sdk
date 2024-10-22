@@ -1,20 +1,35 @@
 import { FedimintWallet } from '@fedimint/core-web'
 import { createContext, createElement } from 'react'
 
-const wallet = new FedimintWallet()
+let wallet: FedimintWallet
+
+type FedimintWalletConfig = {
+  lazy?: boolean
+  debug?: boolean
+}
+
+export const setupFedimintWallet = (config: FedimintWalletConfig) => {
+  wallet = new FedimintWallet(!!config.lazy)
+  if (config.debug) {
+    wallet.setLogLevel('debug')
+  }
+}
 
 export const FedimintWalletContext = createContext<
   { wallet: FedimintWallet } | undefined
 >(undefined)
 
-export type FedimintWalletProviderProps = {
-  lazy: boolean | undefined
-}
+export type FedimintWalletProviderProps = {}
 
 export const FedimintWalletProvider = (
   parameters: React.PropsWithChildren<FedimintWalletProviderProps>,
 ) => {
-  const { lazy, children } = parameters
+  const { children } = parameters
+
+  if (!wallet)
+    throw new Error(
+      'You must call setupFedimintWallet() first. See the getting started guide.',
+    )
 
   const props = { value: { wallet } }
 

@@ -5,6 +5,12 @@
   text-align: center;
 }
 
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .card {
   display: flex;
   flex-direction: column;
@@ -37,4 +43,11 @@
   justify-content: space-between;
   width: 100%;
   max-width: 500px;
+  gap: 0.5rem;
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -17,11 +17,13 @@ export const useOpenWallet = () => {
   }, [wallet])
 
   const joinFederation = useCallback(
-    (invite: string) => {
+    async (invite: string) => {
       if (walletStatus === 'open') return
 
       setWalletStatus('opening')
-      wallet.joinFederation(invite)
+
+      const res = await wallet.joinFederation(invite)
+      setWalletStatus(res ? 'open' : 'closed')
     },
     [wallet],
   )
