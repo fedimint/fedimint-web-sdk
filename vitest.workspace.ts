@@ -12,6 +12,11 @@ export default defineWorkspace([
         // name: 'chrome',
         name: 'chromium',
         provider: 'playwright',
+        providerOptions: {
+          launch: {
+            args: ['--disable-gpu', '--no-sandbox', '--disable-setuid-sandbox'],
+          },
+        },
         ui: false, // no ui for the core library
         api: {
           port: 63315,
