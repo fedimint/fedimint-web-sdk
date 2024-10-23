@@ -11,7 +11,7 @@ beforeAll(async () => {
   expect(wallet).toBeDefined()
   await expect(
     wallet.joinFederation(wallet.testing.TESTING_INVITE, randomTestingId),
-  ).resolves.toBeUndefined()
+  ).resolves.toBe(true)
   expect(wallet.isOpen()).toBe(true)
 
   // Cleanup after all tests
