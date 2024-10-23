@@ -16,7 +16,7 @@ export const walletTest = test.extend<{
     const inviteCode = await wallet.testing.getInviteCode()
     await expect(
       wallet.joinFederation(inviteCode, randomTestingId),
-    ).resolves.toBeUndefined()
+    ).resolves.toBe(true)
 
     await use(wallet)
 
