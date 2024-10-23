@@ -38,7 +38,7 @@ type LnPayState =
   | { funded: { block_height: number } }
   | { waiting_for_refund: { error_reason: string } }
   | 'awaiting_change'
-  | { Success: { preimage: string } }
+  | { success: { preimage: string } }
   | { refunded: { gateway_error: string } }
   | { unexpected_error: { error_message: string } }
 

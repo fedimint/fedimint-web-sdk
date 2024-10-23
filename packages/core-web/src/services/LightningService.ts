@@ -88,6 +88,7 @@ export class LightningService {
     })
   }
 
+  // TODO: Document
   subscribeLnClaim(
     operationId: string,
     onSuccess: (state: LnReceiveState) => void = () => {},
@@ -104,6 +105,8 @@ export class LightningService {
     return unsubscribe
   }
 
+  // TODO: Document (for external payments only)
+  // TODO: Make this work for BOTH internal and external payments
   subscribeLnPay(
     operationId: string,
     onSuccess: (state: LnPayState) => void = () => {},
@@ -120,6 +123,7 @@ export class LightningService {
     return unsubscribe
   }
 
+  // TODO: Document
   subscribeLnReceive(
     operationId: string,
     onSuccess: (state: LnReceiveState) => void = () => {},
@@ -136,6 +140,7 @@ export class LightningService {
     return unsubscribe
   }
 
+  // TODO: Document
   async waitForReceive(operationId: string): Promise<LnReceiveState> {
     return new Promise((resolve, reject) => {
       let unsubscribe: () => void
