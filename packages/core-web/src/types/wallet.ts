@@ -30,10 +30,7 @@ type OutgoingLightningPayment = {
   fee: MSats
 }
 
-type PayType = {
-  type: 'Internal' | 'Lightning'
-  operation_id: string
-}
+type PayType = { lightning: string } | { internal: string }
 
 type LnPayState =
   | 'created'
