@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../docs/public/icon.png" alt="Fedimint Logo" width="300" />
+  <img src="../../docs/public/icon.png" alt="Fedimint Logo" width="300" />
   <!-- Removes the border below the header tag -->
   <div id="toc"><ul align="center" style="list-style: none;"><summary>
     <h1><b>@fedimint/react</b></h1>
