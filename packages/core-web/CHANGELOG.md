@@ -1,5 +1,11 @@
 # @fedimint/core-web
 
+## 0.0.9
+
+### Patch Changes
+
+- 7b67b6d: Fix PayType
+
 ## 0.0.8
 
 ### Patch Changes
