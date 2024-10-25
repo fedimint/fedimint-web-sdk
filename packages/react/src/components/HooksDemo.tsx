@@ -10,12 +10,20 @@ const TEST_FEDERATION_INVITE =
   'fed11qgqzc2nhwden5te0vejkg6tdd9h8gepwvejkg6tdd9h8garhduhx6at5d9h8jmn9wshxxmmd9uqqzgxg6s3evnr6m9zdxr6hxkdkukexpcs3mn7mj3g5pc5dfh63l4tj6g9zk4er'
 
 function HooksDemo() {
-  const balance = useBalance()
-  const { walletStatus, openWallet, joinFederation } = useOpenWallet()
   const [bolt11Input, setBolt11Input] = useState<string>()
+
+  // Balance
+  const balance = useBalance()
+
+  // Wallet
+  const { walletStatus, openWallet, joinFederation } = useOpenWallet()
   const isOpen = walletStatus === 'open'
+
+  // Receive Lightning
   const { generateInvoice, bolt11, invoiceStatus, error } =
     useReceiveLightning()
+
+  // Send Lightning
   const { payInvoice, payment, paymentStatus, paymentError } =
     useSendLightning()
 
@@ -45,12 +53,14 @@ function HooksDemo() {
             </button>
           </div>
         </div>
+
         <div className="section">
           <div className="row">
             <b>useBalance</b>
             <p>{balance ? `${balance / 1000} sats` : 'no balance'}</p>
           </div>
         </div>
+
         <div className="section">
           <b>useLightningInvoice()</b>
           <div className="row">

@@ -1,30 +1,73 @@
-# React + TypeScript + Vite
+<p align="center">
+  <img src="../docs/public/icon.png" alt="Fedimint Logo" width="300" />
+  <!-- Removes the border below the header tag -->
+  <div id="toc"><ul align="center" style="list-style: none;"><summary>
+    <h1><b>@fedimint/react</b></h1>
+    <p>Helpful React hooks for building with the Fedimint Web SDK.</p>
+  </summary></ul></div>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# @fedimint/react
 
-Currently, two official plugins are available:
+## Install
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+```bash
+pnpm install @fedimint/core-web @fedimint/react
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+## Usage
+
+```tsx
+import { FedimintWalletProvider, setupFedimintWallet } from '@fedimint/react'
+
+setupFedimintWallet({
+  lazy: false,
+  debug: true,
+})
+
+// Wrap your app in the FedimintWalletProvider
+<FedimintWalletProvider>
+  <App />
+</FedimintWalletProvider>
+
+
+// App.tsx
+
+
+// Balance
+
+import { useBalance } from '@fedimint/react'
+
+const balance = useBalance()
+
+// Wallet
+
+import { useOpenWallet } from '@fedimint/react'
+
+const {
+  walletStatus, // 'open' | 'closed' | 'connecting' | 'failed'
+  openWallet, // () => Promise<boolean> - Returns true if wallet was opened successfully.
+  joinFederation, // () => Promise<boolean> - Returns true if joined federation successfully.
+} = useOpenWallet()
+
+// Receive Lightning
+
+import { useReceiveLightning } from '@fedimint/react'
+
+const {
+  generateInvoice, // (amount: number) => Promise<void>
+  bolt11, // string
+  invoiceStatus, // 'pending' | 'confirmed' | 'failed'
+  error, // Error | undefined
+} = useReceiveLightning()
+
+// Send Lightning
+
+import { useSendLightning } from '@fedimint/react'
+
+const {
+  payInvoice, // (bolt11: string) => Promise<void>
+  paymentStatus, // 'pending' | 'confirmed' | 'failed'
+  paymentError, // Error | undefined
+} = useSendLightning()
+
+```
