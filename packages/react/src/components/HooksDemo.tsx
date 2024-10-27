@@ -55,6 +55,7 @@ function HooksDemo() {
         </div>
 
         <div className="section">
+          <b>useBalance()</b>
           <div className="row">
             <b>useBalance</b>
             <p>{balance ? `${balance / 1000} sats` : 'no balance'}</p>
