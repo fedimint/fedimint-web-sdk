@@ -1,4 +1,3 @@
-import type { MSats } from '../types'
 import { WorkerClient } from '../worker'
 
 /**
@@ -17,7 +16,7 @@ export class BalanceService {
    * const balance = await wallet.balance.getBalance()
    * ```
    */
-  async getBalance(): Promise<MSats> {
+  async getBalance(): Promise<number> {
     return await this.client.rpcSingle('', 'get_balance', {})
   }
 
@@ -35,7 +34,7 @@ export class BalanceService {
    * ```
    */
   subscribeBalance(
-    onSuccess: (balance: MSats) => void = () => {},
+    onSuccess: (balanceMsats: number) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
     const unsubscribe = this.client.rpcStream<string>(

@@ -7,7 +7,6 @@ import type {
   LightningGateway,
   LnPayState,
   LnReceiveState,
-  MSats,
   OutgoingLightningPayment,
 } from '../types'
 
@@ -15,7 +14,7 @@ export class LightningService {
   constructor(private client: WorkerClient) {}
 
   async createInvoice(
-    amount: MSats,
+    amountMsats: number,
     description: string,
     expiryTime?: number, // in seconds
     gatewayInfo?: GatewayInfo,
@@ -23,7 +22,7 @@ export class LightningService {
   ): Promise<CreateBolt11Response> {
     const gateway = gatewayInfo ?? (await this._getDefaultGatewayInfo())
     return await this.client.rpcSingle('ln', 'create_bolt11_invoice', {
-      amount,
+      amount: amountMsats,
       description,
       expiry_time: expiryTime ?? null,
       extra_meta: extraMeta ?? {},
@@ -32,7 +31,7 @@ export class LightningService {
   }
 
   async createInvoiceTweaked(
-    amount: MSats,
+    amountMsats: number,
     description: string,
     tweakKey: string,
     index: number,
@@ -45,7 +44,7 @@ export class LightningService {
       'ln',
       'create_bolt11_invoice_for_user_tweaked',
       {
-        amount,
+        amount: amountMsats,
         description,
         expiry_time: expiryTime ?? null,
         user_key: tweakKey,
