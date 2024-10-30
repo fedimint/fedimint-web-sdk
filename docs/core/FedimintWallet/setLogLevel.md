@@ -1,5 +1,14 @@
-This guide hasn't been written yet.
+# setLogLevel
 
-If you'd like to contribute, please open a PR!
+### `setLogLevel()`
 
-You can use the `Suggest changes to this page` link below.
+Set the log level for the wallet.
+
+```ts twoslash
+// @esModuleInterop
+import { FedimintWallet } from '@fedimint/core-web'
+
+const wallet = new FedimintWallet()
+
+wallet.setLogLevel('debug') // [!code focus]
+```
