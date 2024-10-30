@@ -1,3 +1,3 @@
 export * from './wallet'
 export * from './utils'
-export * from './worker'
+export * from './rpc'

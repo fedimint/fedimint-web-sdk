@@ -58,7 +58,7 @@ export const workerTest = test.extend<{
     await use(randomTestingId)
   },
   workerClient: async ({}, use) => {
-    const workerClient = new WorkerClient()
+    const workerClient = new RpcClient()
     await use(workerClient)
   },
 })
