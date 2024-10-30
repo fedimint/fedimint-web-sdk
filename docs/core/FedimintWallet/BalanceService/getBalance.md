@@ -11,8 +11,7 @@ import { FedimintWallet } from '@fedimint/core-web'
 const wallet = new FedimintWallet()
 wallet.open()
 
-// ---cut---
-const mSats = await wallet.balance.getBalance()
+const mSats = await wallet.balance.getBalance() // [!code focus]
 
 // 1000 mSats = 1 satoshi
 ```

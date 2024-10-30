@@ -7,3 +7,4 @@ examples/bare-js/**
 tmp/**
 *.html
 packages/*/dist/**
+docs/core/FedimintWallet/BalanceService/subscribeBalance.md
