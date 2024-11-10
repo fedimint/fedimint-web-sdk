@@ -1,4 +1,4 @@
-# Get Balance
+# Send Lightning
 
 ### `lightning.payInvoiceSync(invoice: string)`
 
@@ -11,8 +11,7 @@ import { FedimintWallet } from '@fedimint/core-web'
 const wallet = new FedimintWallet()
 wallet.open()
 
-const result = await wallet.lightning.payInvoiceSync(
-  // [!code focus]
+const result = await wallet.lightning.payInvoiceSync( // [!code focus]
   'lnbc...', // bolt11 invoice // [!code focus]
 ) // [!code focus]
 
@@ -36,15 +35,13 @@ import type { LnPayState } from '@fedimint/core-web'
 const wallet = new FedimintWallet()
 wallet.open()
 
-const { contract_id, fee } = await wallet.lightning.payInvoice(
-  // [!code focus]
+const { contract_id, fee } = await wallet.lightning.payInvoice( // [!code focus]
   'lnbc...', // bolt11 invoice // [!code focus]
 ) // [!code focus]
 
 console.log(contract_id) // in flight lightning payment id
 
-const unsubscribe = wallet.lightning.subscribeLnPay(
-  // [!code focus]
+const unsubscribe = wallet.lightning.subscribeLnPay( // [!code focus]
   contract_id, // [!code focus]
   (state: LnPayState) => console.log(state), // State of the payment // [!code focus]
   (error: string) => console.error(error), // [!code focus]

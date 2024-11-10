@@ -85,7 +85,6 @@ const FedimintWalletSidebar = [
           //   link: 'createInvoiceWithGateway',
           // },
           // { text: 'subscribeInvoiceStatus()', link: 'subscribeInvoiceStatus' },
-          // { text: 'subscribeLnPay()', link: 'subscribeLnPay' },
           // { text: 'subscribeLnReceive()', link: 'subscribeLnReceive' },
           // { text: 'listGateways()', link: 'listGateways' },
           // { text: 'getGateway()', link: 'getGateway' },
