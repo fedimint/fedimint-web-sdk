@@ -87,6 +87,43 @@ export class LightningService {
     })
   }
 
+  async payInvoiceSync(
+    invoice: string,
+    timeoutMs: number = 10000,
+    gatewayInfo?: GatewayInfo,
+    extraMeta?: JSONObject,
+  ): Promise<
+    | { success: false }
+    | {
+        success: true
+        data: { feeMsats: number; preimage: string }
+      }
+  > {
+    return new Promise(async (resolve, reject) => {
+      const { contract_id, fee } = await this.payInvoice(
+        invoice,
+        gatewayInfo,
+        extraMeta,
+      )
+
+      const unsubscribe = this.subscribeLnPay(contract_id, (res) => {
+        if (typeof res !== 'string' && 'success' in res) {
+          clearTimeout(timeoutId)
+          unsubscribe()
+          resolve({
+            success: true,
+            data: { feeMsats: fee, preimage: res.success.preimage },
+          })
+        }
+      })
+
+      const timeoutId = setTimeout(() => {
+        unsubscribe()
+        reject(new Error('Timeout waiting for pay'))
+      }, timeoutMs)
+    })
+  }
+
   // TODO: Document
   subscribeLnClaim(
     operationId: string,
@@ -120,6 +157,40 @@ export class LightningService {
     )
 
     return unsubscribe
+  }
+
+  async waitForPay(operationId: string): Promise<
+    | { success: false }
+    | {
+        success: true
+        data: { preimage: string }
+      }
+  > {
+    return new Promise((resolve, reject) => {
+      let unsubscribe: () => void
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Timeout waiting for receive'))
+      }, 15000)
+
+      unsubscribe = this.subscribeLnPay(
+        operationId,
+        (res) => {
+          if (typeof res !== 'string' && 'success' in res) {
+            clearTimeout(timeoutId)
+            unsubscribe()
+            resolve({
+              success: true,
+              data: { preimage: res.success.preimage },
+            })
+          }
+        },
+        (error) => {
+          clearTimeout(timeoutId)
+          unsubscribe()
+          reject(error)
+        },
+      )
+    })
   }
 
   // TODO: Document
