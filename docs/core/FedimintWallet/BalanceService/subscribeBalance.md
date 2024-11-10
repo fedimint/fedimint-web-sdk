@@ -10,11 +10,10 @@ import { FedimintWallet } from '@fedimint/core-web'
 const wallet = new FedimintWallet()
 wallet.open()
 
-// ---cut---
-const unsubscribe = wallet.balance.subscribeBalance((mSats) => {
-  console.log('Balance updated:', mSats)
-  // 1000 mSats = 1 satoshi
-})
+const unsubscribe = wallet.balance.subscribeBalance((mSats) => { // [!code focus]
+  console.log('Balance updated:', mSats) // [!code focus]
+  // 1000 mSats = 1 satoshi // [!code focus]
+}) // [!code focus]
 
 // ...Cleanup Later
 unsubscribe()

@@ -34,7 +34,7 @@ export function getSidebar() {
 
 const FedimintWalletSidebar = [
   {
-    text: 'FedimintWallet',
+    text: 'Core',
     link: '.',
     base: '/core/FedimintWallet/',
     items: [
@@ -50,10 +50,10 @@ const FedimintWalletSidebar = [
         text: 'joinFederation()',
         link: 'joinFederation',
       },
-      {
-        text: 'initialize()',
-        link: 'initialize',
-      },
+      // {
+      //   text: 'initialize()',
+      //   link: 'initialize',
+      // },
       {
         text: 'isOpen()',
         link: 'isOpen',
@@ -78,15 +78,13 @@ const FedimintWalletSidebar = [
         text: 'LightningService',
         base: '/core/FedimintWallet/LightningService/',
         items: [
-          { text: 'Docs TODO' },
-          // { text: 'payInvoice()', link: 'payInvoice' },
-          // { text: 'createInvoice()', link: 'createInvoice' },
+          { text: 'payInvoice()', link: 'payInvoice' },
+          { text: 'createInvoice()', link: 'createInvoice' },
           // {
           //   text: 'createInvoiceWithGateway()',
           //   link: 'createInvoiceWithGateway',
           // },
           // { text: 'subscribeInvoiceStatus()', link: 'subscribeInvoiceStatus' },
-          // { text: 'subscribeLnPay()', link: 'subscribeLnPay' },
           // { text: 'subscribeLnReceive()', link: 'subscribeLnReceive' },
           // { text: 'listGateways()', link: 'listGateways' },
           // { text: 'getGateway()', link: 'getGateway' },

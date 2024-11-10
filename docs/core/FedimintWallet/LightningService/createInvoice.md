@@ -1,0 +1,41 @@
+# Receive Lightning
+
+### `lightning.createInvoice()`
+
+Create a Lightning Invoice for a given amount. Returns a `CreateBolt11Response` object containing details about the created invoice.
+
+You can use `subscribeLnReceive` to track the payment status and `waitForReceive` to wait for the payment to be received.
+
+```ts twoslash
+// @esModuleInterop
+import { FedimintWallet } from '@fedimint/core-web'
+import type { LnReceiveState } from '@fedimint/core-web'
+
+const wallet = new FedimintWallet()
+wallet.open()
+
+const { operation_id, invoice } = await wallet.lightning.createInvoice( // [!code focus]
+  10_000, // msats // [!code focus]
+  'This is an invoice description', // [!code focus]
+) // [!code focus]
+
+console.log(operation_id) // operation id for the invoice
+console.log(invoice) // bolt11 invoice
+
+const unsubscribe = wallet.lightning.subscribeLnReceive( // [!code focus]
+  operation_id, // [!code focus]
+  (state: LnReceiveState) => console.log(state), // [!code focus]
+  (error: string) => console.error(error), // [!code focus]
+) // [!code focus]
+
+// ...Cleanup Later
+unsubscribe()
+
+try {
+  const timeoutMs = 10000
+  await wallet.lightning.waitForReceive(operation_id, timeoutMs) // [!code focus]
+  console.log('Payment Received!')
+} catch (error) {
+  console.error(error) // Timeout waiting for payment
+}
+```

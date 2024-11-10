@@ -7,3 +7,6 @@ examples/bare-js/**
 tmp/**
 *.html
 packages/*/dist/**
+docs/core/FedimintWallet/BalanceService/subscribeBalance.md
+docs/core/FedimintWallet/LightningService/createInvoice.md
+docs/core/FedimintWallet/LightningService/payInvoice.md
