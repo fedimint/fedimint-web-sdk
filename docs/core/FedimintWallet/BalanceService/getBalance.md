@@ -9,7 +9,7 @@ Get the current balance of the wallet.
 import { FedimintWallet } from '@fedimint/core-web'
 
 const wallet = new FedimintWallet()
-wallet.open()
+await wallet.open()
 
 const mSats = await wallet.balance.getBalance() // [!code focus]
 
