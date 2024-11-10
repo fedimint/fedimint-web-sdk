@@ -211,12 +211,15 @@ export class LightningService {
   }
 
   // TODO: Document
-  async waitForReceive(operationId: string): Promise<LnReceiveState> {
+  async waitForReceive(
+    operationId: string,
+    timeoutMs: number = 15000,
+  ): Promise<LnReceiveState> {
     return new Promise((resolve, reject) => {
       let unsubscribe: () => void
       const timeoutId = setTimeout(() => {
         reject(new Error('Timeout waiting for receive'))
-      }, 15000)
+      }, timeoutMs)
 
       unsubscribe = this.subscribeLnReceive(
         operationId,
