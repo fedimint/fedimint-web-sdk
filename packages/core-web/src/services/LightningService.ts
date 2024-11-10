@@ -210,7 +210,6 @@ export class LightningService {
     return unsubscribe
   }
 
-  // TODO: Document
   async waitForReceive(
     operationId: string,
     timeoutMs: number = 15000,
