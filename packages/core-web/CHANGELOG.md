@@ -1,5 +1,13 @@
 # @fedimint/core-web
 
+## 0.0.10
+
+### Patch Changes
+
+- 21f94f9: Added optional timeout parameter to lightning.waitForReceive()
+  Added lightning.waitForSend()
+- 9468ef5: Rename amount fields to include units: (e.g., amountMsats)
+
 ## 0.0.9
 
 ### Patch Changes
