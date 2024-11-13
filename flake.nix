@@ -22,7 +22,16 @@
               fedimint.packages.${system}.devimint
               fedimint.packages.${system}.gateway-pkgs
               fedimint.packages.${system}.fedimint-pkgs
+              pkgs.pnpm
+              pkgs.nodejs_20
+              # The version of playwright in nixpkgs has to match the verison specified in package.json
+              pkgs.playwright-driver.browsers
             ] ++ prev.nativeBuildInputs;
+
+            shellHook = ''
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+              export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+            '';
           });
         };
       });

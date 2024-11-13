@@ -19,10 +19,10 @@ importers:
         version: 20.16.10
       '@vitest/browser':
         specifier: ^2.1.2
-        version: 2.1.2(@vitest/spy@2.1.2)(playwright@1.47.2)(typescript@5.5.2)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vitest@2.1.2)
+        version: 2.1.2(@vitest/spy@2.1.2)(playwright@1.40.0)(typescript@5.5.2)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vitest@2.1.2)
       '@vitest/coverage-v8':
         specifier: ^2.1.2
-        version: 2.1.2(@vitest/browser@2.1.2)(vitest@2.1.2)
+        version: 2.1.2(@vitest/browser@2.1.2(@vitest/spy@2.1.2)(playwright@1.40.0)(typescript@5.5.2)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vitest@2.1.2))(vitest@2.1.2(@types/node@20.16.10)(@vitest/browser@2.1.2)(@vitest/ui@2.1.2)(happy-dom@15.7.4)(msw@2.4.8(typescript@5.5.2))(terser@5.32.0))
       '@vitest/ui':
         specifier: ^2.1.2
         version: 2.1.2(vitest@2.1.2)
@@ -33,8 +33,8 @@ importers:
         specifier: ^15.7.4
         version: 15.7.4
       playwright:
-        specifier: ^1.47.2
-        version: 1.47.2
+        specifier: 1.40.0
+        version: 1.40.0
       prettier:
         specifier: ^3.3.3
         version: 3.3.3
@@ -2560,14 +2560,14 @@ packages:
   pkg-types@1.2.1:
     resolution: {integrity: sha512-sQoqa8alT3nHjGuTjuKgOnvjo4cljkufdtLMnO2LBP/wRwuDlo1tkaEdMxCRhyGRPacv/ztlZgDPm2b7FAmEvw==}
 
-  playwright-core@1.47.2:
-    resolution: {integrity: sha512-3JvMfF+9LJfe16l7AbSmU555PaTl2tPyQsVInqm3id16pdDfvZ8TTZ/pyzmkbDrZTQefyzU7AIHlZqQnxpqHVQ==}
-    engines: {node: '>=18'}
+  playwright-core@1.40.0:
+    resolution: {integrity: sha512-fvKewVJpGeca8t0ipM56jkVSU6Eo0RmFvQ/MaCQNDYm+sdvKkMBBWTE1FdeMqIdumRaXXjZChWHvIzCGM/tA/Q==}
+    engines: {node: '>=16'}
     hasBin: true
 
-  playwright@1.47.2:
-    resolution: {integrity: sha512-nx1cLMmQWqmA3UsnjaaokyoUpdVaaDhJhMoxX2qj3McpjnsqFHs516QAKYhqHAgOP+oCFTEOCOAaD1RgD/RQfA==}
-    engines: {node: '>=18'}
+  playwright@1.40.0:
+    resolution: {integrity: sha512-gyHAgQjiDf1m34Xpwzaqb76KgfzYrhK7iih+2IzcOCoZWr/8ZqmdBw+t0RU85ZmfJMgtgAiNtBQ/KS2325INXw==}
+    engines: {node: '>=16'}
     hasBin: true
 
   portfinder@1.0.32:
@@ -4487,7 +4487,7 @@ snapshots:
       vite: 5.4.8(@types/node@22.5.5)(terser@5.32.0)
       vue: 3.5.10(typescript@5.6.2)
 
-  '@vitest/browser@2.1.2(@vitest/spy@2.1.2)(playwright@1.47.2)(typescript@5.5.2)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vitest@2.1.2)':
+  '@vitest/browser@2.1.2(@vitest/spy@2.1.2)(playwright@1.40.0)(typescript@5.5.2)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vitest@2.1.2)':
     dependencies:
       '@testing-library/dom': 10.4.0
       '@testing-library/user-event': 14.5.2(@testing-library/dom@10.4.0)
@@ -4500,7 +4500,7 @@ snapshots:
       vitest: 2.1.2(@types/node@20.16.10)(@vitest/browser@2.1.2)(@vitest/ui@2.1.2)(happy-dom@15.7.4)(msw@2.4.8(typescript@5.5.2))(terser@5.32.0)
       ws: 8.18.0
     optionalDependencies:
-      playwright: 1.47.2
+      playwright: 1.40.0
     transitivePeerDependencies:
       - '@vitest/spy'
       - bufferutil
@@ -4508,7 +4508,7 @@ snapshots:
       - utf-8-validate
       - vite
 
-  '@vitest/coverage-v8@2.1.2(@vitest/browser@2.1.2)(vitest@2.1.2)':
+  '@vitest/coverage-v8@2.1.2(@vitest/browser@2.1.2(@vitest/spy@2.1.2)(playwright@1.40.0)(typescript@5.5.2)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vitest@2.1.2))(vitest@2.1.2(@types/node@20.16.10)(@vitest/browser@2.1.2)(@vitest/ui@2.1.2)(happy-dom@15.7.4)(msw@2.4.8(typescript@5.5.2))(terser@5.32.0))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 0.2.3
@@ -4524,7 +4524,7 @@ snapshots:
       tinyrainbow: 1.2.0
       vitest: 2.1.2(@types/node@20.16.10)(@vitest/browser@2.1.2)(@vitest/ui@2.1.2)(happy-dom@15.7.4)(msw@2.4.8(typescript@5.5.2))(terser@5.32.0)
     optionalDependencies:
-      '@vitest/browser': 2.1.2(@vitest/spy@2.1.2)(playwright@1.47.2)(typescript@5.5.2)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vitest@2.1.2)
+      '@vitest/browser': 2.1.2(@vitest/spy@2.1.2)(playwright@1.40.0)(typescript@5.5.2)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vitest@2.1.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -6028,11 +6028,11 @@ snapshots:
       mlly: 1.7.2
       pathe: 1.1.2
 
-  playwright-core@1.47.2: {}
+  playwright-core@1.40.0: {}
 
-  playwright@1.47.2:
+  playwright@1.40.0:
     dependencies:
-      playwright-core: 1.47.2
+      playwright-core: 1.40.0
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -6673,7 +6673,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.16.10
-      '@vitest/browser': 2.1.2(@vitest/spy@2.1.2)(playwright@1.47.2)(typescript@5.5.2)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vitest@2.1.2)
+      '@vitest/browser': 2.1.2(@vitest/spy@2.1.2)(playwright@1.40.0)(typescript@5.5.2)(vite@5.4.8(@types/node@20.16.10)(terser@5.32.0))(vitest@2.1.2)
       '@vitest/ui': 2.1.2(vitest@2.1.2)
       happy-dom: 15.7.4
     transitivePeerDependencies:
