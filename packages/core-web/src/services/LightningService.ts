@@ -1,4 +1,4 @@
-import { WorkerClient } from '../worker'
+import { RpcClient } from '../rpc'
 import type {
   CreateBolt11Response,
   GatewayInfo,
@@ -11,7 +11,7 @@ import type {
 } from '../types'
 
 export class LightningService {
-  constructor(private client: WorkerClient) {}
+  constructor(private client: RpcClient) {}
 
   async createInvoice(
     amountMsats: number,

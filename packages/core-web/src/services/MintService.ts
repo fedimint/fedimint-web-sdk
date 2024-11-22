@@ -1,4 +1,4 @@
-import { WorkerClient } from '../worker'
+import { RpcClient } from '../rpc'
 import type {
   Duration,
   JSONObject,
@@ -9,7 +9,7 @@ import type {
 } from '../types'
 
 export class MintService {
-  constructor(private client: WorkerClient) {}
+  constructor(private client: RpcClient) {}
 
   async redeemEcash(notes: string): Promise<void> {
     await this.client.rpcSingle('mint', 'reissue_external_notes', {
@@ -58,7 +58,7 @@ export class MintService {
         ? { nanos: 0, secs: tryCancelAfter }
         : tryCancelAfter
 
-    const res = await this.client.rpcSingle<Array<string>>(
+    const [operationId, notes] = await this.client.rpcSingle<[string, string]>(
       'mint',
       'spend_notes',
       {
@@ -68,8 +68,6 @@ export class MintService {
         extra_meta: extraMeta,
       },
     )
-    const notes = res[1]
-    const operationId = res[0]
 
     return {
       notes,

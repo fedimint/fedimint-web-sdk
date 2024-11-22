@@ -1,8 +1,8 @@
 import type { JSONValue } from '../types'
-import { WorkerClient } from '../worker'
+import { RpcClient } from '../rpc'
 
 export class RecoveryService {
-  constructor(private client: WorkerClient) {}
+  constructor(private client: RpcClient) {}
 
   async hasPendingRecoveries(): Promise<boolean> {
     return await this.client.rpcSingle('', 'has_pending_recoveries', {})

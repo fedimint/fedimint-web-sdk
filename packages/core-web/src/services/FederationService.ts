@@ -1,8 +1,8 @@
 import type { JSONValue } from '../types'
-import { WorkerClient } from '../worker'
+import { RpcClient } from '../rpc'
 
 export class FederationService {
-  constructor(private client: WorkerClient) {}
+  constructor(private client: RpcClient) {}
 
   async getConfig(): Promise<JSONValue> {
     return await this.client.rpcSingle('', 'get_config', {})
