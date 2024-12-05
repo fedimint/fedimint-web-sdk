@@ -4,19 +4,21 @@ import { WorkerClient } from '../worker'
 export class FederationService {
   constructor(private client: WorkerClient) {}
 
-  async getConfig(): Promise<JSONValue> {
+  async getConfig() {
     return await this.client.rpcSingle('', 'get_config', {})
   }
 
-  async getFederationId(): Promise<string> {
-    return await this.client.rpcSingle('', 'get_federation_id', {})
+  async getFederationId() {
+    return await this.client.rpcSingle<string>('', 'get_federation_id', {})
   }
 
-  async getInviteCode(peer: number): Promise<string | null> {
-    return await this.client.rpcSingle('', 'get_invite_code', { peer })
+  async getInviteCode(peer: number) {
+    return await this.client.rpcSingle<string | null>('', 'get_invite_code', {
+      peer,
+    })
   }
 
-  async listOperations(): Promise<JSONValue[]> {
-    return await this.client.rpcSingle('', 'list_operations', {})
+  async listOperations() {
+    return await this.client.rpcSingle<JSONValue[]>('', 'list_operations', {})
   }
 }

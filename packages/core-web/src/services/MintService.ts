@@ -11,21 +11,22 @@ export class MintService {
   constructor(private client: WorkerClient) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/MintService/redeemEcash */
-  async redeemEcash(notes: string): Promise<void> {
+  async redeemEcash(notes: string) {
     await this.client.rpcSingle('mint', 'reissue_external_notes', {
       oob_notes: notes, // "out of band notes"
       extra_meta: null,
     })
   }
 
-  async reissueExternalNotes(
-    oobNotes: string,
-    extraMeta: JSONObject = {},
-  ): Promise<string> {
-    return await this.client.rpcSingle('mint', 'reissue_external_notes', {
-      oob_notes: oobNotes,
-      extra_meta: extraMeta,
-    })
+  async reissueExternalNotes(oobNotes: string, extraMeta: JSONObject = {}) {
+    return await this.client.rpcSingle<string>(
+      'mint',
+      'reissue_external_notes',
+      {
+        oob_notes: oobNotes,
+        extra_meta: extraMeta,
+      },
+    )
   }
 
   subscribeReissueExternalNotes(
@@ -94,24 +95,18 @@ export class MintService {
     onSuccess: (state: JSONValue) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    const unsubscribe = this.client.rpcStream(
+    return this.client.rpcStream(
       'mint',
       'subscribe_spend_notes',
       { operation_id: operationId },
       (res) => onSuccess(res),
       onError,
     )
-
-    return unsubscribe
   }
 
   async awaitSpendOobRefund(operationId: string) {
-    return await this.client.rpcSingle<JSONValue>(
-      'mint',
-      'await_spend_oob_refund',
-      {
-        operation_id: operationId,
-      },
-    )
+    return await this.client.rpcSingle('mint', 'await_spend_oob_refund', {
+      operation_id: operationId,
+    })
   }
 }
