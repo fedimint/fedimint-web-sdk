@@ -95,20 +95,21 @@ export class LightningService {
     timeoutMs: number = 10000,
     gatewayInfo?: GatewayInfo,
     extraMeta?: JSONObject,
-  ): Promise<
-    | { success: false }
-    | {
-        success: true
-        data: { feeMsats: number; preimage: string }
-      }
-  > {
-    return new Promise(async (resolve, reject) => {
+  ) {
+    return new Promise<
+      | { success: false; error?: string }
+      | {
+          success: true
+          data: { feeMsats: number; preimage: string }
+        }
+    >(async (resolve, reject) => {
       const { contract_id, fee } = await this.payInvoice(
         invoice,
         gatewayInfo,
         extraMeta,
       )
 
+      // TODO: handle  error handling for other subscription statuses
       const unsubscribe = this.subscribeLnPay(contract_id, (res) => {
         if (typeof res !== 'string' && 'success' in res) {
           clearTimeout(timeoutId)
@@ -117,12 +118,14 @@ export class LightningService {
             success: true,
             data: { feeMsats: fee, preimage: res.success.preimage },
           })
+        } else if (typeof res !== 'string' && 'unexpected_error' in res) {
+          reject(new Error(res.unexpected_error.error_message))
         }
       })
 
       const timeoutId = setTimeout(() => {
         unsubscribe()
-        reject(new Error('Timeout waiting for pay'))
+        resolve({ success: false, error: 'Payment timeout' })
       }, timeoutMs)
     })
   }
@@ -164,17 +167,14 @@ export class LightningService {
   }
 
   /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
-  async waitForPay(operationId: string): Promise<
-    | { success: false }
-    | {
-        success: true
-        data: { preimage: string }
-      }
-  > {
-    return new Promise((resolve, reject) => {
+  async waitForPay(operationId: string) {
+    return new Promise<
+      | { success: false; error?: string }
+      | { success: true; data: { preimage: string } }
+    >((resolve, reject) => {
       let unsubscribe: () => void
       const timeoutId = setTimeout(() => {
-        reject(new Error('Timeout waiting for receive'))
+        resolve({ success: false, error: 'Waiting for receive timeout' })
       }, 15000)
 
       unsubscribe = this.subscribeLnPay(

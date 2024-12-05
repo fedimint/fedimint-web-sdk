@@ -1,3 +1,4 @@
+import { type MintService } from '../services'
 import { MSats, Duration, JSONValue } from './utils'
 
 const MODULE_KINDS = ['', 'ln', 'mint'] as const
@@ -86,10 +87,7 @@ type ReissueExternalNotesState =
   | 'Done'
   | { Failed: { error: string } }
 
-type MintSpendNotesResponse = {
-  notes: string
-  operation_id: string
-}
+type MintSpendNotesResponse = ReturnType<MintService['spendNotes']>
 
 export {
   LightningGateway,

@@ -22,4 +22,8 @@ type JSONValue =
 
 type JSONObject = Record<string, JSONValue>
 
-export { Alias, Resolve, Duration, MSats, Sats, JSONValue, JSONObject }
+type Result<T, U = string> =
+  | { success: true; data?: T }
+  | { success: false; error: U }
+
+export { Alias, Resolve, Duration, MSats, Sats, JSONValue, JSONObject, Result }
