@@ -3,7 +3,6 @@ import type {
   Duration,
   JSONObject,
   JSONValue,
-  MintSpendNotesResponse,
   MSats,
   ReissueExternalNotesState,
 } from '../types'
@@ -11,6 +10,7 @@ import type {
 export class MintService {
   constructor(private client: WorkerClient) {}
 
+  /** https://web.fedimint.org/core/FedimintWallet/MintService/redeemEcash */
   async redeemEcash(notes: string): Promise<void> {
     await this.client.rpcSingle('mint', 'reissue_external_notes', {
       oob_notes: notes, // "out of band notes"
@@ -52,7 +52,7 @@ export class MintService {
     tryCancelAfter: number | Duration = 3600 * 24, // defaults to 1 day
     includeInvite: boolean = false,
     extraMeta: JSONValue = {},
-  ): Promise<MintSpendNotesResponse> {
+  ) {
     const duration =
       typeof tryCancelAfter === 'number'
         ? { nanos: 0, secs: tryCancelAfter }
@@ -77,13 +77,13 @@ export class MintService {
     }
   }
 
-  async parseNotes(oobNotes: string): Promise<MSats> {
-    return await this.client.rpcSingle('mint', 'validate_notes', {
+  async parseNotes(oobNotes: string) {
+    return await this.client.rpcSingle<MSats>('mint', 'validate_notes', {
       oob_notes: oobNotes,
     })
   }
 
-  async tryCancelSpendNotes(operationId: string): Promise<void> {
+  async tryCancelSpendNotes(operationId: string) {
     await this.client.rpcSingle('mint', 'try_cancel_spend_notes', {
       operation_id: operationId,
     })
@@ -105,9 +105,13 @@ export class MintService {
     return unsubscribe
   }
 
-  async awaitSpendOobRefund(operationId: string): Promise<JSONValue> {
-    return await this.client.rpcSingle('mint', 'await_spend_oob_refund', {
-      operation_id: operationId,
-    })
+  async awaitSpendOobRefund(operationId: string) {
+    return await this.client.rpcSingle<JSONValue>(
+      'mint',
+      'await_spend_oob_refund',
+      {
+        operation_id: operationId,
+      },
+    )
   }
 }

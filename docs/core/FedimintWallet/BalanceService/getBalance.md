@@ -2,7 +2,7 @@
 
 ### `balance.getBalance()`
 
-Get the current balance of the wallet.
+Get the current balance of the wallet in milli-satoshis (MSats).
 
 ```ts twoslash
 // @esModuleInterop

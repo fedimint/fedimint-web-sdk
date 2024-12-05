@@ -94,7 +94,7 @@ const FedimintWalletSidebar = [
       {
         text: 'MintService',
         base: '/core/FedimintWallet/MintService/',
-        items: [{ text: 'Docs TODO' }],
+        items: [{ text: 'redeemEcash()', link: 'redeemEcash' }],
       },
       {
         text: 'FederationService',
