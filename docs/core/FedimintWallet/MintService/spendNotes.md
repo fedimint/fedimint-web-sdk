@@ -1,8 +1,8 @@
-# Redeem Ecash
+# Spend Ecash
 
-### `mint.redeemEcash(notes: string)`
+### `mint.spendNotes(amountMsats: number)`
 
-Redeem a set of ecash notes.
+Generates ecash notes for spending.
 
 ```ts twoslash
 // @esModuleInterop
@@ -12,9 +12,9 @@ import type { LnReceiveState } from '@fedimint/core-web'
 const wallet = new FedimintWallet()
 wallet.open()
 
-try {
-  await wallet.mint.redeemEcash('01...') // [!code focus]
-} catch (error) {
-  console.error('Failed to redeem ecash', error)
-}
+const amountMsats = 10_000 // [!code focus]
+const result = await wallet.mint.spendNotes(amountMsats) // [!code focus]
+
+console.log(result.notes)
+console.log(result.operation_id)
 ```

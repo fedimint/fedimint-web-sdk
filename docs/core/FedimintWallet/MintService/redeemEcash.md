@@ -7,7 +7,6 @@ Redeem a set of ecash notes.
 ```ts twoslash
 // @esModuleInterop
 import { FedimintWallet } from '@fedimint/core-web'
-import type { LnReceiveState } from '@fedimint/core-web'
 
 const wallet = new FedimintWallet()
 wallet.open()
