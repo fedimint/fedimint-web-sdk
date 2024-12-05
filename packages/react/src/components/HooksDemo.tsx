@@ -4,6 +4,8 @@ import {
   useReceiveLightning,
   useOpenWallet,
   useSendLightning,
+  useSpendEcash,
+  useReceiveEcash,
 } from '../../lib'
 
 const TEST_FEDERATION_INVITE =
@@ -11,6 +13,8 @@ const TEST_FEDERATION_INVITE =
 
 function HooksDemo() {
   const [bolt11Input, setBolt11Input] = useState<string>()
+  const [ecashAmount, setEcashAmount] = useState<number>()
+  const [ecashInput, setEcashInput] = useState<string>()
 
   // Balance
   const balance = useBalance()
@@ -26,6 +30,12 @@ function HooksDemo() {
   // Send Lightning
   const { payInvoice, payment, paymentStatus, paymentError } =
     useSendLightning()
+
+  // SendEcash
+  const { spendEcash, notes, state: ecashState } = useSpendEcash()
+
+  // ReceiveEcash
+  const { redeemEcash } = useReceiveEcash()
 
   return (
     <>
@@ -129,6 +139,82 @@ function HooksDemo() {
             <b>paymentError</b>
             <p>{paymentError}</p>
           </div>
+        </div>
+        <div className="section">
+          <b>useSpendEcash()</b>
+          <div className="row">
+            <b>amount sats</b>
+            <input
+              type="number"
+              value={ecashAmount}
+              onChange={(e) => setEcashAmount(parseInt(e.target.value))}
+            />
+          </div>
+          <div className="row">
+            <b>spendEcash(amount)</b>
+            <button
+              disabled={!isOpen || ecashAmount === 0}
+              onClick={() => ecashAmount && spendEcash(ecashAmount)}
+            >
+              Spend Ecash
+            </button>
+          </div>
+          <div className="row">
+            <b>ecashStatus</b>
+            <p>
+              {typeof ecashState === 'string'
+                ? ecashState
+                : typeof ecashState === 'object'
+                  ? Object.keys(ecashState)[0]
+                  : 'no ecash status'}
+            </p>
+          </div>
+          <div className="row">
+            <b>ecashNote</b>
+            <p>{notes}</p>
+          </div>
+          {/* <div className="row">
+            <b>error</b>
+            <p>{paymentError}</p>
+          </div> */}
+        </div>
+        <div className="section">
+          <b>useReceiveEcash()</b>
+          <div className="row">
+            <b>Ecash string</b>
+            <input
+              type="string"
+              value={ecashInput}
+              onChange={(e) => setEcashInput(e.target.value)}
+            />
+          </div>
+          <div className="row">
+            <b>redeemEcash(notes)</b>
+            <button
+              disabled={!isOpen || !ecashInput}
+              onClick={() => ecashInput && redeemEcash(ecashInput)}
+            >
+              Redeem Ecash
+            </button>
+          </div>
+          <div className="row">
+            <b>ecashStatus</b>
+            <p>
+              {typeof ecashState === 'string'
+                ? ecashState
+                : typeof ecashState === 'object'
+                  ? Object.keys(ecashState)[0]
+                  : 'no ecash status'}
+            </p>
+          </div>
+          <div className="row">
+            <b>ecashNote</b>
+            <p>{notes}</p>
+          </div>
+          {/* <div className="row">
+            <b>error</b>
+            <p>{paymentError}</p>
+          </div> */}
         </div>
       </div>
     </>
