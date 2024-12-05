@@ -50,10 +50,6 @@ const FedimintWalletSidebar = [
         text: 'joinFederation()',
         link: 'joinFederation',
       },
-      // {
-      //   text: 'initialize()',
-      //   link: 'initialize',
-      // },
       {
         text: 'isOpen()',
         link: 'isOpen',
