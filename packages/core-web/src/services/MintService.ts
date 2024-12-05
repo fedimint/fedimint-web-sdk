@@ -45,6 +45,7 @@ export class MintService {
     return unsubscribe
   }
 
+  /** https://web.fedimint.org/core/FedimintWallet/MintService/spendNotes */
   async spendNotes(
     amountMsats: number,
     // Tells the wallet to automatically try to cancel the spend if it hasn't completed
@@ -78,6 +79,7 @@ export class MintService {
     }
   }
 
+  /** https://web.fedimint.org/core/FedimintWallet/MintService/parseEcash */
   async parseNotes(oobNotes: string) {
     return await this.client.rpcSingle<MSats>('mint', 'validate_notes', {
       oob_notes: oobNotes,

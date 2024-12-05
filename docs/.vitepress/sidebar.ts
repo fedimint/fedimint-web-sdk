@@ -97,6 +97,7 @@ const FedimintWalletSidebar = [
         items: [
           { text: 'redeemEcash()', link: 'redeemEcash' },
           { text: 'spendNotes()', link: 'spendNotes' },
+          { text: 'parseNotes()', link: 'parseNotes' },
         ],
       },
       {
