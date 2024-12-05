@@ -12,7 +12,7 @@ export class FederationService {
     return await this.client.rpcSingle<string>('', 'get_federation_id', {})
   }
 
-  async getInviteCode(peer: number) {
+  async getInviteCode(peer: number = 0) {
     return await this.client.rpcSingle<string | null>('', 'get_invite_code', {
       peer,
     })

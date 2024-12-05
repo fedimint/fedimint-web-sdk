@@ -103,7 +103,11 @@ const FedimintWalletSidebar = [
       {
         text: 'FederationService',
         base: '/core/FedimintWallet/FederationService/',
-        items: [{ text: 'Docs TODO' }],
+        items: [
+          { text: 'getConfig()', link: 'getConfig' },
+          { text: 'getFederationId()', link: 'getFederationId' },
+          { text: 'getInviteCode()', link: 'getInviteCode' },
+        ],
       },
       {
         text: 'RecoveryService',
