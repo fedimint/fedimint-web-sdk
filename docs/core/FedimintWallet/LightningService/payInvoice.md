@@ -2,7 +2,7 @@
 
 ### `lightning.payInvoiceSync(invoice: string)`
 
-Helper function to pay an invoice and resolve when the payment is confirmed or fails.
+Attempts to pay an invoice. Returns a `Promise` that resolves when the payment succeeds or fails / times out.
 
 ```ts twoslash
 // @esModuleInterop
@@ -23,9 +23,9 @@ if (result.success) {
 
 ### `lightning.payInvoice(invoice: string)`
 
-Attempt to pay a lightning invoice. Returns an `OutgoingLightningPayment` object containing details about the in-flight payment.
+Attempts to pay a lightning invoice. Returns an `OutgoingLightningPayment` object containing details about the in-flight payment.
 
-You can use `subscribeLnPay` to track the payment status and `waitForPay` to wait for the payment to be confirmed or fail.
+You can use `subscribeLnPay` to track the payment status. `waitForPay` returns a `Promise` that resolves when the payment succeeds or fails / times out.
 
 ```ts twoslash
 // @esModuleInterop

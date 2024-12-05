@@ -4,7 +4,9 @@
 
 Create a Lightning Invoice for a given amount. Returns a `CreateBolt11Response` object containing details about the created invoice.
 
-You can use `subscribeLnReceive` to track the payment status and `waitForReceive` to wait for the payment to be received.
+You can use `subscribeLnReceive` to track the invoice status.
+
+`waitForReceive` returns a `Promise` that resolves when the invoice succeeds or `timeoutMs` is reached.
 
 ```ts twoslash
 // @esModuleInterop

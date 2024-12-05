@@ -13,6 +13,7 @@ import type {
 export class LightningService {
   constructor(private client: WorkerClient) {}
 
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
   async createInvoice(
     amountMsats: number,
     description: string,
@@ -74,6 +75,7 @@ export class LightningService {
     return gateways[0]?.info
   }
 
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
   async payInvoice(
     invoice: string,
     gatewayInfo?: GatewayInfo,
@@ -87,6 +89,7 @@ export class LightningService {
     })
   }
 
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoicesync-invoice-string */
   async payInvoiceSync(
     invoice: string,
     timeoutMs: number = 10000,
@@ -143,6 +146,7 @@ export class LightningService {
 
   // TODO: Document (for external payments only)
   // TODO: Make this work for BOTH internal and external payments
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
   subscribeLnPay(
     operationId: string,
     onSuccess: (state: LnPayState) => void = () => {},
@@ -159,6 +163,7 @@ export class LightningService {
     return unsubscribe
   }
 
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
   async waitForPay(operationId: string): Promise<
     | { success: false }
     | {
@@ -193,7 +198,7 @@ export class LightningService {
     })
   }
 
-  // TODO: Document
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
   subscribeLnReceive(
     operationId: string,
     onSuccess: (state: LnReceiveState) => void = () => {},
@@ -210,6 +215,7 @@ export class LightningService {
     return unsubscribe
   }
 
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
   async waitForReceive(
     operationId: string,
     timeoutMs: number = 15000,
