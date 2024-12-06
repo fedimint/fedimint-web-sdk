@@ -8,43 +8,22 @@ import { WorkerClient } from '../worker'
 export class BalanceService {
   constructor(private client: WorkerClient) {}
 
-  /**
-   * Get the balance of the current wallet in milli-satoshis (MSats)
-   *
-   * @example
-   * ```ts
-   * const balance = await wallet.balance.getBalance()
-   * ```
-   */
-  async getBalance(): Promise<number> {
-    return await this.client.rpcSingle('', 'get_balance', {})
+  /** https://web.fedimint.org/core/FedimintWallet/BalanceService/getBalance */
+  async getBalance() {
+    return await this.client.rpcSingle<number>('', 'get_balance', {})
   }
 
-  /**
-   * Subscribe to the balance of the current wallet in milli-satoshis (MSats)
-   *
-   * @example
-   * ```ts
-   * const unsubscribe = wallet.balance.subscribeBalance((balance) => {
-   *  console.log(balance)
-   * })
-   *
-   * // ...Cleanup Later
-   * unsubscribe()
-   * ```
-   */
+  /** https://web.fedimint.org/core/FedimintWallet/BalanceService/subscribeBalance */
   subscribeBalance(
     onSuccess: (balanceMsats: number) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    const unsubscribe = this.client.rpcStream<string>(
+    return this.client.rpcStream<string>(
       '',
       'subscribe_balance_changes',
       {},
       (res) => onSuccess(parseInt(res)),
       onError,
     )
-
-    return unsubscribe
   }
 }

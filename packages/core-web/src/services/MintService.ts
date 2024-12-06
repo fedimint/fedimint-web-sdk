@@ -3,7 +3,6 @@ import type {
   Duration,
   JSONObject,
   JSONValue,
-  MintSpendNotesResponse,
   MSats,
   ReissueExternalNotesState,
 } from '../types'
@@ -11,21 +10,23 @@ import type {
 export class MintService {
   constructor(private client: WorkerClient) {}
 
-  async redeemEcash(notes: string): Promise<void> {
+  /** https://web.fedimint.org/core/FedimintWallet/MintService/redeemEcash */
+  async redeemEcash(notes: string) {
     await this.client.rpcSingle('mint', 'reissue_external_notes', {
       oob_notes: notes, // "out of band notes"
       extra_meta: null,
     })
   }
 
-  async reissueExternalNotes(
-    oobNotes: string,
-    extraMeta: JSONObject = {},
-  ): Promise<string> {
-    return await this.client.rpcSingle('mint', 'reissue_external_notes', {
-      oob_notes: oobNotes,
-      extra_meta: extraMeta,
-    })
+  async reissueExternalNotes(oobNotes: string, extraMeta: JSONObject = {}) {
+    return await this.client.rpcSingle<string>(
+      'mint',
+      'reissue_external_notes',
+      {
+        oob_notes: oobNotes,
+        extra_meta: extraMeta,
+      },
+    )
   }
 
   subscribeReissueExternalNotes(
@@ -44,6 +45,7 @@ export class MintService {
     return unsubscribe
   }
 
+  /** https://web.fedimint.org/core/FedimintWallet/MintService/spendNotes */
   async spendNotes(
     amountMsats: number,
     // Tells the wallet to automatically try to cancel the spend if it hasn't completed
@@ -52,7 +54,7 @@ export class MintService {
     tryCancelAfter: number | Duration = 3600 * 24, // defaults to 1 day
     includeInvite: boolean = false,
     extraMeta: JSONValue = {},
-  ): Promise<MintSpendNotesResponse> {
+  ) {
     const duration =
       typeof tryCancelAfter === 'number'
         ? { nanos: 0, secs: tryCancelAfter }
@@ -77,13 +79,14 @@ export class MintService {
     }
   }
 
-  async parseNotes(oobNotes: string): Promise<MSats> {
-    return await this.client.rpcSingle('mint', 'validate_notes', {
+  /** https://web.fedimint.org/core/FedimintWallet/MintService/parseEcash */
+  async parseNotes(oobNotes: string) {
+    return await this.client.rpcSingle<MSats>('mint', 'validate_notes', {
       oob_notes: oobNotes,
     })
   }
 
-  async tryCancelSpendNotes(operationId: string): Promise<void> {
+  async tryCancelSpendNotes(operationId: string) {
     await this.client.rpcSingle('mint', 'try_cancel_spend_notes', {
       operation_id: operationId,
     })
@@ -94,18 +97,16 @@ export class MintService {
     onSuccess: (state: JSONValue) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    const unsubscribe = this.client.rpcStream(
+    return this.client.rpcStream(
       'mint',
       'subscribe_spend_notes',
       { operation_id: operationId },
       (res) => onSuccess(res),
       onError,
     )
-
-    return unsubscribe
   }
 
-  async awaitSpendOobRefund(operationId: string): Promise<JSONValue> {
+  async awaitSpendOobRefund(operationId: string) {
     return await this.client.rpcSingle('mint', 'await_spend_oob_refund', {
       operation_id: operationId,
     })

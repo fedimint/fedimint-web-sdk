@@ -3,7 +3,6 @@ import type {
   CreateBolt11Response,
   GatewayInfo,
   JSONObject,
-  JSONValue,
   LightningGateway,
   LnPayState,
   LnReceiveState,
@@ -13,21 +12,26 @@ import type {
 export class LightningService {
   constructor(private client: WorkerClient) {}
 
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
   async createInvoice(
     amountMsats: number,
     description: string,
     expiryTime?: number, // in seconds
     gatewayInfo?: GatewayInfo,
     extraMeta?: JSONObject,
-  ): Promise<CreateBolt11Response> {
+  ) {
     const gateway = gatewayInfo ?? (await this._getDefaultGatewayInfo())
-    return await this.client.rpcSingle('ln', 'create_bolt11_invoice', {
-      amount: amountMsats,
-      description,
-      expiry_time: expiryTime ?? null,
-      extra_meta: extraMeta ?? {},
-      gateway,
-    })
+    return await this.client.rpcSingle<CreateBolt11Response>(
+      'ln',
+      'create_bolt11_invoice',
+      {
+        amount: amountMsats,
+        description,
+        expiry_time: expiryTime ?? null,
+        extra_meta: extraMeta ?? {},
+        gateway,
+      },
+    )
   }
 
   async createInvoiceTweaked(
@@ -38,9 +42,9 @@ export class LightningService {
     expiryTime?: number, // in seconds
     gatewayInfo?: GatewayInfo,
     extraMeta?: JSONObject,
-  ): Promise<CreateBolt11Response> {
+  ) {
     const gateway = gatewayInfo ?? (await this._getDefaultGatewayInfo())
-    return await this.client.rpcSingle(
+    return await this.client.rpcSingle<CreateBolt11Response>(
       'ln',
       'create_bolt11_invoice_for_user_tweaked',
       {
@@ -60,52 +64,63 @@ export class LightningService {
     tweakKey: string,
     indices: number[],
     extraMeta?: JSONObject,
-  ): Promise<string[]> {
-    return await this.client.rpcSingle('ln', 'scan_receive_for_user_tweaked', {
-      user_key: tweakKey,
-      indices,
-      extra_meta: extraMeta ?? {},
-    })
+  ) {
+    return await this.client.rpcSingle<string[]>(
+      'ln',
+      'scan_receive_for_user_tweaked',
+      {
+        user_key: tweakKey,
+        indices,
+        extra_meta: extraMeta ?? {},
+      },
+    )
   }
 
-  private async _getDefaultGatewayInfo(): Promise<GatewayInfo> {
+  private async _getDefaultGatewayInfo() {
     await this.updateGatewayCache()
     const gateways = await this.listGateways()
     return gateways[0]?.info
   }
 
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
   async payInvoice(
     invoice: string,
     gatewayInfo?: GatewayInfo,
     extraMeta?: JSONObject,
-  ): Promise<OutgoingLightningPayment> {
+  ) {
     const gateway = gatewayInfo ?? (await this._getDefaultGatewayInfo())
-    return await this.client.rpcSingle('ln', 'pay_bolt11_invoice', {
-      maybe_gateway: gateway,
-      invoice,
-      extra_meta: extraMeta ?? {},
-    })
+    return await this.client.rpcSingle<OutgoingLightningPayment>(
+      'ln',
+      'pay_bolt11_invoice',
+      {
+        maybe_gateway: gateway,
+        invoice,
+        extra_meta: extraMeta ?? {},
+      },
+    )
   }
 
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoicesync-invoice-string */
   async payInvoiceSync(
     invoice: string,
     timeoutMs: number = 10000,
     gatewayInfo?: GatewayInfo,
     extraMeta?: JSONObject,
-  ): Promise<
-    | { success: false }
-    | {
-        success: true
-        data: { feeMsats: number; preimage: string }
-      }
-  > {
-    return new Promise(async (resolve, reject) => {
+  ) {
+    return new Promise<
+      | { success: false; error?: string }
+      | {
+          success: true
+          data: { feeMsats: number; preimage: string }
+        }
+    >(async (resolve, reject) => {
       const { contract_id, fee } = await this.payInvoice(
         invoice,
         gatewayInfo,
         extraMeta,
       )
 
+      // TODO: handle  error handling for other subscription statuses
       const unsubscribe = this.subscribeLnPay(contract_id, (res) => {
         if (typeof res !== 'string' && 'success' in res) {
           clearTimeout(timeoutId)
@@ -114,12 +129,14 @@ export class LightningService {
             success: true,
             data: { feeMsats: fee, preimage: res.success.preimage },
           })
+        } else if (typeof res !== 'string' && 'unexpected_error' in res) {
+          reject(new Error(res.unexpected_error.error_message))
         }
       })
 
       const timeoutId = setTimeout(() => {
         unsubscribe()
-        reject(new Error('Timeout waiting for pay'))
+        resolve({ success: false, error: 'Payment timeout' })
       }, timeoutMs)
     })
   }
@@ -130,46 +147,41 @@ export class LightningService {
     onSuccess: (state: LnReceiveState) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    const unsubscribe = this.client.rpcStream(
+    return this.client.rpcStream(
       'ln',
       'subscribe_ln_claim',
       { operation_id: operationId },
       onSuccess,
       onError,
     )
-
-    return unsubscribe
   }
 
   // TODO: Document (for external payments only)
   // TODO: Make this work for BOTH internal and external payments
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
   subscribeLnPay(
     operationId: string,
     onSuccess: (state: LnPayState) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    const unsubscribe = this.client.rpcStream(
+    return this.client.rpcStream(
       'ln',
       'subscribe_ln_pay',
       { operation_id: operationId },
       onSuccess,
       onError,
     )
-
-    return unsubscribe
   }
 
-  async waitForPay(operationId: string): Promise<
-    | { success: false }
-    | {
-        success: true
-        data: { preimage: string }
-      }
-  > {
-    return new Promise((resolve, reject) => {
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
+  async waitForPay(operationId: string) {
+    return new Promise<
+      | { success: false; error?: string }
+      | { success: true; data: { preimage: string } }
+    >((resolve, reject) => {
       let unsubscribe: () => void
       const timeoutId = setTimeout(() => {
-        reject(new Error('Timeout waiting for receive'))
+        resolve({ success: false, error: 'Waiting for receive timeout' })
       }, 15000)
 
       unsubscribe = this.subscribeLnPay(
@@ -193,28 +205,24 @@ export class LightningService {
     })
   }
 
-  // TODO: Document
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
   subscribeLnReceive(
     operationId: string,
     onSuccess: (state: LnReceiveState) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    const unsubscribe = this.client.rpcStream(
+    return this.client.rpcStream(
       'ln',
       'subscribe_ln_receive',
       { operation_id: operationId },
       onSuccess,
       onError,
     )
-
-    return unsubscribe
   }
 
-  async waitForReceive(
-    operationId: string,
-    timeoutMs: number = 15000,
-  ): Promise<LnReceiveState> {
-    return new Promise((resolve, reject) => {
+  /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
+  async waitForReceive(operationId: string, timeoutMs: number = 15000) {
+    return new Promise<LnReceiveState>((resolve, reject) => {
       let unsubscribe: () => void
       const timeoutId = setTimeout(() => {
         reject(new Error('Timeout waiting for receive'))
@@ -241,18 +249,26 @@ export class LightningService {
   async getGateway(
     gatewayId: string | null = null,
     forceInternal: boolean = false,
-  ): Promise<LightningGateway | null> {
-    return await this.client.rpcSingle('ln', 'get_gateway', {
-      gateway_id: gatewayId,
-      force_internal: forceInternal,
-    })
+  ) {
+    return await this.client.rpcSingle<LightningGateway | null>(
+      'ln',
+      'get_gateway',
+      {
+        gateway_id: gatewayId,
+        force_internal: forceInternal,
+      },
+    )
   }
 
-  async listGateways(): Promise<LightningGateway[]> {
-    return await this.client.rpcSingle('ln', 'list_gateways', {})
+  async listGateways() {
+    return await this.client.rpcSingle<LightningGateway[]>(
+      'ln',
+      'list_gateways',
+      {},
+    )
   }
 
-  async updateGatewayCache(): Promise<JSONValue> {
+  async updateGatewayCache() {
     return await this.client.rpcSingle('ln', 'update_gateway_cache', {})
   }
 }

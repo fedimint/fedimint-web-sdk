@@ -50,10 +50,6 @@ const FedimintWalletSidebar = [
         text: 'joinFederation()',
         link: 'joinFederation',
       },
-      // {
-      //   text: 'initialize()',
-      //   link: 'initialize',
-      // },
       {
         text: 'isOpen()',
         link: 'isOpen',
@@ -94,12 +90,20 @@ const FedimintWalletSidebar = [
       {
         text: 'MintService',
         base: '/core/FedimintWallet/MintService/',
-        items: [{ text: 'Docs TODO' }],
+        items: [
+          { text: 'redeemEcash()', link: 'redeemEcash' },
+          { text: 'spendNotes()', link: 'spendNotes' },
+          { text: 'parseNotes()', link: 'parseNotes' },
+        ],
       },
       {
         text: 'FederationService',
         base: '/core/FedimintWallet/FederationService/',
-        items: [{ text: 'Docs TODO' }],
+        items: [
+          { text: 'getConfig()', link: 'getConfig' },
+          { text: 'getFederationId()', link: 'getFederationId' },
+          { text: 'getInviteCode()', link: 'getInviteCode' },
+        ],
       },
       {
         text: 'RecoveryService',

@@ -69,8 +69,8 @@ export class WorkerClient {
   sendSingleMessage<
     Response extends JSONValue = JSONValue,
     Payload extends JSONValue = JSONValue,
-  >(type: WorkerMessageType, payload?: Payload): Promise<Response> {
-    return new Promise((resolve, reject) => {
+  >(type: WorkerMessageType, payload?: Payload) {
+    return new Promise<Response>((resolve, reject) => {
       const requestId = ++this.requestCounter
       logger.debug('WorkerClient - sendSingleMessage', requestId, type, payload)
       this.requestCallbacks.set(
@@ -179,7 +179,7 @@ export class WorkerClient {
     onEnd: () => void = () => {},
     unsubscribePromise: Promise<void>,
     // Unsubscribe function
-  ): Promise<void> {
+  ) {
     // await this.openPromise
     // if (!this.worker || !this._isOpen)
     //   throw new Error('FedimintWallet is not open')
@@ -213,9 +213,9 @@ export class WorkerClient {
     module: ModuleKind,
     method: string,
     body: JSONValue,
-  ): Promise<Response> {
+  ) {
     logger.debug('WorkerClient - rpcSingle', module, method, body)
-    return new Promise((resolve, reject) => {
+    return new Promise<Response>((resolve, reject) => {
       this.rpcStream<Response>(module, method, body, resolve, reject)
     })
   }
