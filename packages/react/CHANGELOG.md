@@ -1,5 +1,14 @@
 # @fedimint/react
 
+## 0.0.4
+
+### Patch Changes
+
+- 57036b0: Fixed behavior of useOpenWallet hook for concurrent usages.
+- e98a1b8: Added useSpendEcash and useReceiveEcash hooks
+- Updated dependencies [c5236d8]
+  - @fedimint/core-web@0.0.11
+
 ## 0.0.3
 
 ### Patch Changes
