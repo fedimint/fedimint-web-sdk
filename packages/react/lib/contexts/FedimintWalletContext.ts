@@ -1,5 +1,11 @@
 import { FedimintWallet } from '@fedimint/core-web'
-import { createContext, createElement } from 'react'
+import {
+  createContext,
+  createElement,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 
 let wallet: FedimintWallet
 
@@ -7,6 +13,8 @@ type FedimintWalletConfig = {
   lazy?: boolean
   debug?: boolean
 }
+
+export type WalletStatus = 'open' | 'closed' | 'opening'
 
 export const setupFedimintWallet = (config: FedimintWalletConfig) => {
   wallet = new FedimintWallet(!!config.lazy)
@@ -16,7 +24,12 @@ export const setupFedimintWallet = (config: FedimintWalletConfig) => {
 }
 
 export const FedimintWalletContext = createContext<
-  { wallet: FedimintWallet } | undefined
+  | {
+      wallet: FedimintWallet
+      walletStatus: WalletStatus
+      setWalletStatus: (status: WalletStatus) => void
+    }
+  | undefined
 >(undefined)
 
 export type FedimintWalletProviderProps = {}
@@ -24,6 +37,7 @@ export type FedimintWalletProviderProps = {}
 export const FedimintWalletProvider = (
   parameters: React.PropsWithChildren<FedimintWalletProviderProps>,
 ) => {
+  const [walletStatus, setWalletStatus] = useState<WalletStatus>('closed')
   const { children } = parameters
 
   if (!wallet)
@@ -31,7 +45,24 @@ export const FedimintWalletProvider = (
       'You must call setupFedimintWallet() first. See the getting started guide.',
     )
 
-  const props = { value: { wallet } }
+  const contextValue = useMemo(
+    () => ({
+      wallet,
+      walletStatus,
+      setWalletStatus,
+    }),
+    [walletStatus],
+  )
 
-  return createElement(FedimintWalletContext.Provider, props, children)
+  useEffect(() => {
+    wallet.waitForOpen().then(() => {
+      setWalletStatus('open')
+    })
+  }, [wallet])
+
+  return createElement(
+    FedimintWalletContext.Provider,
+    { value: contextValue },
+    children,
+  )
 }

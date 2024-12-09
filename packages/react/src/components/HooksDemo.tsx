@@ -12,9 +12,9 @@ const TEST_FEDERATION_INVITE =
   'fed11qgqzc2nhwden5te0vejkg6tdd9h8gepwvejkg6tdd9h8garhduhx6at5d9h8jmn9wshxxmmd9uqqzgxg6s3evnr6m9zdxr6hxkdkukexpcs3mn7mj3g5pc5dfh63l4tj6g9zk4er'
 
 function HooksDemo() {
-  const [bolt11Input, setBolt11Input] = useState<string>()
-  const [ecashAmount, setEcashAmount] = useState<number>()
-  const [ecashInput, setEcashInput] = useState<string>()
+  const [bolt11Input, setBolt11Input] = useState<string>('')
+  const [ecashAmount, setEcashAmount] = useState<string>('')
+  const [ecashInput, setEcashInput] = useState<string>('')
 
   // Balance
   const balance = useBalance()
@@ -32,10 +32,19 @@ function HooksDemo() {
     useSendLightning()
 
   // SendEcash
-  const { spendEcash, notes, state: ecashState } = useSpendEcash()
+  const {
+    spendEcash,
+    notes,
+    state: spendEcashState,
+    error: spendEcashError,
+  } = useSpendEcash()
 
   // ReceiveEcash
-  const { redeemEcash } = useReceiveEcash()
+  const {
+    redeemEcash,
+    state: receiveEcashState,
+    error: receiveEcashError,
+  } = useReceiveEcash()
 
   return (
     <>
@@ -147,14 +156,14 @@ function HooksDemo() {
             <input
               type="number"
               value={ecashAmount}
-              onChange={(e) => setEcashAmount(parseInt(e.target.value))}
+              onChange={(e) => setEcashAmount(e.target.value)}
             />
           </div>
           <div className="row">
             <b>spendEcash(amount)</b>
             <button
-              disabled={!isOpen || ecashAmount === 0}
-              onClick={() => ecashAmount && spendEcash(ecashAmount)}
+              disabled={!isOpen || !ecashAmount}
+              onClick={() => ecashAmount && spendEcash(parseInt(ecashAmount))}
             >
               Spend Ecash
             </button>
@@ -162,21 +171,23 @@ function HooksDemo() {
           <div className="row">
             <b>ecashStatus</b>
             <p>
-              {typeof ecashState === 'string'
-                ? ecashState
-                : typeof ecashState === 'object'
-                  ? Object.keys(ecashState)[0]
+              {typeof spendEcashState === 'string'
+                ? spendEcashState
+                : typeof spendEcashState === 'object'
+                  ? Object.keys(spendEcashState)[0]
                   : 'no ecash status'}
             </p>
           </div>
           <div className="row">
             <b>ecashNote</b>
-            <p>{notes}</p>
+            <p title={notes} className="truncate">
+              {notes}
+            </p>
           </div>
-          {/* <div className="row">
+          <div className="row">
             <b>error</b>
-            <p>{paymentError}</p>
-          </div> */}
+            <p>{spendEcashError}</p>
+          </div>
         </div>
         <div className="section">
           <b>useReceiveEcash()</b>
@@ -198,23 +209,19 @@ function HooksDemo() {
             </button>
           </div>
           <div className="row">
-            <b>ecashStatus</b>
+            <b>ecashRedeemStatus</b>
             <p>
-              {typeof ecashState === 'string'
-                ? ecashState
-                : typeof ecashState === 'object'
-                  ? Object.keys(ecashState)[0]
+              {typeof receiveEcashState === 'string'
+                ? receiveEcashState
+                : typeof receiveEcashState === 'object'
+                  ? Object.keys(receiveEcashState)[0]
                   : 'no ecash status'}
             </p>
           </div>
           <div className="row">
-            <b>ecashNote</b>
-            <p>{notes}</p>
-          </div>
-          {/* <div className="row">
             <b>error</b>
-            <p>{paymentError}</p>
-          </div> */}
+            <p>{receiveEcashError}</p>
+          </div>
         </div>
       </div>
     </>

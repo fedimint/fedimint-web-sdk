@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useFedimintWallet, useOpenWallet } from '.'
+import { type SpendNotesState } from '@fedimint/core-web'
 
 export const useSpendEcash = () => {
   const wallet = useFedimintWallet()
@@ -7,16 +8,21 @@ export const useSpendEcash = () => {
 
   const [operationId, setOperationId] = useState<string>()
   const [notes, setNotes] = useState<string>()
-  const [state, setState] = useState<any>()
+
+  const [state, setState] = useState<SpendNotesState | 'Error'>()
+  const [error, setError] = useState<string>()
 
   useEffect(() => {
     if (!operationId) return
 
     const unsubscribe = wallet.mint.subscribeSpendNotes(
       operationId,
-      (_state) => (_state ? setState(_state) : setState(undefined)),
+      (_state) => {
+        setState(_state)
+      },
       (error) => {
-        console.error('ECASH SPEND STATE ERROR', error)
+        setState('Error')
+        setError(error)
       },
     )
 
@@ -36,12 +42,13 @@ export const useSpendEcash = () => {
       setNotes(response.notes)
       return response.notes
     },
-    [wallet],
+    [wallet, walletStatus],
   )
 
   return {
     spendEcash,
     notes,
     state,
+    error,
   }
 }

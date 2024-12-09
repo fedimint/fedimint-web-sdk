@@ -209,11 +209,10 @@ export class WorkerClient {
     })
   }
 
-  rpcSingle<Response extends JSONValue = JSONValue>(
-    module: ModuleKind,
-    method: string,
-    body: JSONValue,
-  ) {
+  rpcSingle<
+    Response extends JSONValue = JSONValue,
+    Error extends string = string,
+  >(module: ModuleKind, method: string, body: JSONValue) {
     logger.debug('WorkerClient - rpcSingle', module, method, body)
     return new Promise<Response>((resolve, reject) => {
       this.rpcStream<Response>(module, method, body, resolve, reject)
