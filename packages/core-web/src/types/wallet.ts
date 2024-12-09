@@ -1,4 +1,3 @@
-import { type MintService } from '../services'
 import { MSats, Duration, JSONValue } from './utils'
 
 const MODULE_KINDS = ['', 'ln', 'mint'] as const
@@ -81,13 +80,18 @@ type StreamResult<T extends JSONValue> =
 
 type CancelFunction = () => void
 
-type ReissueExternalNotesState =
-  | 'Created'
-  | 'Issuing'
-  | 'Done'
-  | { Failed: { error: string } }
+type ReissueExternalNotesState = 'Created' | 'Issuing' | 'Done'
+// | { Failed: { error: string } }
 
-type MintSpendNotesResponse = ReturnType<MintService['spendNotes']>
+type MintSpendNotesResponse = Array<string>
+
+type SpendNotesState =
+  | 'Created'
+  | 'UserCanceledProcessing'
+  | 'UserCanceledSuccess'
+  | 'UserCanceledFailure'
+  | 'Success'
+  | 'Refunded'
 
 export {
   LightningGateway,
@@ -106,4 +110,5 @@ export {
   CancelFunction,
   ReissueExternalNotesState,
   MintSpendNotesResponse,
+  SpendNotesState,
 }

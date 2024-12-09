@@ -1,11 +1,16 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useFedimintWallet } from '.'
-
-type WalletStatus = 'open' | 'closed' | 'opening'
+import { useCallback, useContext } from 'react'
+import { FedimintWalletContext } from '../contexts/FedimintWalletContext'
 
 export const useOpenWallet = () => {
-  const wallet = useFedimintWallet()
-  const [walletStatus, setWalletStatus] = useState<WalletStatus>()
+  const value = useContext(FedimintWalletContext)
+
+  if (!value) {
+    throw new Error(
+      'useOpenWallet must be used within a FedimintWalletProvider',
+    )
+  }
+
+  const { wallet, walletStatus, setWalletStatus } = value
 
   const openWallet = useCallback(() => {
     if (walletStatus === 'open') return
@@ -22,21 +27,12 @@ export const useOpenWallet = () => {
 
       setWalletStatus('opening')
 
-      const res = await wallet.joinFederation(invite)
-      setWalletStatus(res ? 'open' : 'closed')
+      await wallet.joinFederation(invite).then((res) => {
+        setWalletStatus(res ? 'open' : 'closed')
+      })
     },
     [wallet],
   )
-
-  useEffect(() => {
-    wallet.waitForOpen().then(() => {
-      setWalletStatus('open')
-    })
-
-    return () => {
-      setWalletStatus('closed')
-    }
-  }, [wallet])
 
   return { walletStatus, openWallet, joinFederation }
 }
