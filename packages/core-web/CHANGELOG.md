@@ -1,5 +1,11 @@
 # @fedimint/core-web
 
+## 0.0.11
+
+### Patch Changes
+
+- c5236d8: Fixed CI with self-hosted runners @elserion
+
 ## 0.0.10
 
 ### Patch Changes
