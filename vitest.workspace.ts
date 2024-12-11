@@ -6,6 +6,9 @@ export default defineWorkspace([
     plugins: [wasm()],
     test: {
       environment: 'happy-dom',
+      name: 'core',
+      include: ['packages/core-web/**/*.test.ts'],
+      exclude: ['packages/create-fedimint-app/**/*.test.ts'],
       browser: {
         enabled: true,
         headless: true,
@@ -19,5 +22,20 @@ export default defineWorkspace([
         screenshotFailures: false,
       },
     },
+  },
+  {
+    test: {
+      name: 'cli',
+      include: ['packages/create-fedimint-app/**/*.test.ts'],
+      isolate: false,
+      testTimeout: 20000,
+    },
+    optimizeDeps: {
+      exclude: ['execa'],
+    },
+    esbuild: {
+      target: 'node18',
+    },
+    publicDir: false,
   },
 ])
