@@ -11,7 +11,7 @@ const {
   blueBright,
   cyan,
   green,
-  greenBright,
+  // greenBright,
   magenta,
   red,
   redBright,
