@@ -1,89 +1,62 @@
-# create-vite <a href="https://npmjs.com/package/create-vite"><img src="https://img.shields.io/npm/v/create-vite" alt="npm package"></a>
+# create-fedimint-app
 
-## Scaffolding Your First Vite Project
+## Scaffolding Your First Fedimint App
 
 > **Compatibility Note:**
-> Vite requires [Node.js](https://nodejs.org/en/) version 18+, 20+. However, some templates require a higher Node.js version to work, please upgrade if your package manager warns about it.
+> Requires [Node.js](https://nodejs.org/en/) version 18+, 20+
 
 With NPM:
 
 ```bash
-$ npm create vite@latest
+$ npm create fedimint-app@latest
 ```
 
 With Yarn:
 
 ```bash
-$ yarn create vite
+$ yarn create fedimint-app
 ```
 
 With PNPM:
 
 ```bash
-$ pnpm create vite
-```
-
-With Bun:
-
-```bash
-$ bun create vite
+$ pnpm create fedimint-app
 ```
 
 Then follow the prompts!
 
-You can also directly specify the project name and the template you want to use via additional command line options. For example, to scaffold a Vite + Vue project, run:
+You can also directly specify the project name and the template you want to use via additional command line options. For example, to scaffold a Fedimint + React project, run:
 
 ```bash
 # npm 7+, extra double-dash is needed:
-npm create vite@latest my-vue-app -- --template vue
+npm create fedimint-app@latest my-fedimint-app -- --template vite-react-ts
 
 # yarn
-yarn create vite my-vue-app --template vue
+yarn create fedimint-app my-fedimint-app --template vite-react-ts
 
 # pnpm
-pnpm create vite my-vue-app --template vue
-
-# Bun
-bun create vite my-vue-app --template vue
+pnpm create fedimint-app my-fedimint-app --template vite-react-ts
 ```
 
 Currently supported template presets include:
 
-- `vanilla`
-- `vanilla-ts`
-- `vue`
-- `vue-ts`
-- `react`
-- `react-ts`
-- `react-swc`
-- `react-swc-ts`
-- `preact`
-- `preact-ts`
-- `lit`
-- `lit-ts`
-- `svelte`
-- `svelte-ts`
-- `solid`
-- `solid-ts`
-- `qwik`
-- `qwik-ts`
+- `vite-react-ts` - React + TypeScript template with Fedimint integration
 
 You can use `.` for the project name to scaffold in the current directory.
 
-## Community Templates
+## Getting Started
 
-create-vite is a tool to quickly start a project from a basic template for popular frameworks. Check out Awesome Vite for [community maintained templates](https://github.com/vitejs/awesome-vite#templates) that include other tools or target different frameworks. You can use a tool like [degit](https://github.com/Rich-Harris/degit) to scaffold your project with one of the templates.
+After creating your project, install dependencies and start the dev server:
 
 ```bash
-npx degit user/project my-project
-cd my-project
-
+cd my-fedimint-app
 npm install
 npm run dev
 ```
 
-If the project uses `main` as the default branch, suffix the project repo with `#main`
+This will start a development server with hot module replacement. The template includes:
 
-```bash
-npx degit user/project#main my-project
-```
+- React + TypeScript setup
+- Fedimint wallet integration
+- Basic styling with CSS
+- Vite for fast development and building
