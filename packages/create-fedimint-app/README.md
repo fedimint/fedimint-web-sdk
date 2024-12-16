@@ -40,7 +40,8 @@ pnpm create fedimint-app my-fedimint-app --template vite-react-ts
 
 Currently supported template presets include:
 
-- `vite-react-ts` - React + TypeScript template with Fedimint integration
+- `vite-react-ts` - Vite + React + TypeScript template with Fedimint integration
+- `vite-react` - Vite + React template with Fedimint integration
 
 You can use `.` for the project name to scaffold in the current directory.
 
