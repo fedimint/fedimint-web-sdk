@@ -8,15 +8,15 @@ import colors from 'picocolors'
 
 const {
   blue,
-  blueBright,
+  // blueBright,
   cyan,
-  green,
+  // green,
   // greenBright,
-  magenta,
+  // magenta,
   red,
-  redBright,
+  // redBright,
   reset,
-  yellow,
+  // yellow,
 } = colors
 
 // Avoids autoconversion to number of the project name by defining that the args
@@ -33,23 +33,24 @@ const cwd = process.cwd()
 
 // prettier-ignore
 const helpMessage = `\
-Usage: create-vite [OPTION]... [DIRECTORY]
+Usage: create-fedimint-app [OPTION]... [DIRECTORY]
 
-Create a new Vite project in JavaScript or TypeScript.
+Create a new Fedimint project in JavaScript or TypeScript.
 With no arguments, start the CLI in interactive mode.
 
 Options:
   -t, --template NAME        use a specific template
 
 Available templates:
-${yellow    ('vanilla-ts     vanilla'  )}
-${green     ('vue-ts         vue'      )}
-${cyan      ('vite-react-ts  react'    )}
-${magenta   ('preact-ts      preact'   )}
-${redBright ('lit-ts         lit'      )}
-${red       ('svelte-ts      svelte'   )}
-${blue      ('solid-ts       solid'    )}
-${blueBright('qwik-ts        qwik'     )}`
+${cyan      ('vite-react-ts  react'    )}`
+// ${yellow    ('vanilla-ts     vanilla'  )}
+// ${green     ('vue-ts         vue'      )}
+// ${cyan      ('vite-react-ts  react'    )}
+// ${magenta   ('preact-ts      preact'   )}
+// ${redBright ('lit-ts         lit'      )}
+// ${red       ('svelte-ts      svelte'   )}
+// ${blue      ('solid-ts       solid'    )}
+// ${blueBright('qwik-ts        qwik'     )}`
 
 type ColorFunc = (str: string | number) => string
 type Framework = {
@@ -287,7 +288,7 @@ const renameFiles: Record<string, string | undefined> = {
   _gitignore: '.gitignore',
 }
 
-const defaultTargetDir = 'vite-project'
+const defaultTargetDir = 'fedimint-project'
 
 async function init() {
   const argTargetDir = formatTargetDir(argv._[0])

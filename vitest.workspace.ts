@@ -26,16 +26,11 @@ export default defineWorkspace([
   {
     test: {
       name: 'cli',
-      include: ['packages/create-fedimint-app/**/*.test.ts'],
-      isolate: false,
+      environment: 'happy-dom',
+      include: ['packages/create-fedimint-app/__tests__/*.test.ts'],
+      exclude: ['packages/create-fedimint-app/__tests__/subfolder'],
+      isolate: true,
       testTimeout: 20000,
     },
-    optimizeDeps: {
-      exclude: ['execa'],
-    },
-    esbuild: {
-      target: 'node18',
-    },
-    publicDir: false,
   },
 ])
