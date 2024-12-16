@@ -31,8 +31,8 @@
     "test": "pnpm run test:setup pnpm run test:lib",
     "test:setup": "bash testing/setup_test_shell.sh",
     "test:coverage": "vitest run --coverage",
-    "test:lib": "vitest",
-    "test:create": "vitest --watch=false create-fedimint",
+    "test:lib": "vitest --project core",
+    "test:create": "vitest --watch=false --project cli",
     "test:ui": "vitest --browser.headless=false --ui",
     "format": "prettier --write .",
     "watch": "pnpm run --r --parallel --filter \"./packages/**\" watch"
