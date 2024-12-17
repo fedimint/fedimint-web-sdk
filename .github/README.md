@@ -27,6 +27,7 @@
 | [`@fedimint/react`](https://web.fedimint.org/docs/core/getting-started) | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Freact?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Freact>)                                                                                                                       | React components and hooks for interacting with the Fedimint client                                       |
 | [`@fedimint/wasm-web`](../packages/wasm-web/README.md)                  | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ffedimint-client-wasm-web?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fwasm-web&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40fedimint%2Ffedimint-client-wasm-web>)             | Not intended for direct use. Contains the wasm pack output (target web) for the Fedimint client wasm.     |
 | [`@fedimint/wasm-bundler`](../packages/wasm-bundler/README.md)          | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ffedimint-client-wasm-bundler?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fwasm-bundler&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40fedimint%2Ffedimint-client-wasm-bundler>) | Not intended for direct use. Contains the wasm pack output (target bundler) for the Fedimint client wasm. |
+| [`create-fedimint-app`](../packages/create-fedimint-app/README.md)      | ![NPM Version (latest)](<https://img.shields.io/npm/v/create-fedimint-app?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=create-fedimint-app&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fcreate-fedimint-app>)                                                      | Scaffold a new Fedimint app with Vite, React, and TypeScript.                                             |
 
 ## Structure 🛠️
 
@@ -42,7 +43,8 @@ fedimint-web-sdk
     ├── core-web
     ├── react
     ├── wasm-web
-    └── wasm-bundler
+    ├── wasm-bundler
+    └── create-fedimint-app
 ```
 
 ### Examples

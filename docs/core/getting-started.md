@@ -6,15 +6,65 @@ This is very new. Use with caution. [Report bugs](https://github.com/fedimint/fe
 APIs may change.
 :::
 
-## Installation
+## Scaffolding your first project
+
+::: tip Compatibility Note
+Most `create-fedimint-app` templates require [Node.js](https://nodejs.org/en/) version 18+ or 20+.
+:::
+
+::: code-group
+
+```bash [npm]
+npm create fedimint-app
+```
+
+```bash [yarn]
+yarn create fedimint-app
+```
+
+```bash [pnpm]
+pnpm create fedimint-app
+```
+
+```bash [bun]
+bun create fedimint-app
+```
+
+:::
+
+Then follow the prompts!
+
+You can also directly specify the project name and the template you want to use via additional command line options. For example, to scaffold a Fedimint + React project, run:
+
+::: code-group
+
+```bash [npm]
+npm create fedimint-app@latest my-fedimint-app -- --template vite-react-ts
+```
+
+```bash [yarn]
+yarn create fedimint-app my-fedimint-app --template vite-react-ts
+```
+
+```bash [pnpm]
+pnpm create fedimint-app my-fedimint-app --template vite-react-ts
+```
+
+```bash [bun]
+bun create fedimint-app my-fedimint-app --template vite-react-ts
+```
+
+:::
+
+See [create-fedimint-app](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/create-fedimint-app) for more details on each supported template.
+
+You can use `.` for the project name to scaffold in the current directory.
+
+## Manual Installation
 
 To add @fedimint/core-web to your project, install the package using your preferred package manager:
 
 ::: code-group
-
-```bash [pnpm]
-pnpm add @fedimint/core-web
-```
 
 ```bash [npm]
 npm install @fedimint/core-web
@@ -22,6 +72,10 @@ npm install @fedimint/core-web
 
 ```bash [yarn]
 yarn add @fedimint/core-web
+```
+
+```bash [pnpm]
+pnpm add @fedimint/core-web
 ```
 
 ```bash [bun]
@@ -119,14 +173,6 @@ If you you see errors with top level await, you may need to install the `vite-pl
 
 ::: code-group
 
-```bash [pnpm]
-# Required
-pnpm add vite-plugin-wasm
-
-# Typically not needed, but may be required in some projects.
-pnpm add vite-plugin-top-level-await
-```
-
 ```bash [npm]
 # Required
 npm i vite-plugin-wasm
@@ -141,6 +187,14 @@ yarn add vite-plugin-wasm
 
 # Typically not needed, but may be required in some projects.
 yarn add vite-plugin-top-level-await
+```
+
+```bash [pnpm]
+# Required
+pnpm add vite-plugin-wasm
+
+# Typically not needed, but may be required in some projects.
+pnpm add vite-plugin-top-level-await
 ```
 
 ```bash [bun]
