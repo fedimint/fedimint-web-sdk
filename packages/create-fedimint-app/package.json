@@ -1,5 +1,5 @@
 {
-  "name": "@fedimint/create-fedimint-app",
+  "name": "create-fedimint-app",
   "type": "module",
   "version": "0.0.1",
   "main": "index.js",
