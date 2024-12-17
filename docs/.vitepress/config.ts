@@ -1,5 +1,9 @@
 import { getSidebar } from './sidebar'
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
+import {
+  groupIconMdPlugin,
+  groupIconVitePlugin,
+} from 'vitepress-plugin-group-icons'
 import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
@@ -13,6 +17,13 @@ export default defineConfig({
     // TODO: Fix version conflicts
     // @ts-ignore
     codeTransformers: [transformerTwoslash()],
+    config: (md) => {
+      // @ts-ignore
+      md.use(groupIconMdPlugin)
+    },
+  },
+  vite: {
+    plugins: [groupIconVitePlugin()],
   },
   /* prettier-ignore */
   head: [
