@@ -1,6 +1,7 @@
 {
-  "name": "vite-core",
+  "name": "fedimint-vite-react-typescript-starter",
   "private": true,
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,18 +11,17 @@
     "clean:deep": "pnpm run clean && rm -rf node_modules"
   },
   "dependencies": {
-    "@fedimint/core-web": "^0.0.10",
-    "react": "^18.3.1",
-    "react-dom": ">=18.3.1"
+    "@fedimint/core-web": "latest",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   },
   "devDependencies": {
-    "@types/react": ">=18.3.11",
-    "@types/react-dom": "^18.3.0",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
     "@vitejs/plugin-react": "^4.3.2",
     "buffer": "^6.0.3",
     "typescript": "^5.6.2",
     "vite": "^5.4.8",
     "vite-plugin-wasm": "^3.3.0"
-  },
-  "packageManager": "pnpm@9.12.0"
+  }
 }
