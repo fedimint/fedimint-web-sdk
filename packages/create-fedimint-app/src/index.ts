@@ -16,7 +16,7 @@ const {
   red,
   // redBright,
   reset,
-  // yellow,
+  yellow,
 } = colors
 
 // Avoids autoconversion to number of the project name by defining that the args
@@ -123,11 +123,11 @@ const FRAMEWORKS: Framework[] = [
         display: 'TypeScript',
         color: blue,
       },
-      // {
-      //   name: 'vite-react',
-      //   display: 'JavaScript',
-      //   color: yellow,
-      // },
+      {
+        name: 'vite-react',
+        display: 'JavaScript',
+        color: yellow,
+      },
       // {
       //   name: 'custom-react-router',
       //   display: 'React Router v7 ↗',
