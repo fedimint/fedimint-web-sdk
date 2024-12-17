@@ -72,6 +72,9 @@ jobs:
             # Install dependencies
             pnpm install
 
+            # Build packages
+            pnpm build
+
             # Run Tests
             pnpm test
           EOF
