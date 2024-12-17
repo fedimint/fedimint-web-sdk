@@ -53,6 +53,10 @@ export default defineConfig({
             link: '/core/dev/contributing',
           },
           {
+            text: 'Awesome Fedimint Web SDK',
+            link: '/core/dev/awesome',
+          },
+          {
             text: 'Discussions ',
             link: 'https://chat.fedimint.org',
           },

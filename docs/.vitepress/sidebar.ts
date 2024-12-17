@@ -4,6 +4,7 @@ export function getSidebar() {
   return [
     {
       base: '/core/',
+      collapsed: false,
       text: 'Introduction',
       items: [
         { text: 'Overview', link: 'overview' },
@@ -14,6 +15,7 @@ export function getSidebar() {
     ...FedimintWalletSidebar,
     {
       base: '/examples/',
+      collapsed: false,
       text: 'Examples',
       items: [
         { text: 'Vite + React', link: 'vite-react' },
@@ -26,6 +28,7 @@ export function getSidebar() {
       base: '/core/dev/',
       items: [
         { text: 'Contributing', link: 'contributing' },
+        { text: 'Awesome Projects', link: 'awesome' },
         { text: 'Testing', link: 'testing' },
       ],
     },
@@ -35,6 +38,7 @@ export function getSidebar() {
 const FedimintWalletSidebar = [
   {
     text: 'Core',
+    collapsed: true,
     link: '.',
     base: '/core/FedimintWallet/',
     items: [

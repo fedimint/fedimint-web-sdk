@@ -2,6 +2,10 @@
 
 The `FedimintWallet` class serves as the main entry point for the library. It orchestrates the various services and the WorkerClient.
 
+::: info
+Check out the [Getting Started](../getting-started) guide to get started using the Fedimint Web SDK.
+:::
+
 <img src="/architecture-diagram.svg" alt="Architecture" />
 
 ## Properties
