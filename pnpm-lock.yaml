@@ -90,7 +90,7 @@ importers:
         specifier: ^0.0.10
         version: 0.0.10
       react:
-        specifier: ^18.3.1
+        specifier: '>=18.3.1'
         version: 18.3.1
       react-dom:
         specifier: '>=18.3.1'
