@@ -41,9 +41,9 @@
     "@changesets/cli": "^2.27.9",
     "@types/bun": "^1.1.10",
     "@types/node": "^20.16.10",
-    "@vitest/browser": "^2.1.2",
-    "@vitest/coverage-v8": "^2.1.2",
-    "@vitest/ui": "^2.1.2",
+    "@vitest/browser": "^2.1.9",
+    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/ui": "^2.1.9",
     "execa": "^9.5.2",
     "glob": "^10.4.5",
     "happy-dom": "^15.10.2",
@@ -55,7 +55,7 @@
     "typescript": "5.5.2",
     "unicorn-magic": "^0.3.0",
     "vite-plugin-wasm": "^3.3.0",
-    "vitest": "^2.1.2"
+    "vitest": "^2.1.9"
   },
   "packageManager": "pnpm@9.12.0",
   "engines": {
