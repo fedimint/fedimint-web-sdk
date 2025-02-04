@@ -4,4 +4,4 @@
 '@fedimint/react': patch
 ---
 
-Bump dep (happy-dom)
+Bump Deps - vitest, secp256k1, happy-dom
