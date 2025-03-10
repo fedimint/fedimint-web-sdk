@@ -116,7 +116,7 @@ const nextConfig = {
 export default nextConfig;
 ```
 
-Check out the [nextjs sample app](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/nextjs) for a full working example.
+Check out the [nextjs sample app](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/next-js) for a full working example.
 
 :::
 
@@ -289,6 +289,8 @@ Check out an example app using [Vite + React example](../examples/vite-react.md)
 
 Check out an example app using [VanillaJS + HTML](../examples/bare-js.md).
 
+Check out an example app using [Next.JS](../examples/next-js.md).
+
 ## Resources
 
 For a list of public federations with invite codes, visit [Bitcoin Mints](https://bitcoinmints.com/?tab=mints&showFedimint=true).
@@ -299,6 +301,7 @@ For a list of public federations with invite codes, visit [Bitcoin Mints](https:
 
 - [Vite + React](../examples/vite-react.md)
 - [VanillaJS + HTML example](../examples/bare-js.md)
+- [Next.JS](../examples/next-js.md)
 
 <br>
 
