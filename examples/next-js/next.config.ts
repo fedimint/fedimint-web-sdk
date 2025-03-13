@@ -1,8 +1,6 @@
 import { NextConfig } from 'next'
 
 module.exports = {
-  reactStrictMode: true,
-
   webpack: (config, { isServer }) => {
     //enable asynchronous WebAssembly
     config.experiments = {

@@ -5,6 +5,7 @@ import {
   groupIconVitePlugin,
 } from 'vitepress-plugin-group-icons'
 import { defineConfig } from 'vitepress'
+import { Plugin as VitePressPlugin } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -23,7 +24,12 @@ export default defineConfig({
     },
   },
   vite: {
-    plugins: [groupIconVitePlugin()],
+    plugins: [
+      {
+        ...groupIconVitePlugin(),
+        name: 'vitepress-group-icons-compat',
+      } as VitePressPlugin,
+    ],
   },
   /* prettier-ignore */
   head: [
