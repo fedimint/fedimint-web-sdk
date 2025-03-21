@@ -18,6 +18,15 @@ export class FederationService {
     })
   }
 
+  async parseInviteCode(inviteCode: string) {
+    return await this.client.rpcSingle<{
+      url: string
+      federation_id: string
+    }>('', 'parse_invite_code', {
+      invite_code: inviteCode,
+    })
+  }
+
   async listOperations() {
     return await this.client.rpcSingle<JSONValue[]>('', 'list_operations', {})
   }
