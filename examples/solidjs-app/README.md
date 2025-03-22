@@ -1,4 +1,4 @@
-# Fedimint Web SDK - Webpack Example
+# Fedimint Web SDK - Solidjs Example
 
 This example demonstrates how to use the Fedimint Web SDK in a solidjs-based project. This will check the connection with the fedimint client, fetch balance, join federations, Generate Invoice, sedn payment via `@fedimint/core-web`
 
