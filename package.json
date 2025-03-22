@@ -11,6 +11,7 @@
     "dev:react": "pnpm --filter react dev",
     "dev:vite": "pnpm --filter vite-core dev",
     "dev:bare": "pnpm run --filter bare-js server",
+    "dev:solidjs": "pnpm --filter solidjs-app start",
     "docs:dev": "pnpm run --filter docs docs:dev",
     "docs:build": "pnpm run --filter docs docs:build",
     "docs:preview": "pnpm run --filter docs docs:preview",
