@@ -143,4 +143,12 @@ export class FedimintWallet {
     logger.setLevel(level)
     logger.info(`Log level set to ${level}.`)
   }
+
+  async parseInviteCode(inviteCode: string) {
+    const response = await this._client.sendSingleMessage<{
+      url: string
+      federation_id: string
+    }>('parseInviteCode', { inviteCode })
+    return response
+  }
 }

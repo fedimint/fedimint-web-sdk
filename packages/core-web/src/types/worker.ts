@@ -8,6 +8,7 @@ const WorkerMessageTypes = [
   'error',
   'unsubscribe',
   'cleanup',
+  'parseInviteCode',
 ] as const
 
 export type WorkerMessageType = (typeof WorkerMessageTypes)[number]
