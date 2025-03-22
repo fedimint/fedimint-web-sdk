@@ -105,6 +105,26 @@ After this call, the FedimintWallet instance should be discarded.
 
 ---
 
+---
+
+### parseInviteCode()
+
+> **parseInviteCode**(`inviteCode`): `Promise`\<`{ url: string; federation_id: string }`\>
+
+#### Parameters
+
+• **inviteCode**: `string`
+
+#### Returns
+
+`Promise`\<`{ url: string; federation_id: string }`\>
+
+#### Defined in
+
+[FedimintWallet.ts:147](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/core-web/src/FedimintWallet.ts#L147)
+
+---
+
 ### joinFederation()
 
 > **joinFederation**(`inviteCode`, `clientName`): `Promise`\<`void`\>
