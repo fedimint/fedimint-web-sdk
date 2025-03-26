@@ -89,6 +89,23 @@ self.onmessage = async (event) => {
         requestId,
       })
       close()
+    } else if (type === 'parseInviteCode') {
+      const { inviteCode } = payload
+      try {
+        const res = WasmClient.parse_invite_code(inviteCode)
+        const parsedRes = JSON.parse(res)
+        self.postMessage({
+          type: 'parseInviteCode',
+          data: parsedRes,
+          requestId,
+        })
+      } catch (error) {
+        self.postMessage({
+          type: 'error',
+          error: `Failed to parse invite code: ${error.message}`,
+          requestId,
+        })
+      }
     } else {
       self.postMessage({
         type: 'error',

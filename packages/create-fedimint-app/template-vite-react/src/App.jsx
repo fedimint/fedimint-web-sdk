@@ -81,6 +81,7 @@ const App = () => {
         <GenerateLightningInvoice />
         <RedeemEcash />
         <SendLightning />
+        <InviteCodeParser />
       </main>
     </>
   )
@@ -297,6 +298,60 @@ const GenerateLightningInvoice = () => {
         </div>
       )}
       {error && <div className="error">{error}</div>}
+    </div>
+  )
+}
+
+const InviteCodeParser = () => {
+  const [inviteCode, setInviteCode] = useState('')
+  const [parseResult, setParseResult] = useState(null)
+  const [parseError, setParseError] = useState('')
+  const [parsingStatus, setParsingStatus] = useState(false)
+
+  const handleParse = async (e) => {
+    e.preventDefault()
+    setParseResult(null)
+    setParseError('')
+    setParsingStatus(true)
+
+    try {
+      const result = await wallet.parseInviteCode(inviteCode)
+      setParseResult(result)
+    } catch (e) {
+      console.error('Error parsing invite code', e)
+      setParseError(e.message || String(e))
+    } finally {
+      setParsingStatus(false)
+    }
+  }
+
+  return (
+    <div className="section">
+      <h3>Parse Invite Code</h3>
+      <form onSubmit={handleParse} className="row">
+        <input
+          placeholder="Enter invite code..."
+          value={inviteCode}
+          onChange={(e) => setInviteCode(e.target.value)}
+          required
+        />
+        <button type="submit" disabled={parsingStatus}>
+          {parsingStatus ? 'Parsing...' : 'Parse'}
+        </button>
+      </form>
+      {parseResult && (
+        <div className="success">
+          <div className="row">
+            <strong>Fed Id:</strong>
+            <div className="id">{parseResult.federation_id}</div>
+          </div>
+          <div className="row">
+            <strong>Fed url:</strong>
+            <div className="url">{parseResult.url}</div>
+          </div>
+        </div>
+      )}
+      {parseError && <div className="error">{parseError}</div>}
     </div>
   )
 }

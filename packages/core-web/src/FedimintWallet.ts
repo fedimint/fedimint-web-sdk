@@ -7,6 +7,7 @@ import {
   RecoveryService,
 } from './services'
 import { logger, type LogLevel } from './utils/logger'
+import { JSONValue } from './types'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
@@ -142,5 +143,14 @@ export class FedimintWallet {
   setLogLevel(level: LogLevel) {
     logger.setLevel(level)
     logger.info(`Log level set to ${level}.`)
+  }
+
+  async parseInviteCode(inviteCode: string) {
+    const response = await this._client.sendSingleMessage<{
+      type: string
+      data: JSONValue
+      requestId: number
+    }>('parseInviteCode', { inviteCode })
+    return response
   }
 }
