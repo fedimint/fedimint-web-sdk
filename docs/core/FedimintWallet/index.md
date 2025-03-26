@@ -123,6 +123,24 @@ After this call, the FedimintWallet instance should be discarded.
 
 ---
 
+### parseBolt11Invoice()
+
+> **parseBolt11Invoice**(`invoiceStr`): `Promise`\<`{ amount: number; expiry: number; memo: string }`\>
+
+#### Parameters
+
+• **invoiceStr**: `string`
+
+#### Returns
+
+`Promise`\<`{ amount: number; expiry: number; memo: string }`\>
+
+#### Defined in
+
+[FedimintWallet.ts:157](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/core-web/src/FedimintWallet.ts#157)
+
+---
+
 ### joinFederation()
 
 > **joinFederation**(`inviteCode`, `clientName`): `Promise`\<`void`\>
