@@ -153,4 +153,13 @@ export class FedimintWallet {
     }>('parseInviteCode', { inviteCode })
     return response
   }
+
+  async parseBolt11Invoice(invoiceStr: string) {
+    const response = await this._client.sendSingleMessage<{
+      type: string
+      data: JSONValue
+      requestId: number
+    }>('parseBolt11Invoice', { invoiceStr })
+    return response
+  }
 }

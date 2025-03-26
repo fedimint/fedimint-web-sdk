@@ -106,6 +106,23 @@ self.onmessage = async (event) => {
           requestId,
         })
       }
+    } else if (type === 'parseBolt11Invoice') {
+      const { invoiceStr } = payload
+      try {
+        const res = WasmClient.parse_bolt11_invoice(invoiceStr)
+        const parsedRes = JSON.parse(res)
+        self.postMessage({
+          type: 'parseBolt11Invoice',
+          data: parsedRes,
+          requestId,
+        })
+      } catch (error) {
+        self.postMessage({
+          type: 'error',
+          error: `Failed to parse invoice: ${error.message}`,
+          requestId,
+        })
+      }
     } else {
       self.postMessage({
         type: 'error',
