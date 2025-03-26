@@ -7,6 +7,7 @@ import {
   RecoveryService,
 } from './services'
 import { logger, type LogLevel } from './utils/logger'
+import { JSONValue } from './types'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
@@ -142,5 +143,33 @@ export class FedimintWallet {
   setLogLevel(level: LogLevel) {
     logger.setLevel(level)
     logger.info(`Log level set to ${level}.`)
+  }
+
+  /**
+   * Parses a federation invite code and retrieves its details.
+   *
+   * This method sends the provided invite code to the WorkerClient for parsing.
+   * The response includes the federation_id and url.
+   *
+   * @param {string} inviteCode - The invite code to be parsed.
+   * @returns {Promise<{ federation_id: string, url: string}>}
+   *          A promise that resolves to an object containing:
+   *          - `federation_id`: The id of the feder.
+   *          - `url`: One of the apipoints to connect to the federation
+   *
+   * @throws {Error} If the WorkerClient encounters an issue during the parsing process.
+   *
+   * @example
+   * const inviteCode = "example-invite-code";
+   * const parsedCode = await wallet.parseInviteCode(inviteCode);
+   * console.log(parsedCode.federation_id, parsedCode.url);
+   */
+  async parseInviteCode(inviteCode: string) {
+    const response = await this._client.sendSingleMessage<{
+      type: string
+      data: JSONValue
+      requestId: number
+    }>('parseInviteCode', { inviteCode })
+    return response
   }
 }
