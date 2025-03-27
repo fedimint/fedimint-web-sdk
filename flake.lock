@@ -20,12 +20,7 @@
       "inputs": {
         "devshell": "devshell",
         "flake-utils": "flake-utils_3",
-        "nixpkgs": [
-          "fedimint",
-          "cargo-deluxe",
-          "flakebox",
-          "nixpkgs"
-        ]
+        "nixpkgs": ["fedimint", "cargo-deluxe", "flakebox", "nixpkgs"]
       },
       "locked": {
         "lastModified": 1727381935,
@@ -46,11 +41,7 @@
       "inputs": {
         "devshell": "devshell_2",
         "flake-utils": "flake-utils_7",
-        "nixpkgs": [
-          "fedimint",
-          "flakebox",
-          "nixpkgs"
-        ]
+        "nixpkgs": ["fedimint", "flakebox", "nixpkgs"]
       },
       "locked": {
         "lastModified": 1732566114,
@@ -71,10 +62,7 @@
       "inputs": {
         "nix-bundle": "nix-bundle",
         "nix-utils": "nix-utils",
-        "nixpkgs": [
-          "fedimint",
-          "nixpkgs"
-        ]
+        "nixpkgs": ["fedimint", "nixpkgs"]
       },
       "locked": {
         "lastModified": 1729104746,
@@ -95,10 +83,7 @@
       "inputs": {
         "flake-utils": "flake-utils_2",
         "flakebox": "flakebox",
-        "nixpkgs": [
-          "fedimint",
-          "nixpkgs"
-        ]
+        "nixpkgs": ["fedimint", "nixpkgs"]
       },
       "locked": {
         "lastModified": 1729202329,
@@ -117,12 +102,7 @@
     },
     "crane": {
       "inputs": {
-        "nixpkgs": [
-          "fedimint",
-          "cargo-deluxe",
-          "flakebox",
-          "nixpkgs"
-        ]
+        "nixpkgs": ["fedimint", "cargo-deluxe", "flakebox", "nixpkgs"]
       },
       "locked": {
         "lastModified": 1717383740,
@@ -141,11 +121,7 @@
     },
     "crane_2": {
       "inputs": {
-        "nixpkgs": [
-          "fedimint",
-          "flakebox",
-          "nixpkgs"
-        ]
+        "nixpkgs": ["fedimint", "flakebox", "nixpkgs"]
       },
       "locked": {
         "lastModified": 1717383740,
@@ -190,12 +166,7 @@
     "devshell_2": {
       "inputs": {
         "flake-utils": "flake-utils_6",
-        "nixpkgs": [
-          "fedimint",
-          "flakebox",
-          "android-nixpkgs",
-          "nixpkgs"
-        ]
+        "nixpkgs": ["fedimint", "flakebox", "android-nixpkgs", "nixpkgs"]
       },
       "locked": {
         "lastModified": 1717408969,
@@ -239,12 +210,7 @@
     },
     "fenix": {
       "inputs": {
-        "nixpkgs": [
-          "fedimint",
-          "cargo-deluxe",
-          "flakebox",
-          "nixpkgs"
-        ],
+        "nixpkgs": ["fedimint", "cargo-deluxe", "flakebox", "nixpkgs"],
         "rust-analyzer-src": "rust-analyzer-src"
       },
       "locked": {
@@ -263,10 +229,7 @@
     },
     "fenix_2": {
       "inputs": {
-        "nixpkgs": [
-          "fedimint",
-          "nixpkgs"
-        ],
+        "nixpkgs": ["fedimint", "nixpkgs"],
         "rust-analyzer-src": "rust-analyzer-src_2"
       },
       "locked": {
@@ -336,12 +299,7 @@
     },
     "flake-utils_4": {
       "inputs": {
-        "systems": [
-          "fedimint",
-          "cargo-deluxe",
-          "flakebox",
-          "systems"
-        ]
+        "systems": ["fedimint", "cargo-deluxe", "flakebox", "systems"]
       },
       "locked": {
         "lastModified": 1694529238,
@@ -413,11 +371,7 @@
     },
     "flake-utils_8": {
       "inputs": {
-        "systems": [
-          "fedimint",
-          "flakebox",
-          "systems"
-        ]
+        "systems": ["fedimint", "flakebox", "systems"]
       },
       "locked": {
         "lastModified": 1710146030,
@@ -478,15 +432,9 @@
       "inputs": {
         "android-nixpkgs": "android-nixpkgs_2",
         "crane": "crane_2",
-        "fenix": [
-          "fedimint",
-          "fenix"
-        ],
+        "fenix": ["fedimint", "fenix"],
         "flake-utils": "flake-utils_8",
-        "nixpkgs": [
-          "fedimint",
-          "nixpkgs"
-        ],
+        "nixpkgs": ["fedimint", "nixpkgs"],
         "systems": "systems_9"
       },
       "locked": {
