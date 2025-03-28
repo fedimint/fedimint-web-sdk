@@ -2,6 +2,61 @@
 /* eslint-disable */
 /**
 */
+export class IntoUnderlyingByteSource {
+  free(): void;
+/**
+* @param {ReadableByteStreamController} controller
+*/
+  start(controller: ReadableByteStreamController): void;
+/**
+* @param {ReadableByteStreamController} controller
+* @returns {Promise<any>}
+*/
+  pull(controller: ReadableByteStreamController): Promise<any>;
+/**
+*/
+  cancel(): void;
+/**
+*/
+  readonly autoAllocateChunkSize: number;
+/**
+*/
+  readonly type: string;
+}
+/**
+*/
+export class IntoUnderlyingSink {
+  free(): void;
+/**
+* @param {any} chunk
+* @returns {Promise<any>}
+*/
+  write(chunk: any): Promise<any>;
+/**
+* @returns {Promise<any>}
+*/
+  close(): Promise<any>;
+/**
+* @param {any} reason
+* @returns {Promise<any>}
+*/
+  abort(reason: any): Promise<any>;
+}
+/**
+*/
+export class IntoUnderlyingSource {
+  free(): void;
+/**
+* @param {ReadableStreamDefaultController} controller
+* @returns {Promise<any>}
+*/
+  pull(controller: ReadableStreamDefaultController): Promise<any>;
+/**
+*/
+  cancel(): void;
+}
+/**
+*/
 export class RpcHandle {
   free(): void;
 /**
@@ -31,6 +86,13 @@ export class WasmClient {
 * @returns {Promise<WasmClient>}
 */
   static join_federation(client_name: string, invite_code: string): Promise<WasmClient>;
+/**
+* Parse an invite code and extract its components without joining the
+* federation
+* @param {string} invite_code
+* @returns {string}
+*/
+  static parse_invite_code(invite_code: string): string;
 /**
 * Call a fedimint client rpc the responses are returned using `cb`
 * callback. Each rpc call *can* return multiple responses by calling
