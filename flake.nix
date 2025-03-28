@@ -36,6 +36,7 @@
               pkgs.esplora-electrs
               pkgs.procps
               pkgs.which
+              pkgs.git
 
               pkgs.pnpm
               pkgs.nodejs_20
