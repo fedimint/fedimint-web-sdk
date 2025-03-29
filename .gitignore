@@ -19,3 +19,4 @@ __screenshots__
 
 docs/.vitepress/dist
 docs/.vitepress/cache
+next-env.d.ts
