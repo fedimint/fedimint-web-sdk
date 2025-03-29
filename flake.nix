@@ -37,6 +37,7 @@
               pkgs.procps
               pkgs.which
               pkgs.git
+              pkgs.clightning
 
               pkgs.pnpm
               pkgs.nodejs_20
