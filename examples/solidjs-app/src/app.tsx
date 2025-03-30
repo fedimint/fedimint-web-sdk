@@ -20,7 +20,7 @@ export default function App() {
   const [inviteCode, setInviteCode] = createSignal(TESTNET_FEDERATION_CODE)
   const [ecashInput, setEcashInput] = createSignal('')
   const [lightningInput, setLightningInput] = createSignal('')
-  const [amount, setAmount] = createSignal('')
+  const [amount, setAmount] = createSignal(0)
   const [description, setDescription] = createSignal('')
 
   const checkIsOpen = () => {
@@ -37,20 +37,21 @@ export default function App() {
     return () => {
       unsubscribe()
     }
-  }, [checkIsOpen])
+  })
 
   const joinFederation = async (e: Event) => {
     e.preventDefault()
     checkIsOpen()
-    console.log('Joining federation:', inviteCode)
+    console.log('Joining federation:', inviteCode())
+
     try {
       setJoining(true)
       const res = await wallet.joinFederation(inviteCode())
       console.log('join federation res', res)
       setJoinResult('Joined!')
-    } catch (e: any) {
+    } catch (e) {
       console.log('Error joining federation', e)
-      setJoinError(typeof e === 'object' ? e.toString() : (e as string))
+      setJoinError(e instanceof Error ? e.message : String(e))
     } finally {
       setJoining(false)
     }
@@ -64,7 +65,7 @@ export default function App() {
       setRedeemResult('Redeemed!')
     } catch (e) {
       console.log('Error redeeming ecash', e)
-      setRedeemError(e as string)
+      setRedeemError(e instanceof Error ? e.message : String(e))
     }
   }
 
@@ -75,7 +76,7 @@ export default function App() {
       setLightningResult('Paid!')
     } catch (e) {
       console.log('Error paying lightning', e)
-      setLightningError(e as string)
+      setLightningError(e instanceof Error ? e.message : String(e))
     }
   }
 
@@ -85,7 +86,7 @@ export default function App() {
     setInvoice('')
     try {
       const response = await wallet.lightning.createInvoice(
-        Number(amount),
+        Number(amount()),
         description(),
       )
       setInvoice(response.invoice)
@@ -203,7 +204,7 @@ export default function App() {
                 type="number"
                 placeholder="Enter amount"
                 onInput={(e) => {
-                  setAmount(e.target.value)
+                  setAmount(Number(e.target.value))
                 }}
                 required
               />
