@@ -1,8 +1,8 @@
-import { FedimintWallet } from "@fedimint/core-web";
+import { FedimintWallet } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet();
+const wallet = new FedimintWallet()
 
-wallet.setLogLevel("debug");
-wallet.open();
+wallet.setLogLevel('debug')
+wallet.open()
 
-export { wallet };
+export { wallet }

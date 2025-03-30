@@ -1,33 +1,33 @@
-import path from "path";
-import HtmlWebpackPlugin from "html-webpack-plugin";
+import path from 'path'
+import HtmlWebpackPlugin from 'html-webpack-plugin'
 
 export default {
-  entry: "./src/index.js",
+  entry: './src/index.js',
   output: {
-    path: path.resolve("dist"),
-    filename: "bundle.js",
+    path: path.resolve('dist'),
+    filename: 'bundle.js',
     clean: true,
   },
-  mode: "development",
+  mode: 'development',
   module: {
     rules: [
       {
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         use: {
-          loader: "babel-loader",
+          loader: 'babel-loader',
           options: {
-            presets: ["@babel/preset-env"],
+            presets: ['@babel/preset-env'],
           },
         },
       },
       {
         test: /\.css$/,
-        use: ["style-loader", "css-loader"],
+        use: ['style-loader', 'css-loader'],
       },
       {
         test: /\.wasm$/,
-        type: "webassembly/async",
+        type: 'webassembly/async',
       },
     ],
   },
@@ -36,16 +36,16 @@ export default {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./src/index.html",
+      template: './src/index.html',
     }),
   ],
   devServer: {
-    static: path.resolve("dist"),
+    static: path.resolve('dist'),
     compress: true,
     port: 3000,
     open: true,
   },
   resolve: {
-    extensions: [".js", ".jsx"],
+    extensions: ['.js', '.jsx'],
   },
-};
+}
