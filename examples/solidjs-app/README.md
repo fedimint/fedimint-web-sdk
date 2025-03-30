@@ -12,14 +12,16 @@ This example demonstrates how to use the Fedimint Web SDK in a solidjs-based pro
 - core-web: The Fedimint client library for web applications
 - solidjs: A solid-js with vite template to build high performance UI
 
-## Setup
+## Running the Application Locally
 
-- Move to root directory
+```bash
+# from the root of the repo
 
-- Install all dependencies
-  `pnpm install`
+# install dependencies
+pnpm install
 
-- Running the application
-  `pnpm dev:solidjs`
+# run the dev server
+pnpm run dev:solidjs
+```
 
-- webpack server will be running at 3000 port: http://localhost:3000.
+- server will be running at 3000 port: http://localhost:3000.
