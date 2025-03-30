@@ -1,35 +1,35 @@
-import { createSignal,createEffect } from 'solid-js';
-import { wallet } from './wallet';
+import { createSignal, createEffect } from 'solid-js'
+import { wallet } from './wallet'
 
 export default function App() {
   const TESTNET_FEDERATION_CODE =
-  'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
+    'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
 
-  const [open,setOpen]=createSignal(false)
-  const [balance,setBalance]=createSignal(0);
-  const [joining,setJoining]=createSignal(false)
-  const [joinResult,setJoinResult]=createSignal('')
-  const [joinError,setJoinError]=createSignal('')
-  const [redeemResult,setRedeemResult]=createSignal('')
-  const [redeemError,setRedeemError]=createSignal('')
-  const [lightningResult,setLightningResult]=createSignal('')
-  const [lightningError,setLightningError]=createSignal('')
-  const [invoice,setInvoice]=createSignal('')
-  const [error,setError]=createSignal('')
-  const [generating,setGenerating]=createSignal(false)
-  const [inviteCode,setInviteCode]=createSignal(TESTNET_FEDERATION_CODE)
-  const [ecashInput,setEcashInput]=createSignal('')
-  const [lightningInput,setLightningInput]=createSignal('')
-  const [amount,setAmount]=createSignal('')
-  const [description,setDescription]=createSignal('')
+  const [open, setOpen] = createSignal(false)
+  const [balance, setBalance] = createSignal(0)
+  const [joining, setJoining] = createSignal(false)
+  const [joinResult, setJoinResult] = createSignal('')
+  const [joinError, setJoinError] = createSignal('')
+  const [redeemResult, setRedeemResult] = createSignal('')
+  const [redeemError, setRedeemError] = createSignal('')
+  const [lightningResult, setLightningResult] = createSignal('')
+  const [lightningError, setLightningError] = createSignal('')
+  const [invoice, setInvoice] = createSignal('')
+  const [error, setError] = createSignal('')
+  const [generating, setGenerating] = createSignal(false)
+  const [inviteCode, setInviteCode] = createSignal(TESTNET_FEDERATION_CODE)
+  const [ecashInput, setEcashInput] = createSignal('')
+  const [lightningInput, setLightningInput] = createSignal('')
+  const [amount, setAmount] = createSignal('')
+  const [description, setDescription] = createSignal('')
 
-  const checkIsOpen=()=>{
-    if(wallet.isOpen()!==open()){
+  const checkIsOpen = () => {
+    if (wallet.isOpen() !== open()) {
       setOpen(wallet.isOpen())
     }
   }
 
-  createEffect(()=>{
+  createEffect(() => {
     const unsubscribe = wallet.balance.subscribeBalance((balance) => {
       checkIsOpen()
       setBalance(balance)
@@ -37,9 +37,9 @@ export default function App() {
     return () => {
       unsubscribe()
     }
-  },[checkIsOpen])
+  }, [checkIsOpen])
 
-  const joinFederation=async(e:Event)=>{
+  const joinFederation = async (e: Event) => {
     e.preventDefault()
     checkIsOpen()
     console.log('Joining federation:', inviteCode)
@@ -56,7 +56,7 @@ export default function App() {
     }
   }
 
-  const handleRedeem=async(e:Event)=>{
+  const handleRedeem = async (e: Event) => {
     e.preventDefault()
     try {
       const res = await wallet.mint.redeemEcash(ecashInput())
@@ -68,7 +68,7 @@ export default function App() {
     }
   }
 
-  const handlePay=async(e:Event)=>{
+  const handlePay = async (e: Event) => {
     e.preventDefault()
     try {
       await wallet.lightning.payInvoice(lightningInput())
@@ -79,10 +79,10 @@ export default function App() {
     }
   }
 
-  const handleGenerate=async(e:Event)=>{
+  const handleGenerate = async (e: Event) => {
     e.preventDefault()
     setGenerating(true)
-    setInvoice('');
+    setInvoice('')
     try {
       const response = await wallet.lightning.createInvoice(
         Number(amount),
@@ -146,7 +146,9 @@ export default function App() {
               class="ecash-input"
               placeholder="Invite Code..."
               value={inviteCode()}
-              onInput={(e)=>{setInviteCode(e.target.value)}}
+              onInput={(e) => {
+                setInviteCode(e.target.value)
+              }}
               required
               disabled={open()}
             />
@@ -164,7 +166,9 @@ export default function App() {
           <form onSubmit={handleRedeem} class="row">
             <input
               placeholder="Long ecash string..."
-              onInput={(e)=>{setEcashInput(e.target.value)}}
+              onInput={(e) => {
+                setEcashInput(e.target.value)
+              }}
               required
             />
             <button type="submit">redeem</button>
@@ -178,7 +182,9 @@ export default function App() {
           <form onSubmit={handlePay} class="row">
             <input
               placeholder="lnbc..."
-              onInput={(e)=>{setLightningInput(e.target.value)}}
+              onInput={(e) => {
+                setLightningInput(e.target.value)
+              }}
               required
             />
             <button type="submit">pay</button>
@@ -196,7 +202,9 @@ export default function App() {
                 id="amount"
                 type="number"
                 placeholder="Enter amount"
-                onInput={(e)=>{setAmount(e.target.value)}}
+                onInput={(e) => {
+                  setAmount(e.target.value)
+                }}
                 required
               />
             </div>
@@ -205,7 +213,9 @@ export default function App() {
               <input
                 id="description"
                 placeholder="Enter description"
-                onInput={(e)=>{setDescription(e.target.value)}}
+                onInput={(e) => {
+                  setDescription(e.target.value)
+                }}
                 required
               />
             </div>
@@ -232,5 +242,5 @@ export default function App() {
         </div>
       </main>
     </>
-  );
+  )
 }

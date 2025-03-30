@@ -5,7 +5,7 @@ This example demonstrates how to use the Fedimint Web SDK in a solidjs-based pro
 ## Prerequisites
 
 - Node.js
-- pnpm (recommended) or npm 
+- pnpm (recommended) or npm
 
 ## Technologies Used
 
@@ -17,9 +17,9 @@ This example demonstrates how to use the Fedimint Web SDK in a solidjs-based pro
 - Move to root directory
 
 - Install all dependencies
- `pnpm install`
+  `pnpm install`
 
 - Running the application
- `pnpm dev:solidjs`
+  `pnpm dev:solidjs`
 
 - webpack server will be running at 3000 port: http://localhost:3000.

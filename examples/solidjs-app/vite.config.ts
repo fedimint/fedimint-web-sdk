@@ -1,9 +1,9 @@
 /// <reference types="vitest" />
 /// <reference types="vite/client" />
 
-import { defineConfig } from 'vite';
-import solidPlugin from 'vite-plugin-solid';
-import wasm from 'vite-plugin-wasm';
+import { defineConfig } from 'vite'
+import solidPlugin from 'vite-plugin-solid'
+import wasm from 'vite-plugin-wasm'
 
 export default defineConfig({
   plugins: [solidPlugin(), wasm()],
@@ -38,4 +38,4 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['@fedimint/core-web'], // Exclude the WASM module if needed
   },
-});
+})
