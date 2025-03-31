@@ -1,4 +1,5 @@
-import { WorkerClient } from './worker'
+import { RpcClient } from './rpc'
+import { WebWorkerTransportInit } from './worker/WorkerTransport'
 import {
   BalanceService,
   MintService,
@@ -11,7 +12,7 @@ import { logger, type LogLevel } from './utils/logger'
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
 export class FedimintWallet {
-  private _client: WorkerClient
+  private _client: RpcClient
 
   public balance: BalanceService
   public mint: MintService
@@ -56,7 +57,7 @@ export class FedimintWallet {
     this._openPromise = new Promise((resolve) => {
       this._resolveOpen = resolve
     })
-    this._client = new WorkerClient()
+    this._client = new RpcClient(new WebWorkerTransportInit())
     this.mint = new MintService(this._client)
     this.lightning = new LightningService(this._client)
     this.balance = new BalanceService(this._client)
@@ -71,9 +72,9 @@ export class FedimintWallet {
   }
 
   async initialize() {
-    logger.info('Initializing WorkerClient')
+    logger.info('Initializing RpcClient')
     await this._client.initialize()
-    logger.info('WorkerClient initialized')
+    logger.info('RpcClient initialized')
   }
 
   async waitForOpen() {
@@ -85,14 +86,15 @@ export class FedimintWallet {
     await this._client.initialize()
     // TODO: Determine if this should be safe or throw
     if (this._isOpen) throw new Error('The FedimintWallet is already open.')
-    const { success } = await this._client.sendSingleMessage<{
-      success: boolean
-    }>('open', { clientName })
-    if (success) {
-      this._isOpen = !!success
+    try {
+      await this._client.openClient(clientName)
+      this._isOpen = true
       this._resolveOpen()
+      return true
+    } catch (e) {
+      logger.error('Error opening client', e)
+      return false
     }
-    return success
   }
 
   async joinFederation(
@@ -106,15 +108,10 @@ export class FedimintWallet {
         'The FedimintWallet is already open. You can only call `joinFederation` on closed clients.',
       )
     try {
-      const response = await this._client.sendSingleMessage<{
-        success: boolean
-      }>('join', { inviteCode, clientName })
-      if (response.success) {
-        this._isOpen = true
-        this._resolveOpen()
-      }
-
-      return response.success
+      await this._client.joinFederation(inviteCode, clientName)
+      this._isOpen = true
+      this._resolveOpen()
+      return true
     } catch (e) {
       logger.error('Error joining federation', e)
       return false
