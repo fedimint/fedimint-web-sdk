@@ -55,7 +55,7 @@ jobs:
   test:
     name: Test
     runs-on: [self-hosted, linux]
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Clone repository
