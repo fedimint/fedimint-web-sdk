@@ -8,7 +8,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@fedimint/core-web": "^0.0.10",
+    "@fedimint/core-web": "latest",
     "next": "15.2.4",
     "react": ">=19.1.0",
     "react-dom": ">=19.1.0"

@@ -11,7 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@fedimint/core-web": "^0.0.10"
+    "@fedimint/core-web": "latest"
   },
   "devDependencies": {
     "@babel/core": "^7.27.1",
