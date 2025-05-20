@@ -1,7 +1,7 @@
 {
   "name": "@fedimint/core-web",
   "description": "Library for building web apps with a fedimint client",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "repository": {
     "type": "git",
     "url": "https://github.com/fedimint/fedimint-web-sdk.git",

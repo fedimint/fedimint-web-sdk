@@ -1,5 +1,11 @@
 # @fedimint/fedimint-client-wasm-web
 
+## 0.0.3
+
+### Patch Changes
+
+- 6dd98ef: bumped wasm bundles to 0.0.3
+
 ## 0.0.2
 
 ### Patch Changes

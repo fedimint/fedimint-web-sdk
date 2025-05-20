@@ -1,5 +1,20 @@
 # @fedimint/core-web
 
+## 0.0.11
+
+### Patch Changes
+
+- 6dd98ef: Bump Deps - vitest, secp256k1, happy-dom, vite
+- 6dd98ef: Implemented parseInviteCode and parseBolt11Invoice
+
+  Added docs for usage of parseInviteCode and parseBolt11Invoice
+
+  Implemented parseBolt11Invoice and parseInviteCode in create-fedimint-app
+
+- 6dd98ef: Fixed CI with self-hosted runners @elserion
+- Updated dependencies [6dd98ef]
+  - @fedimint/fedimint-client-wasm-bundler@0.0.3
+
 ## 0.0.10
 
 ### Patch Changes
