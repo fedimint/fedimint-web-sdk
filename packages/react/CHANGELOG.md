@@ -1,5 +1,17 @@
 # @fedimint/react
 
+## 0.0.4
+
+### Patch Changes
+
+- 6dd98ef: Fixed behavior of useOpenWallet hook for concurrent usages.
+- 6dd98ef: Added useSpendEcash and useReceiveEcash hooks
+- 6dd98ef: Bump Deps - vitest, secp256k1, happy-dom, vite
+- Updated dependencies [6dd98ef]
+- Updated dependencies [6dd98ef]
+- Updated dependencies [6dd98ef]
+  - @fedimint/core-web@0.0.11
+
 ## 0.0.3
 
 ### Patch Changes
