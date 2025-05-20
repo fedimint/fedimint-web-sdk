@@ -1,7 +1,7 @@
 {
   "name": "create-fedimint-app",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "main": "index.js",
   "author": "Alex Lewin",
   "license": "MIT",

@@ -1,6 +1,6 @@
 {
   "name": "next-js",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@fedimint/core-web": "^0.0.11",
+    "@fedimint/core-web": "^0.0.10",
     "next": "15.2.4",
     "react": ">=19.1.0",
     "react-dom": ">=19.1.0"
