@@ -20,6 +20,7 @@ export function getSidebar() {
       items: [
         { text: 'Vite + React', link: 'vite-react' },
         { text: 'Vanilla JS', link: 'bare-js' },
+        { text: 'Next.JS', link: 'next-js' },
       ],
     },
     {
