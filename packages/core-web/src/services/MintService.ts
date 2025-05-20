@@ -70,7 +70,7 @@ export class MintService {
       'mint',
       'spend_notes',
       {
-        min_amount: amountMsats,
+        amount: amountMsats,
         try_cancel_after: duration,
         include_invite: includeInvite,
         extra_meta: extraMeta,
