@@ -1,4 +1,4 @@
-# open
+# isOpen
 
 ### `isOpen()`
 
