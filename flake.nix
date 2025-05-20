@@ -25,6 +25,9 @@
           default = pkgs.mkShell {
             nativeBuildInputs = [
               fedimint.packages.${system}.devimint
+              # NOTE: devimint-faucet was not properly exported as a standalone item before
+              # and in further releases, just became `devimint faucet`
+              fedimint.legacyPackages.${system}.devimint-faucet
               fedimint.packages.${system}.gateway-pkgs
               fedimint.packages.${system}.fedimint-pkgs
               pkgs.bitcoind
@@ -37,12 +40,13 @@
               pkgs.procps
               pkgs.which
               pkgs.git
+              pkgs.clightning
 
               pkgs.pnpm
               pkgs.nodejs_20
               # The version of playwright in nixpkgs has to match the version specified in package.json
               pkgs.playwright-driver.browsers
-            ];
+            ] ++ pkgs.lib.optionals (pkgs.stdenv.isLinux) [ pkgs.firefox ];
 
             shellHook = ''
               export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
