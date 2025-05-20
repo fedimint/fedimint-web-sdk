@@ -52,6 +52,14 @@ const FedimintWalletSidebar = [
         link: 'setLogLevel',
       },
       {
+        text: 'parseInviteCode()',
+        link: 'parseInviteCode',
+      },
+      {
+        text: 'parseBolt11Invoice()',
+        link: 'parseBolt11Invoice',
+      },
+      {
         text: 'joinFederation()',
         link: 'joinFederation',
       },

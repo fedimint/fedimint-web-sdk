@@ -2,6 +2,61 @@
 /* eslint-disable */
 /**
 */
+export class IntoUnderlyingByteSource {
+  free(): void;
+/**
+* @param {ReadableByteStreamController} controller
+*/
+  start(controller: ReadableByteStreamController): void;
+/**
+* @param {ReadableByteStreamController} controller
+* @returns {Promise<any>}
+*/
+  pull(controller: ReadableByteStreamController): Promise<any>;
+/**
+*/
+  cancel(): void;
+/**
+*/
+  readonly autoAllocateChunkSize: number;
+/**
+*/
+  readonly type: string;
+}
+/**
+*/
+export class IntoUnderlyingSink {
+  free(): void;
+/**
+* @param {any} chunk
+* @returns {Promise<any>}
+*/
+  write(chunk: any): Promise<any>;
+/**
+* @returns {Promise<any>}
+*/
+  close(): Promise<any>;
+/**
+* @param {any} reason
+* @returns {Promise<any>}
+*/
+  abort(reason: any): Promise<any>;
+}
+/**
+*/
+export class IntoUnderlyingSource {
+  free(): void;
+/**
+* @param {ReadableStreamDefaultController} controller
+* @returns {Promise<any>}
+*/
+  pull(controller: ReadableStreamDefaultController): Promise<any>;
+/**
+*/
+  cancel(): void;
+}
+/**
+*/
 export class RpcHandle {
   free(): void;
 /**
@@ -32,6 +87,20 @@ export class WasmClient {
 */
   static join_federation(client_name: string, invite_code: string): Promise<WasmClient>;
 /**
+* Parse an invite code and extract its components without joining the
+* federation
+* @param {string} invite_code
+* @returns {string}
+*/
+  static parse_invite_code(invite_code: string): string;
+/**
+* Parse a bolt11 invoice and extract its components
+* without joining the federation
+* @param {string} invoice_str
+* @returns {string}
+*/
+  static parse_bolt11_invoice(invoice_str: string): string;
+/**
 * Call a fedimint client rpc the responses are returned using `cb`
 * callback. Each rpc call *can* return multiple responses by calling
 * `cb` multiple times. The returned RpcHandle can be used to cancel the
@@ -54,32 +123,41 @@ export interface InitOutput {
   readonly rpchandle_cancel: (a: number) => void;
   readonly wasmclient_open: (a: number, b: number) => number;
   readonly wasmclient_join_federation: (a: number, b: number, c: number, d: number) => number;
+  readonly wasmclient_parse_invite_code: (a: number, b: number, c: number) => void;
+  readonly wasmclient_parse_bolt11_invoice: (a: number, b: number, c: number) => void;
   readonly wasmclient_rpc: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => number;
+  readonly __wbg_intounderlyingbytesource_free: (a: number) => void;
+  readonly intounderlyingbytesource_type: (a: number, b: number) => void;
+  readonly intounderlyingbytesource_autoAllocateChunkSize: (a: number) => number;
+  readonly intounderlyingbytesource_start: (a: number, b: number) => void;
+  readonly intounderlyingbytesource_pull: (a: number, b: number) => number;
+  readonly intounderlyingbytesource_cancel: (a: number) => void;
+  readonly __wbg_intounderlyingsource_free: (a: number) => void;
+  readonly intounderlyingsource_pull: (a: number, b: number) => number;
+  readonly intounderlyingsource_cancel: (a: number) => void;
+  readonly __wbg_intounderlyingsink_free: (a: number) => void;
+  readonly intounderlyingsink_write: (a: number, b: number) => number;
+  readonly intounderlyingsink_close: (a: number) => number;
+  readonly intounderlyingsink_abort: (a: number, b: number) => number;
+  readonly ring_core_0_17_8_bn_mul_mont: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
   readonly rustsecp256k1_v0_10_0_context_create: (a: number) => number;
   readonly rustsecp256k1_v0_10_0_context_destroy: (a: number) => void;
   readonly rustsecp256k1_v0_10_0_default_illegal_callback_fn: (a: number, b: number) => void;
   readonly rustsecp256k1_v0_10_0_default_error_callback_fn: (a: number, b: number) => void;
-  readonly ring_core_0_17_8_bn_mul_mont: (a: number, b: number, c: number, d: number, e: number, f: number) => void;
-  readonly rustsecp256k1_v0_6_1_context_create: (a: number) => number;
-  readonly rustsecp256k1_v0_6_1_context_destroy: (a: number) => void;
-  readonly rustsecp256k1_v0_6_1_default_illegal_callback_fn: (a: number, b: number) => void;
-  readonly rustsecp256k1_v0_6_1_default_error_callback_fn: (a: number, b: number) => void;
-  readonly rustsecp256k1_v0_8_1_context_create: (a: number) => number;
-  readonly rustsecp256k1_v0_8_1_context_destroy: (a: number) => void;
-  readonly rustsecp256k1_v0_8_1_default_illegal_callback_fn: (a: number, b: number) => void;
-  readonly rustsecp256k1_v0_8_1_default_error_callback_fn: (a: number, b: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export_2: WebAssembly.Table;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h74ee0aa9d6796e45: (a: number, b: number, c: number) => void;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h2e3953a051ad83d9: (a: number, b: number, c: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h85c0db7d59d21d18: (a: number, b: number) => void;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hb0eaa26544d2f671: (a: number, b: number, c: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h092019f160f24b1a: (a: number, b: number) => void;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hc9bf91ffddedbea9: (a: number, b: number, c: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hfc40bf9b854f8274: (a: number, b: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h2788518177513e34: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h35c6e8ead4941de0: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h459f9978e9d878e7: (a: number, b: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h17779c5ba415f925: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h28809fcf55f02a9d: (a: number, b: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h5a9de1219525df92: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7a4562dc0b76959f: (a: number, b: number) => void;
+  readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
+  readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
-  readonly wasm_bindgen__convert__closures__invoke2_mut__h10235f6a9066484b: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_bindgen__convert__closures__invoke2_mut__h40a29caa76e7bc97: (a: number, b: number, c: number, d: number) => void;
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;
