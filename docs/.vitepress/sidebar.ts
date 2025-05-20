@@ -21,6 +21,7 @@ export function getSidebar() {
         { text: 'Vite + React', link: 'vite-react' },
         { text: 'Vanilla JS', link: 'bare-js' },
         { text: 'Next.JS', link: 'next-js' },
+        { text: 'Webpack', link: 'webpack' },
       ],
     },
     {
@@ -39,7 +40,6 @@ export function getSidebar() {
 const FedimintWalletSidebar = [
   {
     text: 'Core',
-    collapsed: true,
     link: '.',
     base: '/core/FedimintWallet/',
     items: [
