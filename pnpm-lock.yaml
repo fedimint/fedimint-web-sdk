@@ -87,7 +87,7 @@ importers:
   examples/next-js:
     dependencies:
       '@fedimint/core-web':
-        specifier: ^0.0.10
+        specifier: latest
         version: 0.0.10
       next:
         specifier: 15.2.4
@@ -124,7 +124,7 @@ importers:
   examples/vite-core:
     dependencies:
       '@fedimint/core-web':
-        specifier: ^0.0.10
+        specifier: latest
         version: 0.0.10
       react:
         specifier: '>=19.1.0'
@@ -158,7 +158,7 @@ importers:
   examples/webpack-app:
     dependencies:
       '@fedimint/core-web':
-        specifier: ^0.0.10
+        specifier: latest
         version: 0.0.10
     devDependencies:
       '@babel/core':
