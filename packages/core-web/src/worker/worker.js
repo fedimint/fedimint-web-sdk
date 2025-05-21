@@ -45,6 +45,23 @@ self.onmessage = async (event) => {
       } catch (e) {
         self.postMessage({ type: 'error', error: e.message, requestId })
       }
+    } else if (type === 'previewFederation') {
+      const { inviteCode } = payload
+      try {
+        client = await WasmClient.preview_federation(inviteCode)
+        const parsed = JSON.parse(client)
+        self.postMessage({
+          type: 'previewFederation',
+          data: {
+            success: !!client,
+            config: parsed.config,
+            federation_id: parsed.federation_id,
+          },
+          requestId,
+        })
+      } catch (e) {
+        self.postMessage({ type: 'error', error: e.message, requestId })
+      }
     } else if (type === 'rpc') {
       const { module, method, body } = payload
       console.log('RPC received', module, method, body)

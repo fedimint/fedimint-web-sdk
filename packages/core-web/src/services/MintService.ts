@@ -117,4 +117,12 @@ export class MintService {
       operation_id: operationId,
     })
   }
+
+  async getNotesByDenomination() {
+    return await this.client.rpcSingle(
+      'mint',
+      'note_counts_by_denomination',
+      {},
+    )
+  }
 }

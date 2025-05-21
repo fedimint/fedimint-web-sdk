@@ -1,6 +1,6 @@
 import { MSats, Duration, JSONValue } from './utils'
 
-const MODULE_KINDS = ['', 'ln', 'mint'] as const
+const MODULE_KINDS = ['', 'ln', 'mint', 'wallet'] as const
 type ModuleKind = (typeof MODULE_KINDS)[number]
 type GatewayInfo = {
   gateway_id: string
@@ -93,6 +93,22 @@ type SpendNotesState =
   | 'Success'
   | 'Refunded'
 
+type TxOutputSummary = {
+  outpoint: {
+    txid: string
+    vout: number
+  }
+  amount: number
+}
+
+type WalletSummary = {
+  spendable_utxos: TxOutputSummary[]
+  unsigned_peg_out_utxos: TxOutputSummary[]
+  unsigned_change_utxos: TxOutputSummary[]
+  unconfirmed_peg_out_utxos: TxOutputSummary[]
+  unconfirmed_change_utxos: TxOutputSummary[]
+}
+
 export {
   LightningGateway,
   RouteHint,
@@ -111,4 +127,5 @@ export {
   ReissueExternalNotesState,
   MintSpendNotesResponse,
   SpendNotesState,
+  WalletSummary,
 }
