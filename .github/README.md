@@ -38,6 +38,8 @@ fedimint-web-sdk
 ├── README.md
 ├── examples
 │   ├── vite-core
+│   ├── next-js
+│   ├── webpack-app
 │   └── bare-js
 └── packages
     ├── core-web
@@ -51,6 +53,8 @@ fedimint-web-sdk
 
 - [`vite-core`](../examples/vite-core/README.md): Simple example of how to use the `core-web` package within a React app bundled with Vite.
 - [`bare-js`](../examples/bare-js/README.md): Simple example of how to use the `core-web` package in a bare javascript environment (no bundler)
+- [`next-js`](../examples/next-js/README.md): Example configuration for use within a `nextjs` project.
+- [`webpack-app`](../examples/webpack-app/README.md): Example configuration for use within a project bundled with `webpack`.
 
 ### Credit
 
