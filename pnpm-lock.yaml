@@ -19,7 +19,7 @@ importers:
         version: 20.17.49
       '@vitest/browser':
         specifier: ^2.1.9
-        version: 2.1.9(@types/node@20.17.49)(playwright@1.40.0)(typescript@5.5.2)(vite@5.4.14(@types/node@20.17.49)(lightningcss@1.30.1)(terser@5.32.0))(vitest@2.1.9)
+        version: 2.1.9(@types/node@20.17.49)(playwright@1.50.1)(typescript@5.5.2)(vite@5.4.14(@types/node@20.17.49)(lightningcss@1.30.1)(terser@5.32.0))(vitest@2.1.9)
       '@vitest/coverage-v8':
         specifier: ^2.1.9
         version: 2.1.9(@vitest/browser@2.1.9)(vitest@2.1.9)
@@ -39,8 +39,8 @@ importers:
         specifier: ^8.0.0
         version: 8.0.0
       playwright:
-        specifier: 1.40.0
-        version: 1.40.0
+        specifier: 1.50.1
+        version: 1.50.1
       prettier:
         specifier: ^3.5.3
         version: 3.5.3
@@ -4862,14 +4862,14 @@ packages:
   pkg-types@2.1.0:
     resolution: {integrity: sha512-wmJwA+8ihJixSoHKxZJRBQG1oY8Yr9pGLzRmSsNms0iNWyHHAlZCa7mmKiFR10YPZuz/2k169JiS/inOjBCZ2A==}
 
-  playwright-core@1.40.0:
-    resolution: {integrity: sha512-fvKewVJpGeca8t0ipM56jkVSU6Eo0RmFvQ/MaCQNDYm+sdvKkMBBWTE1FdeMqIdumRaXXjZChWHvIzCGM/tA/Q==}
-    engines: {node: '>=16'}
+  playwright-core@1.50.1:
+    resolution: {integrity: sha512-ra9fsNWayuYumt+NiM069M6OkcRb1FZSK8bgi66AtpFoWkg2+y0bJSNmkFrWhMbEBbVKC/EruAHH3g0zmtwGmQ==}
+    engines: {node: '>=18'}
     hasBin: true
 
-  playwright@1.40.0:
-    resolution: {integrity: sha512-gyHAgQjiDf1m34Xpwzaqb76KgfzYrhK7iih+2IzcOCoZWr/8ZqmdBw+t0RU85ZmfJMgtgAiNtBQ/KS2325INXw==}
-    engines: {node: '>=16'}
+  playwright@1.50.1:
+    resolution: {integrity: sha512-G8rwsOQJ63XG6BbKj2w5rHeavFjy5zynBA9zsJMMtBoe/Uf757oG12NXz6e6OirF7RCrTVAKFXbLmn1RbL7Qaw==}
+    engines: {node: '>=18'}
     hasBin: true
 
   portfinder@1.0.32:
@@ -8501,7 +8501,7 @@ snapshots:
       vite: 5.4.8(@types/node@22.5.5)(lightningcss@1.30.1)(terser@5.32.0)
       vue: 3.5.10(typescript@5.8.3)
 
-  '@vitest/browser@2.1.9(@types/node@20.17.49)(playwright@1.40.0)(typescript@5.5.2)(vite@5.4.14(@types/node@20.17.49)(lightningcss@1.30.1)(terser@5.32.0))(vitest@2.1.9)':
+  '@vitest/browser@2.1.9(@types/node@20.17.49)(playwright@1.50.1)(typescript@5.5.2)(vite@5.4.14(@types/node@20.17.49)(lightningcss@1.30.1)(terser@5.32.0))(vitest@2.1.9)':
     dependencies:
       '@testing-library/dom': 10.4.0
       '@testing-library/user-event': 14.5.2(@testing-library/dom@10.4.0)
@@ -8514,7 +8514,7 @@ snapshots:
       vitest: 2.1.9(@types/node@20.17.49)(@vitest/browser@2.1.9)(@vitest/ui@2.1.9)(happy-dom@15.11.7)(lightningcss@1.30.1)(msw@2.7.0(@types/node@20.17.49)(typescript@5.5.2))(terser@5.32.0)
       ws: 8.18.0
     optionalDependencies:
-      playwright: 1.40.0
+      playwright: 1.50.1
     transitivePeerDependencies:
       - '@types/node'
       - bufferutil
@@ -8538,7 +8538,7 @@ snapshots:
       tinyrainbow: 1.2.0
       vitest: 2.1.9(@types/node@20.17.49)(@vitest/browser@2.1.9)(@vitest/ui@2.1.9)(happy-dom@15.11.7)(lightningcss@1.30.1)(msw@2.7.0(@types/node@20.17.49)(typescript@5.5.2))(terser@5.32.0)
     optionalDependencies:
-      '@vitest/browser': 2.1.9(@types/node@20.17.49)(playwright@1.40.0)(typescript@5.5.2)(vite@5.4.14(@types/node@20.17.49)(lightningcss@1.30.1)(terser@5.32.0))(vitest@2.1.9)
+      '@vitest/browser': 2.1.9(@types/node@20.17.49)(playwright@1.50.1)(typescript@5.5.2)(vite@5.4.14(@types/node@20.17.49)(lightningcss@1.30.1)(terser@5.32.0))(vitest@2.1.9)
     transitivePeerDependencies:
       - supports-color
 
@@ -11211,11 +11211,11 @@ snapshots:
       exsolve: 1.0.5
       pathe: 2.0.3
 
-  playwright-core@1.40.0: {}
+  playwright-core@1.50.1: {}
 
-  playwright@1.40.0:
+  playwright@1.50.1:
     dependencies:
-      playwright-core: 1.40.0
+      playwright-core: 1.50.1
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -12487,7 +12487,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.17.49
-      '@vitest/browser': 2.1.9(@types/node@20.17.49)(playwright@1.40.0)(typescript@5.5.2)(vite@5.4.14(@types/node@20.17.49)(lightningcss@1.30.1)(terser@5.32.0))(vitest@2.1.9)
+      '@vitest/browser': 2.1.9(@types/node@20.17.49)(playwright@1.50.1)(typescript@5.5.2)(vite@5.4.14(@types/node@20.17.49)(lightningcss@1.30.1)(terser@5.32.0))(vitest@2.1.9)
       '@vitest/ui': 2.1.9(vitest@2.1.9)
       happy-dom: 15.11.7
     transitivePeerDependencies:

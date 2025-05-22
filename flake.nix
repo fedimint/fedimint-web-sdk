@@ -2,7 +2,7 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     fedimint = {
-      url = "github:fedimint/fedimint?ref=v0.6.1";
+      url = "github:fedimint/fedimint?ref=v0.7.2";
     };
   };
   outputs =
@@ -27,6 +27,7 @@
               fedimint.packages.${system}.devimint
               fedimint.packages.${system}.gateway-pkgs
               fedimint.packages.${system}.fedimint-pkgs
+              fedimint.packages.${system}.fedimint-recurringd
               pkgs.bitcoind
               pkgs.electrs
               pkgs.jq
