@@ -21,6 +21,9 @@ export default defineWorkspace([
         },
         screenshotFailures: false,
       },
+      env: {
+        FAUCET: `http://localhost:15243`,
+      },
     },
   },
   {

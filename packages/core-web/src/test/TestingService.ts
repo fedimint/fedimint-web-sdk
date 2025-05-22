@@ -25,7 +25,7 @@ export class TestingService {
   }
 
   async getInviteCode() {
-    const res = await fetch('http://localhost:15243/connect-string')
+    const res = await fetch(`${import.meta.env.FAUCET}/connect-string`)
     if (res.ok) {
       return await res.text()
     } else {
@@ -34,7 +34,7 @@ export class TestingService {
   }
 
   private async getFaucetGatewayApi() {
-    const res = await fetch('http://localhost:15243/gateway-api')
+    const res = await fetch(`${import.meta.env.FAUCET}/gateway-api`)
     if (res.ok) {
       return await res.text()
     } else {
@@ -43,6 +43,7 @@ export class TestingService {
   }
 
   async getFaucetGatewayInfo() {
+    await this.lightning.updateGatewayCache()
     const gateways = await this.lightning.listGateways()
     const api = await this.getFaucetGatewayApi()
     const gateway = gateways.find((g) => g.info.api === api)
@@ -53,7 +54,7 @@ export class TestingService {
   }
 
   async payFaucetInvoice(invoice: string) {
-    const res = await fetch('http://localhost:15243/pay', {
+    const res = await fetch(`${import.meta.env.FAUCET}/pay`, {
       method: 'POST',
       body: invoice,
     })
@@ -65,7 +66,7 @@ export class TestingService {
   }
 
   async createFaucetInvoice(amount: number) {
-    const res = await fetch('http://localhost:15243/invoice', {
+    const res = await fetch(`${import.meta.env.FAUCET}/invoice`, {
       method: 'POST',
       body: amount.toString(),
     })
