@@ -117,9 +117,7 @@ const FedimintWalletSidebar = [
       {
         text: 'WalletService',
         base: '/core/FedimintWallet/WalletService/',
-        items: [
-          { text: 'getWalletSummary()', link: 'getWalletSummary' },
-        ]
+        items: [{ text: 'getWalletSummary()', link: 'getWalletSummary' }],
       },
       {
         text: 'FederationService',
