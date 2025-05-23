@@ -58,3 +58,16 @@ walletTest('empty getBalance', async ({ wallet }) => {
   await expect(wallet.waitForOpen()).resolves.toBeUndefined()
   await expect(wallet.balance.getBalance()).resolves.toEqual(0)
 })
+
+walletTest('previewFederation', async ({ unopenedWallet }) => {
+  const preview = await unopenedWallet.previewFederation(
+    unopenedWallet.testing.TESTING_INVITE,
+  )
+  expect(preview).toBeDefined()
+  expect(preview.config).toBeDefined()
+  expect(preview.federation_id).toBeDefined()
+  expect(preview).toMatchObject({
+    config: expect.any(Object),
+    federation_id: expect.any(String),
+  })
+})

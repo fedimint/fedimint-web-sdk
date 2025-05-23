@@ -17,6 +17,17 @@ const handleFree = (requestId) => {
 
 console.log('Worker - init')
 
+/**
+ * Type definitions for the worker messages
+ *
+ * @typedef {import('../types/worker').WorkerMessageType} WorkerMessageType
+ * @typedef {{
+ *  type: WorkerMessageType
+ *  payload: any
+ *  requestId: number
+ * }} WorkerMessage
+ * @param {{data: WorkerMessage}} event
+ */
 self.onmessage = async (event) => {
   const { type, payload, requestId } = event.data
 
@@ -40,6 +51,23 @@ self.onmessage = async (event) => {
         self.postMessage({
           type: 'join',
           data: { success: !!client },
+          requestId,
+        })
+      } catch (e) {
+        self.postMessage({ type: 'error', error: e.message, requestId })
+      }
+    } else if (type === 'previewFederation') {
+      const { inviteCode } = payload
+      try {
+        client = await WasmClient.preview_federation(inviteCode)
+        const parsed = JSON.parse(client)
+        self.postMessage({
+          type: 'previewFederation',
+          data: {
+            success: !!client,
+            config: parsed.config,
+            federation_id: parsed.federation_id,
+          },
           requestId,
         })
       } catch (e) {

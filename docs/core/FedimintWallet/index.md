@@ -161,6 +161,24 @@ After this call, the FedimintWallet instance should be discarded.
 
 ---
 
+### previewFederation(inviteCode)
+
+> **previewFederation**(`inviteCode`): `Promise`\<`{ config: string; federation_id: string }`\>
+
+#### Parameters
+
+• **inviteCode**: `string`
+
+#### Returns
+
+`Promise`\<`{ config: string; federation_id: string }`\>
+
+#### Defined in
+
+[FedimintWallet.ts:141](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/core-web/src/FedimintWallet.ts#L141)
+
+---
+
 ### open()
 
 > **open**(`clientName`): `Promise`\<`any`\>

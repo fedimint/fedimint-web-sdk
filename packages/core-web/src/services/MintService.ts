@@ -5,6 +5,7 @@ import type {
   JSONValue,
   MintSpendNotesResponse,
   MSats,
+  NoteCountByDenomination,
   ReissueExternalNotesState,
   SpendNotesState,
 } from '../types'
@@ -116,5 +117,13 @@ export class MintService {
     return await this.client.rpcSingle('mint', 'await_spend_oob_refund', {
       operation_id: operationId,
     })
+  }
+
+  async getNotesByDenomination() {
+    return await this.client.rpcSingle<NoteCountByDenomination>(
+      'mint',
+      'note_counts_by_denomination',
+      {},
+    )
   }
 }

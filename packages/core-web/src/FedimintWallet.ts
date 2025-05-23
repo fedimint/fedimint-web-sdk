@@ -5,9 +5,10 @@ import {
   LightningService,
   FederationService,
   RecoveryService,
+  WalletService,
 } from './services'
 import { logger, type LogLevel } from './utils/logger'
-import { JSONValue } from './types'
+import { FederationConfig, JSONValue } from './types'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
@@ -19,6 +20,7 @@ export class FedimintWallet {
   public lightning: LightningService
   public federation: FederationService
   public recovery: RecoveryService
+  public wallet: WalletService
 
   private _openPromise: Promise<void> | undefined = undefined
   private _resolveOpen: () => void = () => {}
@@ -63,6 +65,7 @@ export class FedimintWallet {
     this.balance = new BalanceService(this._client)
     this.federation = new FederationService(this._client)
     this.recovery = new RecoveryService(this._client)
+    this.wallet = new WalletService(this._client)
 
     logger.info('FedimintWallet instantiated')
 
@@ -134,6 +137,14 @@ export class FedimintWallet {
 
   isOpen() {
     return this._isOpen
+  }
+
+  async previewFederation(inviteCode: string) {
+    const response = this._client.sendSingleMessage<{
+      config: FederationConfig
+      federation_id: string
+    }>('previewFederation', { inviteCode })
+    return response
   }
 
   /**

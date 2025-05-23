@@ -1,7 +1,11 @@
-import { MSats, Duration, JSONValue } from './utils'
+import { MSats, Duration, JSONValue, JSONObject } from './utils'
 
-const MODULE_KINDS = ['', 'ln', 'mint'] as const
+const MODULE_KINDS = ['', 'ln', 'mint', 'wallet'] as const
 type ModuleKind = (typeof MODULE_KINDS)[number]
+
+// TODO: Define the structure of FederationConfig
+type FederationConfig = JSONObject
+
 type GatewayInfo = {
   gateway_id: string
   api: string
@@ -93,8 +97,28 @@ type SpendNotesState =
   | 'Success'
   | 'Refunded'
 
+type TxOutputSummary = {
+  outpoint: {
+    txid: string
+    vout: number
+  }
+  amount: number
+}
+
+type WalletSummary = {
+  spendable_utxos: TxOutputSummary[]
+  unsigned_peg_out_txos: TxOutputSummary[]
+  unsigned_change_utxos: TxOutputSummary[]
+  unconfirmed_peg_out_txos: TxOutputSummary[]
+  unconfirmed_change_utxos: TxOutputSummary[]
+}
+
+/** Keys are powers of 2 */
+type NoteCountByDenomination = Record<number, number>
+
 export {
   LightningGateway,
+  FederationConfig,
   RouteHint,
   FeeToAmount,
   OutgoingLightningPayment,
@@ -111,4 +135,7 @@ export {
   ReissueExternalNotesState,
   MintSpendNotesResponse,
   SpendNotesState,
+  WalletSummary,
+  TxOutputSummary,
+  NoteCountByDenomination,
 }

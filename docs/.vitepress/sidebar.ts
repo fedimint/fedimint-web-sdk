@@ -76,6 +76,10 @@ const FedimintWalletSidebar = [
         link: 'cleanup',
       },
       {
+        text: 'previewFederation()',
+        link: 'previewFederation',
+      },
+      {
         text: 'BalanceService',
         base: '/core/FedimintWallet/BalanceService/',
         items: [
@@ -107,7 +111,13 @@ const FedimintWalletSidebar = [
           { text: 'redeemEcash()', link: 'redeemEcash' },
           { text: 'spendNotes()', link: 'spendNotes' },
           { text: 'parseNotes()', link: 'parseNotes' },
+          { text: 'getNotesByDenomination()', link: 'getNotesByDenomination' },
         ],
+      },
+      {
+        text: 'WalletService',
+        base: '/core/FedimintWallet/WalletService/',
+        items: [{ text: 'getWalletSummary()', link: 'getWalletSummary' }],
       },
       {
         text: 'FederationService',
