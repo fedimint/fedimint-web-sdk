@@ -8,7 +8,7 @@ import {
   WalletService,
 } from './services'
 import { logger, type LogLevel } from './utils/logger'
-import { JSONValue } from './types'
+import { FederationConfig, JSONValue } from './types'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
@@ -141,7 +141,7 @@ export class FedimintWallet {
 
   async previewFederation(inviteCode: string) {
     const response = this._client.sendSingleMessage<{
-      config: string
+      config: FederationConfig
       federation_id: string
     }>('previewFederation', { inviteCode })
     return response
