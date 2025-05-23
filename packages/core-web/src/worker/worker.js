@@ -17,6 +17,17 @@ const handleFree = (requestId) => {
 
 console.log('Worker - init')
 
+/**
+ * Type definitions for the worker messages
+ *
+ * @typedef {import('../types/worker').WorkerMessageType} WorkerMessageType
+ * @typedef {{
+ *  type: WorkerMessageType
+ *  payload: any
+ *  requestId: number
+ * }} WorkerMessage
+ * @param {{data: WorkerMessage}} event
+ */
 self.onmessage = async (event) => {
   const { type, payload, requestId } = event.data
 
