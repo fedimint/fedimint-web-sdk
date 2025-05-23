@@ -1,5 +1,21 @@
 # @fedimint/fedimint-client-wasm-web
 
+## 0.1.0
+
+### Minor Changes
+
+- f95792f: Implemented getNotesByDenomination in mint service
+
+  Added and implemented getWalletSummary in wallet service
+
+  Implemented previewFederation
+
+  Added docs for the implementation of getNotesByDenomination, getWalletSummary, previewFederation
+
+### Patch Changes
+
+- 22ac0ce: Bumped fedimint client wasm to fedimint commit a0c64e374df5b061d1f6988ff720e2119013aa48
+
 ## 0.0.3
 
 ### Patch Changes
