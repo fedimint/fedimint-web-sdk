@@ -22,3 +22,13 @@ walletTest(
     expect(summary).toEqual(expect.objectContaining(expectedSummary))
   },
 )
+
+walletTest('', async ({ wallet }) => {
+  expect(wallet).toBeDefined()
+  expect(wallet.isOpen()).toBe(true)
+  const response = await wallet.wallet.pegin()
+  expect(response).toEqual({
+    deposit_address: expect.any(String),
+    operation_id: expect.any(String),
+  })
+})
