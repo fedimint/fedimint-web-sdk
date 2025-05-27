@@ -23,12 +23,31 @@ walletTest(
   },
 )
 
-walletTest('', async ({ wallet }) => {
+walletTest('pegin should always return an address', async ({ wallet }) => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
   const response = await wallet.wallet.pegin()
+
   expect(response).toEqual({
     deposit_address: expect.any(String),
     operation_id: expect.any(String),
   })
 })
+
+walletTest(
+  'pegout should return an operation ID after sending funds',
+  async ({ wallet }) => {
+    expect(wallet).toBeDefined()
+    expect(wallet.isOpen()).toBe(true)
+
+    const amount = 1000
+    const destination =
+      'bc1q2nvw96926efy0wtcm60qj26d0mspgsqjdkt9q8hwmmge2srkelgswz76zz'
+
+    const response = await wallet.wallet.pegout(amount, destination)
+
+    expect(response).toEqual({
+      operation_id: expect.any(String),
+    })
+  },
+)
