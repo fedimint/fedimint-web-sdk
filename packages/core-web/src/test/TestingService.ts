@@ -20,10 +20,6 @@ export class TestingService {
     return this.client._getRequestCounter()
   }
 
-  getRequestCallbackMap() {
-    return this.client._getRequestCallbackMap()
-  }
-
   async getInviteCode() {
     const res = await fetch(`${import.meta.env.FAUCET}/connect-string`)
     if (res.ok) {
