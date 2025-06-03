@@ -28,6 +28,7 @@ export class RpcClient {
   private requestCounter = 0
   private subscriptionManager: SubscriptionManager
   private initPromise?: Promise<void>
+  // Won't have this as a instance variable
   private clientName: string | undefined
 
   constructor(transportInit: RpcTransportInit) {
