@@ -8,7 +8,6 @@ import { WorkerClient } from '../worker/WorkerClient'
 export const walletTest = test.extend<{
   wallet: TestFedimintWallet
   fundedWallet: TestFedimintWallet
-  unopenedWallet: TestFedimintWallet
 }>({
   wallet: async ({}, use) => {
     const randomTestingId = Math.random().toString(36).substring(2, 15)
@@ -37,11 +36,6 @@ export const walletTest = test.extend<{
     await wallet.fundWallet(10_000)
     await use(wallet)
   },
-  unopenedWallet: async ({}, use) => {
-    const wallet = new TestFedimintWallet()
-    await wallet.initialize()
-    await use(wallet)
-  },
 })
 
 /**
@@ -64,7 +58,7 @@ export const workerTest = test.extend<{
     await use(randomTestingId)
   },
   workerClient: async ({}, use) => {
-    const workerClient = new WorkerClient()
+    const workerClient = new RpcClient()
     await use(workerClient)
   },
 })

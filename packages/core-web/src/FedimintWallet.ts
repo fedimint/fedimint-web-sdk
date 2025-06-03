@@ -1,4 +1,5 @@
-import { WorkerClient } from './worker'
+import { RpcClient } from './rpc'
+import { WebWorkerTransportInit } from './worker/WorkerTransport'
 import {
   BalanceService,
   MintService,
@@ -8,12 +9,16 @@ import {
   WalletService,
 } from './services'
 import { logger, type LogLevel } from './utils/logger'
-import { FederationConfig, JSONValue } from './types'
+import {
+  preview_federation,
+  parse_bolt11_invoice,
+  parse_invite_code,
+} from '@fedimint/fedimint-client-wasm-bundler'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
 export class FedimintWallet {
-  private _client: WorkerClient
+  private _client: RpcClient
 
   public balance: BalanceService
   public mint: MintService
@@ -59,7 +64,7 @@ export class FedimintWallet {
     this._openPromise = new Promise((resolve) => {
       this._resolveOpen = resolve
     })
-    this._client = new WorkerClient()
+    this._client = new RpcClient(new WebWorkerTransportInit())
     this.mint = new MintService(this._client)
     this.lightning = new LightningService(this._client)
     this.balance = new BalanceService(this._client)
@@ -75,9 +80,9 @@ export class FedimintWallet {
   }
 
   async initialize() {
-    logger.info('Initializing WorkerClient')
+    logger.info('Initializing RpcClient')
     await this._client.initialize()
-    logger.info('WorkerClient initialized')
+    logger.info('RpcClient initialized')
   }
 
   async waitForOpen() {
@@ -86,17 +91,23 @@ export class FedimintWallet {
   }
 
   async open(clientName: string = DEFAULT_CLIENT_NAME) {
-    await this._client.initialize()
-    // TODO: Determine if this should be safe or throw
-    if (this._isOpen) throw new Error('The FedimintWallet is already open.')
-    const { success } = await this._client.sendSingleMessage<{
-      success: boolean
-    }>('open', { clientName })
-    if (success) {
-      this._isOpen = !!success
-      this._resolveOpen()
+    // If already open with the same client name, return success
+    if (this._isOpen) {
+      logger.warn('Wallet is already open')
+      return true
     }
-    return success
+
+    await this.initialize()
+
+    try {
+      await this._client.openClient(clientName)
+      this._isOpen = true
+      this._resolveOpen()
+      return true
+    } catch (e) {
+      logger.error('Error opening client', e)
+      return false
+    }
   }
 
   async joinFederation(
@@ -110,18 +121,64 @@ export class FedimintWallet {
         'The FedimintWallet is already open. You can only call `joinFederation` on closed clients.',
       )
     try {
-      const response = await this._client.sendSingleMessage<{
-        success: boolean
-      }>('join', { inviteCode, clientName })
-      if (response.success) {
-        this._isOpen = true
-        this._resolveOpen()
-      }
-
-      return response.success
+      await this._client.joinFederation(inviteCode, clientName)
+      this._isOpen = true
+      this._resolveOpen()
+      return true
     } catch (e) {
       logger.error('Error joining federation', e)
       return false
+    }
+  }
+
+  /**
+   * Preview a federation configuration from an invite code without joining
+   * @param inviteCode - The federation invite code to preview
+   * @returns Promise containing federation config and ID
+   */
+  async previewFederation(inviteCode: string) {
+    try {
+      logger.debug('Previewing federation with invite code:', inviteCode)
+      const result = await preview_federation(inviteCode)
+      logger.debug('Federation preview result:', result)
+      return result
+    } catch (error) {
+      logger.error('Error previewing federation:', error)
+      throw new Error(`Failed to preview federation: ${error}`)
+    }
+  }
+
+  /**
+   * Parses a BOLT11 invoice string into its components.
+   * @param invoice - The BOLT11 invoice string to parse.
+   * @returns Parsed invoice object containing details like amount, description, etc.
+   */
+  async parseBolt11Invoice(invoice: string) {
+    try {
+      logger.debug('Parsing BOLT11 invoice:', invoice)
+      const result = await parse_bolt11_invoice(invoice)
+      logger.debug('Parsed invoice result:', result)
+      return result
+    } catch (error) {
+      logger.error('Error parsing BOLT11 invoice:', error)
+      throw new Error(`Failed to parse BOLT11 invoice: ${error}`)
+    }
+  }
+
+  /**
+   * Parses an invite code into its components.
+   * @param inviteCode - The invite code to parse.
+   * @returns Parsed invite code object containing federation ID and other details.
+   */
+  async parseInviteCode(inviteCode: string) {
+    try {
+      logger.debug('Parsing invite code:', inviteCode)
+      const result = await parse_invite_code(inviteCode)
+      logger.debug('Parsed invite code result:', result)
+      return result
+    } catch (error) {
+      logger.error('Error parsing invite code:', error)
+      throw new Error(`Failed to parse invite code: ${error}`)
     }
   }
 
@@ -139,14 +196,6 @@ export class FedimintWallet {
     return this._isOpen
   }
 
-  async previewFederation(inviteCode: string) {
-    const response = this._client.sendSingleMessage<{
-      config: FederationConfig
-      federation_id: string
-    }>('previewFederation', { inviteCode })
-    return response
-  }
-
   /**
    * Sets the log level for the library.
    * @param level The desired log level ('DEBUG', 'INFO', 'WARN', 'ERROR', 'NONE').
@@ -156,60 +205,16 @@ export class FedimintWallet {
     logger.info(`Log level set to ${level}.`)
   }
 
-  /**
-   * Parses a federation invite code and retrieves its details.
-   *
-   * This method sends the provided invite code to the WorkerClient for parsing.
-   * The response includes the federation_id and url.
-   *
-   * @param {string} inviteCode - The invite code to be parsed.
-   * @returns {Promise<{ federation_id: string, url: string}>}
-   *          A promise that resolves to an object containing:
-   *          - `federation_id`: The id of the feder.
-   *          - `url`: One of the apipoints to connect to the federation
-   *
-   * @throws {Error} If the WorkerClient encounters an issue during the parsing process.
-   *
-   * @example
-   * const inviteCode = "example-invite-code";
-   * const parsedCode = await wallet.parseInviteCode(inviteCode);
-   * console.log(parsedCode.federation_id, parsedCode.url);
-   */
-  async parseInviteCode(inviteCode: string) {
-    const response = await this._client.sendSingleMessage<{
-      type: string
-      data: JSONValue
-      requestId: number
-    }>('parseInviteCode', { inviteCode })
-    return response
+  // Debug/Testing methods
+  _getActiveSubscriptionIds(): number[] {
+    return this._client._getActiveSubscriptionIds()
   }
 
-  /**
-   * Parses a BOLT11 Lightning invoice and retrieves its details.
-   *
-   * This method sends the provided invoice string to the WorkerClient for parsing.
-   * The response includes details such as the amount, expiry, and memo.
-   *
-   * @param {string} invoiceStr - The BOLT11 invoice string to be parsed.
-   * @returns {Promise<{ amount: string, expiry: number, memo: string }>}
-   *          A promise that resolves to an object containing:
-   *          - `amount`: The amount specified in the invoice.
-   *          - `expiry`: The expiry time of the invoice in seconds.
-   *          - `memo`: A description or memo attached to the invoice.
-   *
-   * @throws {Error} If the WorkerClient encounters an issue during the parsing process.
-   *
-   * @example
-   * const invoiceStr = "lnbc1...";
-   * const parsedInvoice = await wallet.parseBolt11Invoice(invoiceStr);
-   * console.log(parsedInvoice.amount, parsedInvoice.expiry, parsedInvoice.memo);
-   */
-  async parseBolt11Invoice(invoiceStr: string) {
-    const response = await this._client.sendSingleMessage<{
-      type: string
-      data: JSONValue
-      requestId: number
-    }>('parseBolt11Invoice', { invoiceStr })
-    return response
+  _getActiveSubscriptionCount(): number {
+    return this._client._getActiveSubscriptionCount()
+  }
+
+  _getRequestCounter(): number {
+    return this._client._getRequestCounter()
   }
 }
