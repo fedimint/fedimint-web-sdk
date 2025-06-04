@@ -47,3 +47,9 @@ export type RpcResponse =
   | {
       type: 'end'
     }
+  | {
+      type: 'log'
+      message: string
+      level: 'debug' | 'info' | 'warn' | 'error'
+      data: any
+    }
