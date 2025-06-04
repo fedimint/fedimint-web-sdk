@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { TestFedimintWallet } from './TestFedimintWallet'
 import { RpcClient } from '../rpc'
-import { WebWorkerTransportInit } from '../worker/WorkerTransport'
+import { createWebWorkerTransport } from '../worker/WorkerTransport'
 
 /**
  * Adds Fixtures for setting up and tearing down a test FedimintWallet instance
@@ -65,7 +65,7 @@ export const workerTest = test.extend<{
     await use(randomTestingId)
   },
   workerClient: async ({}, use) => {
-    const workerClient = new RpcClient(new WebWorkerTransportInit())
+    const workerClient = new RpcClient(createWebWorkerTransport)
     await use(workerClient)
   },
 })
