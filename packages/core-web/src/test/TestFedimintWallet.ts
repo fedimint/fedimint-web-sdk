@@ -8,6 +8,7 @@ export class TestFedimintWallet extends FedimintWallet {
   constructor() {
     super()
     this.testing = new TestingService(this.getWorkerClient(), this.lightning)
+    this.setLogLevel('error')
   }
 
   async fundWallet(amount: number) {
