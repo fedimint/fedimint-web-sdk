@@ -8,19 +8,19 @@ export class WalletService {
     return await this.client.rpcSingle('wallet', 'get_wallet_summary', {})
   }
 
-  async pegin(extraMeta: JSONValue = {}): Promise<PegInResponse> {
-    return await this.client.rpcSingle('wallet', 'peg_in', {
+  async generateAddress(extraMeta: JSONValue = {}) {
+    return await this.client.rpcSingle<PegInResponse>('wallet', 'peg_in', {
       extra_meta: extraMeta,
     })
   }
 
-  async pegout(
-    amount: number,
+  async withdraw(
+    amountSat: number,
     address: string,
     extraMeta: JSONValue = {},
   ): Promise<{ operation_id: string }> {
     return await this.client.rpcSingle('wallet', 'peg_out', {
-      amount_sat: amount,
+      amount_sat: amountSat,
       destination_address: address,
       extra_meta: extraMeta,
     })

@@ -13,5 +13,6 @@ wallet.open()
 
 const extraMeta = {}
 
-const { deposit_address, operation_id } = await wallet.wallet.pegin(extraMeta)
+const { deposit_address, operation_id } =
+  await wallet.wallet.generateAddress(extraMeta)
 ```

@@ -15,5 +15,9 @@ const amount = 20 // amount in sat
 const address = '0x3432....'
 const extraMeta = {}
 
-const { operation_id } = await wallet.wallet.pegout(amount, address, extraMeta)
+const { operation_id } = await wallet.wallet.withdraw(
+  amount,
+  address,
+  extraMeta,
+)
 ```
