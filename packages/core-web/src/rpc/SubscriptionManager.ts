@@ -1,7 +1,7 @@
 import type { CancelFunction, RpcResponse, JSONValue } from '../types'
 import { logger } from '../utils/logger'
 
-export interface Subscription<T extends JSONValue = JSONValue> {
+export type Subscription<T extends JSONValue = JSONValue> = {
   id: number
   onData: (data: T) => void
   onError: (error: string) => void
@@ -66,6 +66,9 @@ export class SubscriptionManager {
       case 'aborted':
         subscription.onEnd()
         this.removeSubscription(requestId)
+        break
+      case 'log':
+        logger.debug('SubscriptionManager - handleResponse', response)
         break
     }
   }
