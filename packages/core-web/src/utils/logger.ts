@@ -12,14 +12,12 @@ export class Logger {
     this.level = level
   }
 
-  coerceLevel(level: string): LogLevel {
-    if (logLevels.includes(level.toLocaleUpperCase() as LogLevel)) {
-      return level.toLocaleUpperCase() as LogLevel
-    }
+  coerceLevel(level: LogLevel) {
+    if (logLevels.includes(level)) return level
     return 'info'
   }
 
-  log(level: string, message: string, ...args: any[]) {
+  log(level: LogLevel, message: string, ...args: any[]) {
     const logLevel = this.coerceLevel(level)
     if (!this.shouldLog(logLevel)) {
       return
@@ -47,9 +45,8 @@ export class Logger {
   private shouldLog(
     messageLevel: LogLevel,
   ): messageLevel is Exclude<LogLevel, 'none'> {
-    const levels: LogLevel[] = ['debug', 'info', 'warn', 'error', 'none']
-    const messageLevelIndex = levels.indexOf(messageLevel)
-    const currentLevelIndex = levels.indexOf(this.level)
+    const messageLevelIndex = logLevels.indexOf(messageLevel)
+    const currentLevelIndex = logLevels.indexOf(this.level)
     return (
       currentLevelIndex <= messageLevelIndex &&
       this.level !== 'none' &&
