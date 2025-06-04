@@ -3,7 +3,6 @@ import type {
   JSONValue,
   ModuleKind,
   RpcRequest,
-  RpcResponse,
   RpcRequestFull,
   RpcResponseFull,
 } from './types'
@@ -15,24 +14,22 @@ export interface RpcTransport {
   destroy(): void
 }
 
-export interface RpcTransportInit {
-  init(
-    onRpcResponse: (response: RpcResponseFull) => void,
-  ): Promise<RpcTransport>
-}
+export type TransportFactory = (
+  onRpcResponse: (response: RpcResponseFull) => void,
+) => Promise<RpcTransport>
 
 // Handles communication with the wasm worker
 export class RpcClient {
   private transport?: RpcTransport
-  private transportInit: RpcTransportInit
+  private createTransport: TransportFactory
   private requestCounter = 0
   private subscriptionManager: SubscriptionManager
   private initPromise?: Promise<void>
   // Won't have this as a instance variable
   private clientName: string | undefined
 
-  constructor(transportInit: RpcTransportInit) {
-    this.transportInit = transportInit
+  constructor(createTransport: TransportFactory) {
+    this.createTransport = createTransport
     this.subscriptionManager = new SubscriptionManager(
       this.sendCancelRequest.bind(this),
     )
@@ -48,7 +45,7 @@ export class RpcClient {
   }
 
   private async initializeInner(): Promise<void> {
-    this.transport = await this.transportInit.init(
+    this.transport = await this.createTransport(
       this.handleWorkerMessage.bind(this),
     )
   }
@@ -99,10 +96,10 @@ export class RpcClient {
     const requestId = ++this.requestCounter
     logger.debug('RpcClient - rpcStream', requestId, request)
 
-    const requestFull: RpcRequestFull = {
+    const requestFull = {
       ...request,
       request_id: requestId,
-    }
+    } satisfies RpcRequestFull
 
     const cancelFn = this.subscriptionManager.addSubscription(
       requestId,

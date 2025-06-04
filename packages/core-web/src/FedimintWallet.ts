@@ -1,5 +1,5 @@
-import { RpcClient } from './rpc'
-import { WebWorkerTransportInit } from './worker/WorkerTransport'
+import { RpcClient, TransportFactory } from './rpc'
+import { createWebWorkerTransport } from './worker/WorkerTransport'
 import {
   BalanceService,
   MintService,
@@ -60,11 +60,14 @@ export class FedimintWallet {
    * lazyWallet.initialize();
    * lazyWallet.open();
    */
-  constructor(lazy: boolean = false) {
+  constructor(
+    lazy: boolean = false,
+    createTransport: TransportFactory = createWebWorkerTransport,
+  ) {
     this._openPromise = new Promise((resolve) => {
       this._resolveOpen = resolve
     })
-    this._client = new RpcClient(new WebWorkerTransportInit())
+    this._client = new RpcClient(createTransport)
     this.mint = new MintService(this._client)
     this.lightning = new LightningService(this._client)
     this.balance = new BalanceService(this._client)
@@ -114,7 +117,7 @@ export class FedimintWallet {
     inviteCode: string,
     clientName: string = DEFAULT_CLIENT_NAME,
   ) {
-    await this._client.initialize()
+    await this.initialize()
     // TODO: Determine if this should be safe or throw
     if (this._isOpen)
       throw new Error(
