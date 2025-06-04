@@ -26,7 +26,7 @@ walletTest(
 walletTest('pegin should always return an address', async ({ wallet }) => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
-  const response = await wallet.wallet.pegin()
+  const response = await wallet.wallet.generateAddress()
 
   expect(response).toEqual({
     deposit_address: expect.any(String),
@@ -40,11 +40,10 @@ walletTest(
     expect(wallet).toBeDefined()
     expect(wallet.isOpen()).toBe(true)
 
-    const amount = 1000
-    const destination =
-      'bc1q2nvw96926efy0wtcm60qj26d0mspgsqjdkt9q8hwmmge2srkelgswz76zz'
+    const amountSat = 10
+    const destination = (await wallet.wallet.generateAddress()).deposit_address
 
-    const response = await wallet.wallet.pegout(amount, destination)
+    const response = await wallet.wallet.withdraw(amountSat, destination)
 
     expect(response).toEqual({
       operation_id: expect.any(String),
