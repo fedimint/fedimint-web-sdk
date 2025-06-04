@@ -1,7 +1,7 @@
 const WorkerMessageTypes = [
   'init',
   'initialized',
-  'rpc',
+  'client_rpc',
   'log',
   'open',
   'join',

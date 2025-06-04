@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest'
 import { TestFedimintWallet } from './TestFedimintWallet'
-import { WorkerClient } from '../worker/WorkerClient'
+import { RpcClient } from '../rpc'
+import { createWebWorkerTransport } from '../worker/WorkerTransport'
 
 /**
  * Adds Fixtures for setting up and tearing down a test FedimintWallet instance
@@ -50,7 +51,7 @@ export const walletTest = test.extend<{
 export const workerTest = test.extend<{
   worker: Worker
   clientName: string
-  workerClient: WorkerClient
+  workerClient: RpcClient
 }>({
   worker: async ({}, use) => {
     const worker = new Worker(new URL('../worker/worker.js', import.meta.url), {
@@ -64,7 +65,7 @@ export const workerTest = test.extend<{
     await use(randomTestingId)
   },
   workerClient: async ({}, use) => {
-    const workerClient = new WorkerClient()
+    const workerClient = new RpcClient(createWebWorkerTransport)
     await use(workerClient)
   },
 })

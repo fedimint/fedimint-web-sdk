@@ -238,48 +238,113 @@ function takeFromExternrefTable0(idx) {
     wasm.__externref_table_dealloc(idx);
     return value;
 }
+/**
+ * Parse an invite code and extract its components without joining the
+ * federation
+ * @param {string} invite_code
+ * @returns {string}
+ */
+export function parse_invite_code(invite_code) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passStringToWasm0(invite_code, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.parse_invite_code(ptr0, len0);
+        var ptr2 = ret[0];
+        var len2 = ret[1];
+        if (ret[3]) {
+            ptr2 = 0; len2 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * Parse a bolt11 invoice and extract its components
+ * without joining the federation
+ * @param {string} invoice_str
+ * @returns {string}
+ */
+export function parse_bolt11_invoice(invoice_str) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passStringToWasm0(invoice_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.parse_bolt11_invoice(ptr0, len0);
+        var ptr2 = ret[0];
+        var len2 = ret[1];
+        if (ret[3]) {
+            ptr2 = 0; len2 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
+ * @param {string} invite_code
+ * @returns {Promise<any>}
+ */
+export function preview_federation(invite_code) {
+    const ptr0 = passStringToWasm0(invite_code, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.preview_federation(ptr0, len0);
+    return ret;
+}
+
 function __wbg_adapter_34(arg0, arg1, arg2) {
     wasm.closure2_externref_shim(arg0, arg1, arg2);
 }
 
 function __wbg_adapter_37(arg0, arg1, arg2) {
-    wasm.closure6244_externref_shim(arg0, arg1, arg2);
+    wasm.closure2558_externref_shim(arg0, arg1, arg2);
 }
 
-function __wbg_adapter_46(arg0, arg1) {
-    wasm._dyn_core__ops__function__Fn_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hd3bf70b599f3547d(arg0, arg1);
+function __wbg_adapter_40(arg0, arg1, arg2) {
+    wasm.closure9155_externref_shim(arg0, arg1, arg2);
 }
 
 function __wbg_adapter_49(arg0, arg1) {
-    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__he3cc3f4965d04a65(arg0, arg1);
+    wasm._dyn_core__ops__function__Fn_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hb2702963d8fe80ce(arg0, arg1);
 }
 
-function __wbg_adapter_52(arg0, arg1, arg2) {
-    wasm.closure7684_externref_shim(arg0, arg1, arg2);
+function __wbg_adapter_52(arg0, arg1) {
+    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hccebb8dc996bf447(arg0, arg1);
 }
 
-function __wbg_adapter_59(arg0, arg1) {
-    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h350d4791d89dc5e2(arg0, arg1);
+function __wbg_adapter_55(arg0, arg1, arg2) {
+    wasm.closure11178_externref_shim(arg0, arg1, arg2);
 }
 
-function __wbg_adapter_62(arg0, arg1, arg2) {
-    wasm.closure7708_externref_shim(arg0, arg1, arg2);
+function __wbg_adapter_62(arg0, arg1) {
+    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h73e72502136e0af8(arg0, arg1);
 }
 
 function __wbg_adapter_65(arg0, arg1) {
-    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h56bfa92294ddbd06(arg0, arg1);
+    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7d210158df022ab1(arg0, arg1);
 }
 
 function __wbg_adapter_68(arg0, arg1, arg2) {
-    wasm.closure8297_externref_shim(arg0, arg1, arg2);
+    wasm.closure11778_externref_shim(arg0, arg1, arg2);
 }
 
 function __wbg_adapter_71(arg0, arg1) {
-    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hfd9c6b0ff54c4e4f(arg0, arg1);
+    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hbd890e54ef7b5849(arg0, arg1);
 }
 
-function __wbg_adapter_403(arg0, arg1, arg2, arg3) {
-    wasm.closure8647_externref_shim(arg0, arg1, arg2, arg3);
+function __wbg_adapter_397(arg0, arg1, arg2, arg3) {
+    wasm.closure12148_externref_shim(arg0, arg1, arg2, arg3);
 }
 
 const __wbindgen_enum_BinaryType = ["blob", "arraybuffer"];
@@ -426,174 +491,40 @@ export class IntoUnderlyingSource {
     }
 }
 
-const RpcHandleFinalization = (typeof FinalizationRegistry === 'undefined')
+const RpcHandlerFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_rpchandle_free(ptr >>> 0, 1));
+    : new FinalizationRegistry(ptr => wasm.__wbg_rpchandler_free(ptr >>> 0, 1));
 
-export class RpcHandle {
-
-    static __wrap(ptr) {
-        ptr = ptr >>> 0;
-        const obj = Object.create(RpcHandle.prototype);
-        obj.__wbg_ptr = ptr;
-        RpcHandleFinalization.register(obj, obj.__wbg_ptr, obj);
-        return obj;
-    }
+export class RpcHandler {
 
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
-        RpcHandleFinalization.unregister(this);
+        RpcHandlerFinalization.unregister(this);
         return ptr;
     }
 
     free() {
         const ptr = this.__destroy_into_raw();
-        wasm.__wbg_rpchandle_free(ptr, 0);
+        wasm.__wbg_rpchandler_free(ptr, 0);
     }
-    cancel() {
-        wasm.rpchandle_cancel(this.__wbg_ptr);
-    }
-}
-
-const WasmClientFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_wasmclient_free(ptr >>> 0, 1));
-
-export class WasmClient {
-
-    static __wrap(ptr) {
-        ptr = ptr >>> 0;
-        const obj = Object.create(WasmClient.prototype);
-        obj.__wbg_ptr = ptr;
-        WasmClientFinalization.register(obj, obj.__wbg_ptr, obj);
-        return obj;
-    }
-
-    __destroy_into_raw() {
-        const ptr = this.__wbg_ptr;
-        this.__wbg_ptr = 0;
-        WasmClientFinalization.unregister(this);
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_wasmclient_free(ptr, 0);
+    constructor() {
+        const ret = wasm.rpchandler_new();
+        this.__wbg_ptr = ret >>> 0;
+        RpcHandlerFinalization.register(this, this.__wbg_ptr, this);
+        return this;
     }
     /**
-     * Open fedimint client with already joined federation.
-     *
-     * After you have joined a federation, you can reopen the fedimint client
-     * with same client_name. Opening client with same name at same time is
-     * not supported. You can close the current client by calling
-     * `client.free()`. NOTE: The client will remain active until all the
-     * running rpc calls have finished.
-     * @param {string} client_name
-     * @returns {Promise<WasmClient | undefined>}
-     */
-    static open(client_name) {
-        const ptr0 = passStringToWasm0(client_name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.wasmclient_open(ptr0, len0);
-        return ret;
-    }
-    /**
-     * Open a fedimint client by join a federation.
-     * @param {string} client_name
-     * @param {string} invite_code
-     * @returns {Promise<WasmClient>}
-     */
-    static join_federation(client_name, invite_code) {
-        const ptr0 = passStringToWasm0(client_name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(invite_code, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len1 = WASM_VECTOR_LEN;
-        const ret = wasm.wasmclient_join_federation(ptr0, len0, ptr1, len1);
-        return ret;
-    }
-    /**
-     * Parse an invite code and extract its components without joining the
-     * federation
-     * @param {string} invite_code
-     * @returns {string}
-     */
-    static parse_invite_code(invite_code) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const ptr0 = passStringToWasm0(invite_code, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len0 = WASM_VECTOR_LEN;
-            const ret = wasm.wasmclient_parse_invite_code(ptr0, len0);
-            var ptr2 = ret[0];
-            var len2 = ret[1];
-            if (ret[3]) {
-                ptr2 = 0; len2 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
-        }
-    }
-    /**
-     * Parse a bolt11 invoice and extract its components
-     * without joining the federation
-     * @param {string} invoice_str
-     * @returns {string}
-     */
-    static parse_bolt11_invoice(invoice_str) {
-        let deferred3_0;
-        let deferred3_1;
-        try {
-            const ptr0 = passStringToWasm0(invoice_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-            const len0 = WASM_VECTOR_LEN;
-            const ret = wasm.wasmclient_parse_bolt11_invoice(ptr0, len0);
-            var ptr2 = ret[0];
-            var len2 = ret[1];
-            if (ret[3]) {
-                ptr2 = 0; len2 = 0;
-                throw takeFromExternrefTable0(ret[2]);
-            }
-            deferred3_0 = ptr2;
-            deferred3_1 = len2;
-            return getStringFromWasm0(ptr2, len2);
-        } finally {
-            wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
-        }
-    }
-    /**
-     * @param {string} invite_code
-     * @returns {Promise<any>}
-     */
-    static preview_federation(invite_code) {
-        const ptr0 = passStringToWasm0(invite_code, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.wasmclient_preview_federation(ptr0, len0);
-        return ret;
-    }
-    /**
-     * Call a fedimint client rpc the responses are returned using `cb`
-     * callback. Each rpc call *can* return multiple responses by calling
-     * `cb` multiple times. The returned RpcHandle can be used to cancel the
-     * operation.
-     * @param {string} module
-     * @param {string} method
-     * @param {string} payload
+     * @param {string} request
      * @param {Function} cb
-     * @returns {RpcHandle}
      */
-    rpc(module, method, payload, cb) {
-        const ptr0 = passStringToWasm0(module, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    rpc(request, cb) {
+        const ptr0 = passStringToWasm0(request, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(method, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passStringToWasm0(payload, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len2 = WASM_VECTOR_LEN;
-        const ret = wasm.wasmclient_rpc(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2, cb);
-        return RpcHandle.__wrap(ret);
+        const ret = wasm.rpchandler_rpc(this.__wbg_ptr, ptr0, len0, cb);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
+        }
     }
 }
 
@@ -733,11 +664,6 @@ export function __wbg_continue_c46c11d3dbe1b030() { return handleError(function 
 
 export function __wbg_createIndex_873ac48adc772309() { return handleError(function (arg0, arg1, arg2, arg3, arg4) {
     const ret = arg0.createIndex(getStringFromWasm0(arg1, arg2), arg3, arg4);
-    return ret;
-}, arguments) };
-
-export function __wbg_createIndex_fcfd513cf4581834() { return handleError(function (arg0, arg1, arg2, arg3) {
-    const ret = arg0.createIndex(getStringFromWasm0(arg1, arg2), arg3);
     return ret;
 }, arguments) };
 
@@ -1058,7 +984,7 @@ export function __wbg_new_23a2665fac83c611(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_403(a, state0.b, arg0, arg1);
+                return __wbg_adapter_397(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -1526,11 +1452,6 @@ export function __wbg_wasClean_605b4fd66d44354a(arg0) {
     return ret;
 };
 
-export function __wbg_wasmclient_new(arg0) {
-    const ret = WasmClient.__wrap(arg0);
-    return ret;
-};
-
 export function __wbindgen_boolean_get(arg0) {
     const v = arg0;
     const ret = typeof(v) === 'boolean' ? (v ? 1 : 0) : 2;
@@ -1547,78 +1468,78 @@ export function __wbindgen_cb_drop(arg0) {
     return ret;
 };
 
-export function __wbindgen_closure_wrapper25510(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 6245, __wbg_adapter_37);
+export function __wbindgen_closure_wrapper16339(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 9156, __wbg_adapter_40);
     return ret;
 };
 
-export function __wbindgen_closure_wrapper25512(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 6245, __wbg_adapter_37);
+export function __wbindgen_closure_wrapper16341(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 9156, __wbg_adapter_40);
     return ret;
 };
 
-export function __wbindgen_closure_wrapper25514(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 6245, __wbg_adapter_37);
+export function __wbindgen_closure_wrapper16343(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 9156, __wbg_adapter_40);
     return ret;
 };
 
-export function __wbindgen_closure_wrapper25516(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 6245, __wbg_adapter_37);
+export function __wbindgen_closure_wrapper16345(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 9156, __wbg_adapter_40);
     return ret;
 };
 
-export function __wbindgen_closure_wrapper28047(arg0, arg1, arg2) {
-    const ret = makeClosure(arg0, arg1, 6530, __wbg_adapter_46);
+export function __wbindgen_closure_wrapper18299(arg0, arg1, arg2) {
+    const ret = makeClosure(arg0, arg1, 10101, __wbg_adapter_49);
     return ret;
 };
 
-export function __wbindgen_closure_wrapper34146(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 7640, __wbg_adapter_49);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper34356(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 7683, __wbg_adapter_52);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper34358(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 7683, __wbg_adapter_52);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper34360(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 7683, __wbg_adapter_52);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper34362(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 7683, __wbg_adapter_59);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper34559(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 7709, __wbg_adapter_62);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper38809(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 8231, __wbg_adapter_65);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper39563(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 8298, __wbg_adapter_68);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper39636(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 8315, __wbg_adapter_71);
-    return ret;
-};
-
-export function __wbindgen_closure_wrapper578(arg0, arg1, arg2) {
+export function __wbindgen_closure_wrapper197(arg0, arg1, arg2) {
     const ret = makeMutClosure(arg0, arg1, 3, __wbg_adapter_34);
+    return ret;
+};
+
+export function __wbindgen_closure_wrapper20963(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 11138, __wbg_adapter_52);
+    return ret;
+};
+
+export function __wbindgen_closure_wrapper21061(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 11179, __wbg_adapter_55);
+    return ret;
+};
+
+export function __wbindgen_closure_wrapper21063(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 11179, __wbg_adapter_55);
+    return ret;
+};
+
+export function __wbindgen_closure_wrapper21065(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 11179, __wbg_adapter_55);
+    return ret;
+};
+
+export function __wbindgen_closure_wrapper21067(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 11179, __wbg_adapter_62);
+    return ret;
+};
+
+export function __wbindgen_closure_wrapper23130(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 11710, __wbg_adapter_65);
+    return ret;
+};
+
+export function __wbindgen_closure_wrapper23457(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 11779, __wbg_adapter_68);
+    return ret;
+};
+
+export function __wbindgen_closure_wrapper23473(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 11790, __wbg_adapter_71);
+    return ret;
+};
+
+export function __wbindgen_closure_wrapper4430(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 2559, __wbg_adapter_37);
     return ret;
 };
 

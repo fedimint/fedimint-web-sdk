@@ -1,5 +1,5 @@
 import { FedimintWallet } from '../FedimintWallet'
-import { WorkerClient } from '../worker/WorkerClient'
+import { RpcClient } from '../rpc'
 import { TestingService } from './TestingService'
 
 export class TestFedimintWallet extends FedimintWallet {
@@ -8,6 +8,7 @@ export class TestFedimintWallet extends FedimintWallet {
   constructor() {
     super()
     this.testing = new TestingService(this.getWorkerClient(), this.lightning)
+    this.setLogLevel('error')
   }
 
   async fundWallet(amount: number) {
@@ -20,7 +21,7 @@ export class TestFedimintWallet extends FedimintWallet {
   }
 
   // Method to expose the WorkerClient
-  getWorkerClient(): WorkerClient {
+  getWorkerClient(): RpcClient {
     return this['_client']
   }
 }

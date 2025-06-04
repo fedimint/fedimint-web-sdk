@@ -1,5 +1,16 @@
 /* tslint:disable */
 /* eslint-disable */
+/**
+ * Parse an invite code and extract its components without joining the
+ * federation
+ */
+export function parse_invite_code(invite_code: string): string;
+/**
+ * Parse a bolt11 invoice and extract its components
+ * without joining the federation
+ */
+export function parse_bolt11_invoice(invoice_str: string): string;
+export function preview_federation(invite_code: string): Promise<any>;
 export class IntoUnderlyingByteSource {
   private constructor();
   free(): void;
@@ -22,70 +33,31 @@ export class IntoUnderlyingSource {
   pull(controller: ReadableStreamDefaultController): Promise<any>;
   cancel(): void;
 }
-export class RpcHandle {
-  private constructor();
+export class RpcHandler {
   free(): void;
-  cancel(): void;
-}
-export class WasmClient {
-  private constructor();
-  free(): void;
-  /**
-   * Open fedimint client with already joined federation.
-   *
-   * After you have joined a federation, you can reopen the fedimint client
-   * with same client_name. Opening client with same name at same time is
-   * not supported. You can close the current client by calling
-   * `client.free()`. NOTE: The client will remain active until all the
-   * running rpc calls have finished.
-   */
-  static open(client_name: string): Promise<WasmClient | undefined>;
-  /**
-   * Open a fedimint client by join a federation.
-   */
-  static join_federation(client_name: string, invite_code: string): Promise<WasmClient>;
-  /**
-   * Parse an invite code and extract its components without joining the
-   * federation
-   */
-  static parse_invite_code(invite_code: string): string;
-  /**
-   * Parse a bolt11 invoice and extract its components
-   * without joining the federation
-   */
-  static parse_bolt11_invoice(invoice_str: string): string;
-  static preview_federation(invite_code: string): Promise<any>;
-  /**
-   * Call a fedimint client rpc the responses are returned using `cb`
-   * callback. Each rpc call *can* return multiple responses by calling
-   * `cb` multiple times. The returned RpcHandle can be used to cancel the
-   * operation.
-   */
-  rpc(module: string, method: string, payload: string, cb: Function): RpcHandle;
+  constructor();
+  rpc(request: string, cb: Function): void;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly __wbg_wasmclient_free: (a: number, b: number) => void;
-  readonly __wbg_rpchandle_free: (a: number, b: number) => void;
-  readonly rpchandle_cancel: (a: number) => void;
-  readonly wasmclient_open: (a: number, b: number) => any;
-  readonly wasmclient_join_federation: (a: number, b: number, c: number, d: number) => any;
-  readonly wasmclient_parse_invite_code: (a: number, b: number) => [number, number, number, number];
-  readonly wasmclient_parse_bolt11_invoice: (a: number, b: number) => [number, number, number, number];
-  readonly wasmclient_preview_federation: (a: number, b: number) => any;
-  readonly wasmclient_rpc: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: any) => number;
+  readonly __wbg_rpchandler_free: (a: number, b: number) => void;
+  readonly parse_invite_code: (a: number, b: number) => [number, number, number, number];
+  readonly parse_bolt11_invoice: (a: number, b: number) => [number, number, number, number];
+  readonly preview_federation: (a: number, b: number) => any;
+  readonly rpchandler_new: () => number;
+  readonly rpchandler_rpc: (a: number, b: number, c: number, d: any) => [number, number];
+  readonly __wbg_intounderlyingsource_free: (a: number, b: number) => void;
+  readonly intounderlyingsource_pull: (a: number, b: any) => any;
+  readonly intounderlyingsource_cancel: (a: number) => void;
   readonly __wbg_intounderlyingbytesource_free: (a: number, b: number) => void;
   readonly intounderlyingbytesource_type: (a: number) => [number, number];
   readonly intounderlyingbytesource_autoAllocateChunkSize: (a: number) => number;
   readonly intounderlyingbytesource_start: (a: number, b: any) => void;
   readonly intounderlyingbytesource_pull: (a: number, b: any) => any;
   readonly intounderlyingbytesource_cancel: (a: number) => void;
-  readonly __wbg_intounderlyingsource_free: (a: number, b: number) => void;
-  readonly intounderlyingsource_pull: (a: number, b: any) => any;
-  readonly intounderlyingsource_cancel: (a: number) => void;
   readonly __wbg_intounderlyingsink_free: (a: number, b: number) => void;
   readonly intounderlyingsink_write: (a: number, b: any) => any;
   readonly intounderlyingsink_close: (a: number) => any;
@@ -104,16 +76,16 @@ export interface InitOutput {
   readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly closure2_externref_shim: (a: number, b: number, c: any) => void;
-  readonly closure6244_externref_shim: (a: number, b: number, c: any) => void;
-  readonly _dyn_core__ops__function__Fn_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hd3bf70b599f3547d: (a: number, b: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__he3cc3f4965d04a65: (a: number, b: number) => void;
-  readonly closure7684_externref_shim: (a: number, b: number, c: any) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h350d4791d89dc5e2: (a: number, b: number) => void;
-  readonly closure7708_externref_shim: (a: number, b: number, c: any) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h56bfa92294ddbd06: (a: number, b: number) => void;
-  readonly closure8297_externref_shim: (a: number, b: number, c: any) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hfd9c6b0ff54c4e4f: (a: number, b: number) => void;
-  readonly closure8647_externref_shim: (a: number, b: number, c: any, d: any) => void;
+  readonly closure2558_externref_shim: (a: number, b: number, c: any) => void;
+  readonly closure9155_externref_shim: (a: number, b: number, c: any) => void;
+  readonly _dyn_core__ops__function__Fn_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hb2702963d8fe80ce: (a: number, b: number) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hccebb8dc996bf447: (a: number, b: number) => void;
+  readonly closure11178_externref_shim: (a: number, b: number, c: any) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h73e72502136e0af8: (a: number, b: number) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7d210158df022ab1: (a: number, b: number) => void;
+  readonly closure11778_externref_shim: (a: number, b: number, c: any) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hbd890e54ef7b5849: (a: number, b: number) => void;
+  readonly closure12148_externref_shim: (a: number, b: number, c: any, d: any) => void;
   readonly __wbindgen_start: () => void;
 }
 
