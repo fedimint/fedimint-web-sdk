@@ -5,6 +5,7 @@
 globalThis.__vitest_browser_runner__ = { wrapDynamicImport: (foo) => foo() }
 
 let rpcHandler = null
+let wasmModule = null
 
 console.log('Worker - init')
 
@@ -22,9 +23,9 @@ console.log('Worker - init')
 self.onmessage = async (event) => {
   if (event.data.type === 'init') {
     try {
-      const { RpcHandler } = await import(
-        '@fedimint/fedimint-client-wasm-bundler'
-      )
+      const wasm = await import('@fedimint/fedimint-client-wasm-bundler')
+      const { RpcHandler } = wasm
+      wasmModule = wasm
       rpcHandler = new RpcHandler()
       self.postMessage({
         type: 'init_success',
@@ -38,7 +39,82 @@ self.onmessage = async (event) => {
         request_id: event.data.request_id,
       })
     }
-  } else if (event.data.type === 'client_rpc') {
+  } else if (event.data.type === 'parse_bolt11_invoice') {
+    try {
+      if (!wasmModule) {
+        throw new Error('WASM module not initialized')
+      }
+      // Check if the function exists before calling it
+      if (typeof wasmModule.parse_bolt11_invoice !== 'function') {
+        throw new Error('parse_bolt11_invoice function not available')
+      }
+      const result = wasmModule.parse_bolt11_invoice(event.data.invoice)
+      self.postMessage({
+        type: 'data',
+        data: JSON.parse(result),
+        request_id: event.data.request_id,
+      })
+    } catch (err) {
+      console.error('Worker parse_bolt11_invoice error:', err)
+      self.postMessage({
+        type: 'error',
+        error: err.toString(),
+        request_id: event.data.request_id,
+      })
+    }
+  } else if (event.data.type === 'preview_federation') {
+    try {
+      if (!wasmModule) {
+        throw new Error('WASM module not initialized')
+      }
+      // Check if the function exists before calling it
+      if (typeof wasmModule.preview_federation !== 'function') {
+        throw new Error('preview_federation function not available')
+      }
+      const result = await wasmModule.preview_federation(event.data.invite_code)
+      self.postMessage({
+        type: 'data',
+        data: JSON.parse(result),
+        request_id: event.data.request_id,
+      })
+    } catch (err) {
+      console.error('Worker preview_federation error:', err)
+      self.postMessage({
+        type: 'error',
+        error: err.toString(),
+        request_id: event.data.request_id,
+      })
+    }
+  } else if (event.data.type === 'parse_invite_code') {
+    try {
+      if (!wasmModule) {
+        throw new Error('WASM module not initialized')
+      }
+      // Check if the function exists before calling it
+      if (typeof wasmModule.parse_invite_code !== 'function') {
+        throw new Error('parse_invite_code function not available')
+      }
+      const result = wasmModule.parse_invite_code(event.data.invite_code)
+      self.postMessage({
+        type: 'data',
+        data: JSON.parse(result),
+        request_id: event.data.request_id,
+      })
+    } catch (err) {
+      console.error('Worker parse_invite_code error:', err)
+      self.postMessage({
+        type: 'error',
+        error: err.toString(),
+        request_id: event.data.request_id,
+      })
+    }
+  } else if (
+    event.data.type === 'client_rpc' ||
+    event.data.type === 'open_client' ||
+    event.data.type === 'close_client' ||
+    event.data.type === 'join_federation' ||
+    event.data.type === 'cancel_rpc'
+  ) {
     // Check if rpcHandler is initialized before calling rpc
     if (!rpcHandler) {
       console.error('Worker: rpcHandler not initialized')
