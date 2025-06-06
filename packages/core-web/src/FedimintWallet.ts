@@ -9,11 +9,6 @@ import {
   WalletService,
 } from './services'
 import { logger, type LogLevel } from './utils/logger'
-import {
-  preview_federation,
-  parse_bolt11_invoice,
-  parse_invite_code,
-} from '@fedimint/fedimint-client-wasm-bundler'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
@@ -127,22 +122,37 @@ export class FedimintWallet {
       await this._client.joinFederation(inviteCode, clientName)
       this._isOpen = true
       this._resolveOpen()
+      logger.info('Successfully joined federation and opened client')
       return true
     } catch (e) {
       logger.error('Error joining federation', e)
+      // Ensure we don't leave the wallet in an inconsistent state
+      this._isOpen = false
       return false
     }
   }
 
   /**
-   * Preview a federation configuration from an invite code without joining
-   * @param inviteCode - The federation invite code to preview
-   * @returns Promise containing federation config and ID
+   * Previews a federation using the provided invite code.
+   *
+   * This method sends the invite code to the WorkerClient to preview the federation
+   * details without joining it. The response includes API endpoints, configs and
+   * federation id.
+   *
+   * @param {string} inviteCode - The invite code for the federation to be previewed.
+   * @returns {Promise<any>} A promise that resolves to the federation details.
+   *
+   * @throws {Error} If the WorkerClient encounters an issue during the preview process.
+   *
+   * @example
+   * const inviteCode = "example-invite-code";
+   * const federationDetails = await wallet.previewFederation(inviteCode);
+   * console.log(federationDetails);
    */
   async previewFederation(inviteCode: string) {
     try {
       logger.debug('Previewing federation with invite code:', inviteCode)
-      const result = await preview_federation(inviteCode)
+      const result = await this._client.previewFederation(inviteCode)
       logger.debug('Federation preview result:', result)
       return result
     } catch (error) {
@@ -152,14 +162,29 @@ export class FedimintWallet {
   }
 
   /**
-   * Parses a BOLT11 invoice string into its components.
-   * @param invoice - The BOLT11 invoice string to parse.
-   * @returns Parsed invoice object containing details like amount, description, etc.
+   * Parses a BOLT11 Lightning invoice and retrieves its details.
+   *
+   * This method sends the provided invoice string to the WorkerClient for parsing.
+   * The response includes details such as the amount, expiry, and memo.
+   *
+   * @param {string} invoiceStr - The BOLT11 invoice string to be parsed.
+   * @returns {Promise<{ amount: string, expiry: number, memo: string }>}
+   *          A promise that resolves to an object containing:
+   *          - `amount`: The amount specified in the invoice.
+   *          - `expiry`: The expiry time of the invoice in seconds.
+   *          - `memo`: A description or memo attached to the invoice.
+   *
+   * @throws {Error} If the WorkerClient encounters an issue during the parsing process.
+   *
+   * @example
+   * const invoiceStr = "lnbc1...";
+   * const parsedInvoice = await wallet.parseBolt11Invoice(invoiceStr);
+   * console.log(parsedInvoice.amount, parsedInvoice.expiry, parsedInvoice.memo);
    */
   async parseBolt11Invoice(invoice: string) {
     try {
       logger.debug('Parsing BOLT11 invoice:', invoice)
-      const result = await parse_bolt11_invoice(invoice)
+      const result = await this._client.parseBolt11Invoice(invoice)
       logger.debug('Parsed invoice result:', result)
       return result
     } catch (error) {
@@ -169,14 +194,28 @@ export class FedimintWallet {
   }
 
   /**
-   * Parses an invite code into its components.
-   * @param inviteCode - The invite code to parse.
-   * @returns Parsed invite code object containing federation ID and other details.
+   * Parses a federation invite code and retrieves its details.
+   *
+   * This method sends the provided invite code to the WorkerClient for parsing.
+   * The response includes the federation_id and url.
+   *
+   * @param {string} inviteCode - The invite code to be parsed.
+   * @returns {Promise<{ federation_id: string, url: string}>}
+   *          A promise that resolves to an object containing:
+   *          - `federation_id`: The id of the feder.
+   *          - `url`: One of the apipoints to connect to the federation
+   *
+   * @throws {Error} If the WorkerClient encounters an issue during the parsing process.
+   *
+   * @example
+   * const inviteCode = "example-invite-code";
+   * const parsedCode = await wallet.parseInviteCode(inviteCode);
+   * console.log(parsedCode.federation_id, parsedCode.url);
    */
   async parseInviteCode(inviteCode: string) {
     try {
       logger.debug('Parsing invite code:', inviteCode)
-      const result = await parse_invite_code(inviteCode)
+      const result = await this._client.parseInviteCode(inviteCode)
       logger.debug('Parsed invite code result:', result)
       return result
     } catch (error) {
