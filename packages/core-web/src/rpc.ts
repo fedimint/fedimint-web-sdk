@@ -64,19 +64,36 @@ export class RpcClient {
   }
 
   async joinFederation(inviteCode: string, clientName: string) {
-    await this.internalRpcSingle({
-      type: 'join_federation',
-      invite_code: inviteCode,
-      client_name: clientName,
-    })
+    // Set clientName immediately before the call to ensure it's available
+    this.clientName = clientName
+    try {
+      const result = await this.internalRpcSingle({
+        type: 'join_federation',
+        invite_code: inviteCode,
+        client_name: clientName,
+      })
+      return result
+    } catch (error) {
+      // Reset clientName if the operation failed
+      this.clientName = undefined
+      throw error
+    }
   }
 
   async openClient(clientName: string) {
-    await this.internalRpcSingle({
-      type: 'open_client',
-      client_name: clientName,
-    })
+    // Set clientName immediately before the call
     this.clientName = clientName
+    try {
+      const result = await this.internalRpcSingle({
+        type: 'open_client',
+        client_name: clientName,
+      })
+      return result
+    } catch (error) {
+      // Reset clientName if the operation failed
+      this.clientName = undefined
+      throw error
+    }
   }
 
   async closeClient(clientName: string) {
@@ -177,6 +194,27 @@ export class RpcClient {
     this.transport?.destroy()
     this.requestCounter = 0
     this.initPromise = undefined
+  }
+
+  async parseBolt11Invoice(invoice: string) {
+    return this.internalRpcSingle({
+      type: 'parse_bolt11_invoice',
+      invoice: invoice,
+    })
+  }
+
+  async previewFederation(inviteCode: string) {
+    return this.internalRpcSingle({
+      type: 'preview_federation',
+      invite_code: inviteCode,
+    })
+  }
+
+  async parseInviteCode(inviteCode: string) {
+    return this.internalRpcSingle({
+      type: 'parse_invite_code',
+      invite_code: inviteCode,
+    })
   }
 
   // For Testing
