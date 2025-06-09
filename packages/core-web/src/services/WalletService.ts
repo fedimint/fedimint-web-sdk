@@ -1,4 +1,4 @@
-import { JSONValue, WalletSummary, GenerateAddressResponse } from '../types'
+import { JSONValue, WalletSummary, GenerateAddressResponse, WalletDepositState } from '../types'
 import { WorkerClient } from '../worker'
 
 export class WalletService {
@@ -28,5 +28,18 @@ export class WalletService {
       destination_address: address,
       extra_meta: extraMeta,
     })
+  }
+  subscribeDeposit(
+    operation_id: string,
+    onSuccess: (state: WalletDepositState) => void = () => {},
+    onError: (error: string) => void = () => {},
+  ) {
+    return this.client.rpcStream(
+      'ln',
+      'subscribe_deposit',
+      { operation_id: operation_id },
+      onSuccess,
+      onError,
+    )
   }
 }

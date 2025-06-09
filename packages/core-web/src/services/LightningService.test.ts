@@ -206,3 +206,41 @@ walletTest(
     expect(subscription).toBeDefined()
   },
 )
+
+walletTest(
+  'subscribe_internal_pay should return state',
+  async ({ fundedWallet }) => {
+    expect(fundedWallet).toBeDefined()
+    expect(fundedWallet.isOpen()).toBe(true)
+    const initialBalance = await fundedWallet.balance.getBalance()
+    expect(initialBalance).toBeGreaterThan(0)
+    const externalInvoice = (
+      await fundedWallet.lightning.createInvoice(1, 'test invoice')
+    ).invoice
+    const payment = await fundedWallet.lightning.payInvoice(externalInvoice)
+    expect(payment).toMatchObject({
+      contract_id: expect.any(String),
+      fee: expect.any(Number),
+      payment_type: expect.any(Object),
+    })
+    const finalBalance = await fundedWallet.balance.getBalance()
+    expect(finalBalance).toBeLessThan(initialBalance)
+    expect(payment.payment_type).toHaveProperty('internal')
+    if ('internal' in payment.payment_type) {
+      const id = payment.payment_type.internal
+      const subscribe = fundedWallet.lightning.subscribeInternalPayment(
+        id,
+        (state) => {
+          expect(state).toBeDefined()
+          expect(state).toBe('Funding')
+        },
+      )
+    } else {
+      const id = payment.payment_type.lightning
+      const subscribe = fundedWallet.lightning.subscribeLnPay(id, (state) => {
+        expect(state).toBeDefined()
+        expect(state).toBe('created')
+      })
+    }
+  },
+)

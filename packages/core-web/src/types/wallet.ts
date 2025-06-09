@@ -54,6 +54,14 @@ type LnReceiveState =
   | 'awaiting_funds'
   | 'claimed'
 
+type LnInternalPayState =
+  | 'Funding'
+  | { Preimage: string }
+  | { RefundSuccess: { out_points: BtcOutPoint[]; error: string } }
+  | { RefundError: { error_message: string; error: string } }
+  | { FundingFailed: { error: string } }
+  | { UnexpectedError: string }
+
 type CreateBolt11Response = {
   operation_id: string
   invoice: string
@@ -126,7 +134,7 @@ type WalletSummary = {
   spendable_utxos: TxOutputSummary[]
   unsigned_peg_out_txos: TxOutputSummary[]
   unsigned_change_utxos: TxOutputSummary[]
-  unconfirmed_peg_out_txos: TxOutputSummary[]
+  unconfirmed_peg_out_utxos: TxOutputSummary[]
   unconfirmed_change_utxos: TxOutputSummary[]
 }
 
@@ -268,6 +276,7 @@ export {
   StreamResult,
   ModuleKind,
   CancelFunction,
+  LnInternalPayState,
   ReissueExternalNotesState,
   MintSpendNotesResponse,
   SpendNotesState,
@@ -284,4 +293,5 @@ export {
   EcashTransaction,
   WalletTransaction,
   Transactions,
+  WalletDepositState,
 }
