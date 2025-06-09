@@ -51,6 +51,9 @@
             '';
           };
         };
+        packages = {
+          wasmBundle = fedimint.packages.${system}.wasmBundle;
+        };
       }
     );
   nixConfig = {
