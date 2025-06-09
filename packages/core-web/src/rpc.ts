@@ -64,16 +64,26 @@ export class RpcClient {
   }
 
   async joinFederation(inviteCode: string, clientName: string) {
+    console.debug('RpcClient.joinFederation: Setting clientName to', clientName)
     // Set clientName immediately before the call to ensure it's available
     this.clientName = clientName
     try {
+      console.log('RpcClient.joinFederation: Making RPC call')
+      console.info('info: RpcClient.joinFederation: Making RPC call')
       const result = await this.internalRpcSingle({
         type: 'join_federation',
         invite_code: inviteCode,
         client_name: clientName,
       })
+      console.debug(
+        'RpcClient.joinFederation: RPC call successful, clientName is',
+        this.clientName,
+      )
       return result
     } catch (error) {
+      console.debug(
+        'RpcClient.joinFederation: RPC call failed, resetting clientName',
+      )
       // Reset clientName if the operation failed
       this.clientName = undefined
       throw error
@@ -154,6 +164,12 @@ export class RpcClient {
     onError: (error: string) => void,
     onEnd: () => void = () => {},
   ): CancelFunction {
+    console.debug(
+      'RpcClient.rpcStream: clientName is',
+      this.clientName,
+      'for method',
+      method,
+    )
     if (this.clientName === undefined) {
       throw new Error('Wallet is not open')
     }
@@ -194,27 +210,6 @@ export class RpcClient {
     this.transport?.destroy()
     this.requestCounter = 0
     this.initPromise = undefined
-  }
-
-  async parseBolt11Invoice(invoice: string) {
-    return this.internalRpcSingle({
-      type: 'parse_bolt11_invoice',
-      invoice: invoice,
-    })
-  }
-
-  async previewFederation(inviteCode: string) {
-    return this.internalRpcSingle({
-      type: 'preview_federation',
-      invite_code: inviteCode,
-    })
-  }
-
-  async parseInviteCode(inviteCode: string) {
-    return this.internalRpcSingle({
-      type: 'parse_invite_code',
-      invite_code: inviteCode,
-    })
   }
 
   // For Testing
