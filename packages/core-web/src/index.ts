@@ -1,2 +1,2 @@
-export { FedimintWallet } from './FedimintWallet'
+export { FedimintWallet, Wallet } from './FedimintWallet'
 export type * from './types'
