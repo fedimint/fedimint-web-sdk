@@ -3,7 +3,7 @@
 set -e 
 
 echo "Building WASM bundle..."
-nix build .#wasmBundle
+nix build -L .#wasmBundle
 
 echo "Copying WASM files..."
 cp result/share/fedimint-client-wasm/fedimint_* packages/wasm-bundler/

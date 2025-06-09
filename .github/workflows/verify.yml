@@ -66,6 +66,9 @@ jobs:
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
+      - name: Build WASM
+        uses: ./.github/actions/build-wasm
+
       - name: Setup Nix shell and run commands
         run: |
           nix develop --accept-flake-config --command bash << EOF

@@ -1,0 +1,9 @@
+name: Build WASM
+description: Builds the WASM bundle using Nix
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Build WASM
+      run: nix develop --accept-flake-config --command scripts/build_wasm.sh
+      shell: bash
