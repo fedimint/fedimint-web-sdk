@@ -4,30 +4,69 @@ import { wallet } from './wallet'
 const TESTNET_FEDERATION_CODE =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
 
+// await wallet.initialize()
+
 // Expose the wallet to the global window object for testing
 // @ts-ignore
 globalThis.wallet = wallet
 
 const useIsOpen = () => {
   const [open, setIsOpen] = useState(false)
+  const [hasAttemptedOpen, setHasAttemptedOpen] = useState(false)
 
   const checkIsOpen = useCallback(() => {
-    if (open !== wallet.isOpen()) {
-      setIsOpen(wallet.isOpen())
+    const walletIsOpen = wallet.isOpen()
+    if (open !== walletIsOpen) {
+      setIsOpen(walletIsOpen)
     }
   }, [open])
 
   useEffect(() => {
-    checkIsOpen()
-  }, [checkIsOpen])
+    const tryOpenExistingClient = async () => {
+      if (hasAttemptedOpen) return
+
+      try {
+        // Check if wallet is already open first
+        if (wallet.isOpen()) {
+          setIsOpen(true)
+          console.log('Wallet is already open')
+          return
+        }
+        const success = await wallet.open('fm-client')
+        if (success) {
+          setIsOpen(true)
+          console.log('Successfully opened existing wallet client')
+        } else {
+          setIsOpen(false)
+          console.log('Failed to open existing client')
+        }
+      } catch (error) {
+        // If opening fails, it means no client exists yet or wallet is already open
+        console.log(
+          'No existing client found, user needs to join federation',
+          error,
+        )
+        setIsOpen(false)
+      } finally {
+        setHasAttemptedOpen(true)
+      }
+    }
+
+    tryOpenExistingClient()
+  }, [hasAttemptedOpen])
 
   return { open, checkIsOpen }
 }
 
-const useBalance = (checkIsOpen: () => void) => {
+const useBalance = (checkIsOpen: () => void, isOpen: boolean) => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
+    // Only subscribe if the wallet is open
+    if (!isOpen) {
+      return
+    }
+
     const unsubscribe = wallet.balance.subscribeBalance((balance) => {
       // checks if the wallet is open when the first
       // subscription event fires.
@@ -39,14 +78,14 @@ const useBalance = (checkIsOpen: () => void) => {
     return () => {
       unsubscribe()
     }
-  }, [checkIsOpen])
+  }, [checkIsOpen, isOpen])
 
   return balance
 }
 
 const App = () => {
   const { open, checkIsOpen } = useIsOpen()
-  const balance = useBalance(checkIsOpen)
+  const balance = useBalance(checkIsOpen, open)
 
   return (
     <>
@@ -122,21 +161,36 @@ const JoinFederation = ({
   checkIsOpen: () => void
 }) => {
   const [inviteCode, setInviteCode] = useState(TESTNET_FEDERATION_CODE)
+  const [walletName, setWalletName] = useState('fm-client')
   const [joinResult, setJoinResult] = useState<string | null>(null)
   const [joinError, setJoinError] = useState('')
   const [joining, setJoining] = useState(false)
 
   const joinFederation = async (e: React.FormEvent) => {
     e.preventDefault()
-    checkIsOpen()
 
-    console.log('Joining federation:', inviteCode)
+    console.log(
+      'Joining federation:',
+      inviteCode,
+      'with wallet name:',
+      walletName,
+    )
+    // const federationPreview = await wallet.previewFederation(inviteCode)
+    // console.log('fed_config:', federationPreview.config)
+    // console.log('Fed_id:', federationPreview.federation_id)
     try {
       setJoining(true)
-      const res = await wallet.joinFederation(inviteCode)
+      setJoinError('')
+      setJoinResult(null)
+
+      const res = await wallet.joinFederation(inviteCode, walletName)
       console.log('join federation res', res)
       setJoinResult('Joined!')
-      setJoinError('')
+
+      // Wait a bit for the wallet to fully initialize before checking status
+      setTimeout(() => {
+        checkIsOpen()
+      }, 1000)
     } catch (e: any) {
       console.log('Error joining federation', e)
       setJoinError(typeof e === 'object' ? e.toString() : (e as string))
@@ -149,17 +203,32 @@ const JoinFederation = ({
   return (
     <div className="section">
       <h3>Join Federation</h3>
-      <form onSubmit={joinFederation} className="row">
-        <input
-          className="ecash-input"
-          placeholder="Invite Code..."
-          required
-          value={inviteCode}
-          onChange={(e) => setInviteCode(e.target.value)}
-          disabled={open}
-        />
+      <form onSubmit={joinFederation}>
+        <div className="input-group">
+          <label htmlFor="walletName">Wallet Name:</label>
+          <input
+            id="walletName"
+            placeholder="Enter wallet name..."
+            required
+            value={walletName}
+            onChange={(e) => setWalletName(e.target.value)}
+            disabled={open}
+          />
+        </div>
+        <div className="input-group">
+          <label htmlFor="inviteCode">Invite Code:</label>
+          <input
+            id="inviteCode"
+            className="ecash-input"
+            placeholder="Invite Code..."
+            required
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value)}
+            disabled={open}
+          />
+        </div>
         <button type="submit" disabled={open || joining}>
-          Join
+          {joining ? 'Joining...' : 'Join'}
         </button>
       </form>
       {!joinResult && open && <i>(You've already joined a federation)</i>}

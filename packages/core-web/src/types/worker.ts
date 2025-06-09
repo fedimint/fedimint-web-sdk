@@ -8,9 +8,6 @@ const WorkerMessageTypes = [
   'error',
   'unsubscribe',
   'cleanup',
-  'parseInviteCode',
-  'parseBolt11Invoice',
-  'previewFederation',
 ] as const
 
 export type WorkerMessageType = (typeof WorkerMessageTypes)[number]
