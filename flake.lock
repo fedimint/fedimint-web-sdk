@@ -211,20 +211,21 @@
         "fenix": "fenix_2",
         "flake-utils": "flake-utils_5",
         "flakebox": "flakebox_2",
-        "nixpkgs": "nixpkgs_4"
+        "nixpkgs": "nixpkgs_4",
+        "nixpkgs-unstable": "nixpkgs-unstable"
       },
       "locked": {
-        "lastModified": 1747845388,
-        "narHash": "sha256-yoJyRHupU/pP5dUIZuFO3RRtuZr/lRukISa+pnedE9I=",
+        "lastModified": 1749499753,
+        "narHash": "sha256-cTyfylG7eJHs6u4hfshMAbwMnjzq9V2JPji5MzBt2y0=",
         "owner": "fedimint",
         "repo": "fedimint",
-        "rev": "0030259f681acb3a89be37d2af611ee13bed5362",
+        "rev": "ba238118bf5b204bc73c1113b6cadd62bca4e66c",
         "type": "github"
       },
       "original": {
         "owner": "fedimint",
-        "ref": "v0.7.2",
         "repo": "fedimint",
+        "rev": "ba238118bf5b204bc73c1113b6cadd62bca4e66c",
         "type": "github"
       }
     },
@@ -526,6 +527,22 @@
       },
       "original": {
         "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-unstable": {
+      "locked": {
+        "lastModified": 1749285348,
+        "narHash": "sha256-frdhQvPbmDYaScPFiCnfdh3B/Vh81Uuoo0w5TkWmmjU=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "3e3afe5174c561dee0df6f2c2b2236990146329f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
         "ref": "nixos-unstable",
         "repo": "nixpkgs",
         "type": "github"
