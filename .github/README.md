@@ -10,6 +10,7 @@
     <a href="https://github.com/fedimint/fedimint-web-sdk/blob/main/LICENSE"><img src="https://img.shields.io/github/license/fedimint/fedimint-web-sdk?style=plastic&color=blue" alt="GitHub License" /></a>
     <a href="https://github.com/fedimint/fedimint-web-sdk/actions"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-web-sdk/.github%2Fworkflows%2Fchangesets.yml?style=plastic&label=CI&color=green" alt="Build Status" /></a>
     <a href="https://web.fedimint.org"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-web-sdk/deploy-docs.yml?style=plastic&label=Docs%20Site&color=%2303b1fc" alt="Docs Workflow" /></a>
+    <a href="https://deepwiki.com/fedimint/fedimint-web-sdk"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
   </p>
   
   <!-- Removes the border below the header tag -->
