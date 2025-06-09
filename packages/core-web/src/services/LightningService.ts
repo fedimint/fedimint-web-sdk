@@ -4,6 +4,7 @@ import type {
   GatewayInfo,
   JSONObject,
   LightningGateway,
+  LnInternalPayState,
   LnPayState,
   LnReceiveState,
   OutgoingLightningPayment,
@@ -139,6 +140,20 @@ export class LightningService {
         resolve({ success: false, error: 'Payment timeout' })
       }, timeoutMs)
     })
+  }
+
+  subscribeInternalPayment(
+    operation_id: string,
+    onSuccess: (state: LnInternalPayState) => void = () => {},
+    onError: (error: string) => void = () => {},
+  ) {
+    return this.client.rpcStream(
+      'ln',
+      'subscribe_internal_pay',
+      { operation_id: operation_id },
+      onSuccess,
+      onError,
+    )
   }
 
   // TODO: Document
