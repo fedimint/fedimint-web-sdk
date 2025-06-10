@@ -5,6 +5,9 @@ import type {
   RpcRequest,
   RpcRequestFull,
   RpcResponseFull,
+  ParsedInviteCode,
+  PreviewFederation,
+  ParsedBolt11Invoice,
 } from './types'
 import { logger } from './utils/logger'
 import { SubscriptionManager } from './rpc/SubscriptionManager'
@@ -163,20 +166,22 @@ export class RpcClient {
     onData: (data: Response) => void,
     onError: (error: string) => void,
     onEnd: () => void = () => {},
+    clientName?: string, // Add optional clientName parameter
   ): CancelFunction {
+    const effectiveClientName = clientName || this.clientName
     console.debug(
-      'RpcClient.rpcStream: clientName is',
-      this.clientName,
+      'RpcClient.rpcStream: using clientName',
+      effectiveClientName,
       'for method',
       method,
     )
-    if (this.clientName === undefined) {
+    if (effectiveClientName === undefined) {
       throw new Error('Wallet is not open')
     }
     return this.internalRpcStream(
       {
         type: 'client_rpc',
-        client_name: this.clientName,
+        client_name: effectiveClientName,
         module,
         method,
         payload: body,
@@ -191,16 +196,39 @@ export class RpcClient {
     module: string,
     method: string,
     payload: P,
+    clientName?: string, // Add optional clientName parameter
   ): Promise<T> {
-    if (this.clientName === undefined) {
+    const effectiveClientName = clientName || this.clientName
+    if (effectiveClientName === undefined) {
       throw new Error('Wallet is not open')
     }
     return this.internalRpcSingle<T>({
       type: 'client_rpc',
-      client_name: this.clientName,
+      client_name: effectiveClientName,
       module,
       method,
       payload,
+    })
+  }
+
+  async parseInviteCode(inviteCode: string): Promise<ParsedInviteCode> {
+    return this.internalRpcSingle<ParsedInviteCode>({
+      type: 'parse_invite_code',
+      invite_code: inviteCode,
+    })
+  }
+
+  async previewFederation(inviteCode: string): Promise<PreviewFederation> {
+    return this.internalRpcSingle<PreviewFederation>({
+      type: 'preview_federation',
+      invite_code: inviteCode,
+    })
+  }
+
+  async parseBolt11Invoice(invoice: string): Promise<ParsedBolt11Invoice> {
+    return this.internalRpcSingle<ParsedBolt11Invoice>({
+      type: 'parse_bolt11_invoice',
+      invoice: invoice,
     })
   }
 

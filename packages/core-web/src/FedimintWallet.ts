@@ -3,11 +3,17 @@ import { createWebWorkerTransport } from './worker/WorkerTransport'
 import { logger, type LogLevel } from './utils/logger'
 import { Wallet } from './Wallet'
 import { WalletRegistry } from './WalletRegistry'
+import type {
+  ParsedInviteCode,
+  PreviewFederation,
+  ParsedBolt11Invoice,
+} from './types'
 
 logger.setLevel('debug')
 
 export { Wallet }
 export class FedimintWallet {
+  // Manager
   private static instance: FedimintWallet
   private _client: RpcClient
   private _initialized: boolean = false
@@ -112,6 +118,39 @@ export class FedimintWallet {
 
   isInitialized(): boolean {
     return this._initialized
+  }
+
+  /**
+   * Parses an invite code and returns federation information
+   * @param inviteCode - The federation invite code to parse
+   * @returns Object containing federation_id and url
+   */
+  async parseInviteCode(inviteCode: string): Promise<ParsedInviteCode> {
+    const data = await this._client.parseInviteCode(inviteCode)
+    logger.info(`Parsed invite code: ${inviteCode}`, data)
+    return data
+  }
+
+  /**
+   * Previews federation information from an invite code
+   * @param inviteCode - The federation invite code to preview
+   * @returns Object containing federation information
+   */
+  async previewFederation(inviteCode: string): Promise<PreviewFederation> {
+    const data = await this._client.previewFederation(inviteCode)
+    logger.info(`Previewed federation for invite code: ${inviteCode}`, data)
+    return data
+  }
+
+  /**
+   * Parses a Bolt11 invoice
+   * @param invoice - The Bolt11 invoice string to parse
+   * @returns Parsed invoice information
+   */
+  async parseBolt11Invoice(invoice: string): Promise<ParsedBolt11Invoice> {
+    const data = await this._client.parseBolt11Invoice(invoice)
+    logger.info(`Parsed Bolt11 invoice: ${invoice}`, data)
+    return data
   }
 }
 
