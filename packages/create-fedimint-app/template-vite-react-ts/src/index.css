@@ -136,6 +136,57 @@ button[type='submit'] {
   cursor: pointer;
 }
 
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.button-group button {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 8px;
+}
+
+.preview-result h4 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: #87ceeb;
+}
+
+.preview-info > div {
+  margin-bottom: 0.5rem;
+}
+
+.preview-info strong {
+  color: #87ceeb;
+}
+
+.preview-info details {
+  margin-top: 0.75rem;
+}
+
+.preview-info pre {
+  background-color: #333;
+  padding: 0.75rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
 @media (min-width: 768px) {
   body {
     padding: 2rem;
@@ -160,6 +211,17 @@ button[type='submit'] {
   button {
     font-size: 1rem;
     padding: 0.5em 1em;
+  }
+}
+
+@media (max-width: 600px) {
+  .button-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .button-group button {
+    flex: none;
   }
 }
 
