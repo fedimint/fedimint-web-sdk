@@ -14,19 +14,27 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
+      - name: Setup Nix
+        uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Build WASM
+        uses: ./.github/actions/build-wasm
+
       - name: Install dependencies
         uses: ./.github/actions/install-deps
 
       - name: Publish Snapshot
-        continue-on-error: true
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          snapshot=$(git branch --show-current | tr -cs '[:alnum:]-' '-' | tr '[:upper:]' '[:lower:]' | sed 's/-$//')
+          branch=$(git branch --show-current)
+          snapshot=$(echo $branch | tr -cs '[:alnum:]-' '-' | tr '[:upper:]' '[:lower:]' | sed 's/-$//')
           npm config set "//registry.npmjs.org/:_authToken" "$NPM_TOKEN"
-          git reset --hard origin/main
+          git reset --hard origin/$branch
           pnpm clean
           pnpm changeset version --no-git-tag --snapshot $snapshot
-          pnpm changeset:prepublish
+          pnpm build
           pnpm changeset publish --no-git-tag --snapshot $snapshot --tag $snapshot
