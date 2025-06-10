@@ -45,7 +45,10 @@ self.onmessage = async (event) => {
     event.data.type === 'open_client' ||
     event.data.type === 'close_client' ||
     event.data.type === 'join_federation' ||
-    event.data.type === 'cancel_rpc'
+    event.data.type === 'cancel_rpc' ||
+    event.data.type === 'parse_invite_code' ||
+    event.data.type === 'preview_federation' ||
+    event.data.type === 'parse_bolt11_invoice'
   ) {
     // Check if rpcHandler is initialized before calling rpc
     if (!rpcHandler) {
@@ -86,7 +89,7 @@ self.onmessage = async (event) => {
   } else {
     self.postMessage({
       type: 'error',
-      error: `Worker - unimplemented message type: ${event.data.type}`,
+      error: `Worker - unimplemented message type, this is the worst error, type not got: ${event.data.type}`,
       request_id: event.data.request_id,
     })
     return

@@ -10,7 +10,10 @@ import type {
 } from '../types'
 
 export class LightningService {
-  constructor(private client: RpcClient) {}
+  constructor(
+    private client: RpcClient,
+    private clientName?: string,
+  ) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
   async createInvoice(
@@ -31,6 +34,7 @@ export class LightningService {
         extra_meta: extraMeta ?? {},
         gateway,
       },
+      this.clientName,
     )
   }
 
@@ -56,6 +60,7 @@ export class LightningService {
         extra_meta: extraMeta ?? {},
         gateway,
       },
+      this.clientName,
     )
   }
 
@@ -73,6 +78,7 @@ export class LightningService {
         indices,
         extra_meta: extraMeta ?? {},
       },
+      this.clientName,
     )
   }
 
@@ -97,6 +103,7 @@ export class LightningService {
         invoice,
         extra_meta: extraMeta ?? {},
       },
+      this.clientName,
     )
   }
 
