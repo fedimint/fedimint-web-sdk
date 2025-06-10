@@ -24,6 +24,7 @@ runs:
         authToken: ${{ inputs.cachix_auth_token }}
 
     - name: Build WASM
+      shell: bash
       run: nix build -L .#wasmBundle
 
     - name: Copy WASM files
