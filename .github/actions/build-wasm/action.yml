@@ -4,6 +4,23 @@ description: Builds the WASM bundle using Nix
 runs:
   using: 'composite'
   steps:
+    - name: Cache wasm
+      id: cache-wasm
+      uses: actions/cache@v4
+      with:
+        path: /result/share
+        key: ${{ runner.os }}-wasm-${{ env.FEDIMINT_REF }}
+
     - name: Build WASM
-      run: nix develop --accept-flake-config --command scripts/build_wasm.sh
+      if: steps.cache-wasm.outputs.cache-hit != 'true'
       shell: bash
+      run: |
+        nix develop --accept-flake-config --command bash << EOF
+          ./scripts/build_wasm.sh
+        EOF
+
+    - name: Copy WASM files
+      shell: bash
+      run: |
+        cp result/share/fedimint-client-wasm/fedimint_* packages/wasm-bundler/
+        cp result/share/fedimint-client-wasm-web/fedimint_* packages/wasm-web/

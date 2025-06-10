@@ -23,3 +23,10 @@ runs:
         name: fedimint
         authToken: ${{ inputs.cachix_auth_token }}
       continue-on-error: true
+
+    - name: Set Env
+      shell: bash
+      run: |
+        nix develop --accept-flake-config --command bash << EOF
+          echo "FEDIMINT_REF=${{ env.FEDIMINT_REF }}" >> $GITHUB_ENV
+        EOF
