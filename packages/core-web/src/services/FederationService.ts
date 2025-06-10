@@ -12,20 +12,33 @@ import type {
 import { RpcClient } from '../rpc'
 
 export class FederationService {
-  constructor(private client: RpcClient) {}
+  constructor(
+    private client: RpcClient,
+    private clientName?: string,
+  ) {}
 
   async getConfig() {
-    return await this.client.rpcSingle('', 'get_config', {})
+    return await this.client.rpcSingle('', 'get_config', {}, this.clientName)
   }
 
   async getFederationId() {
-    return await this.client.rpcSingle<string>('', 'get_federation_id', {})
+    return await this.client.rpcSingle<string>(
+      '',
+      'get_federation_id',
+      {},
+      this.clientName,
+    )
   }
 
   async getInviteCode(peer: number = 0) {
-    return await this.client.rpcSingle<string | null>('', 'get_invite_code', {
-      peer,
-    })
+    return await this.client.rpcSingle<string | null>(
+      '',
+      'get_invite_code',
+      {
+        peer,
+      },
+      this.clientName,
+    )
   }
 
   async listOperations(

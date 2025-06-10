@@ -6,11 +6,19 @@ import { RpcClient } from '../rpc'
  * The Balance Service provides methods to interact with the balance of a Fedimint wallet.
  */
 export class BalanceService {
-  constructor(private client: RpcClient) {}
+  constructor(
+    private client: RpcClient,
+    private clientName?: string,
+  ) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/BalanceService/getBalance */
   async getBalance() {
-    return await this.client.rpcSingle<number>('', 'get_balance', {})
+    return await this.client.rpcSingle<number>(
+      '',
+      'get_balance',
+      {},
+      this.clientName,
+    )
   }
 
   /** https://web.fedimint.org/core/FedimintWallet/BalanceService/subscribeBalance */
@@ -24,6 +32,8 @@ export class BalanceService {
       {},
       (res) => onSuccess(parseInt(res)),
       onError,
+      () => {},
+      this.clientName,
     )
   }
 }

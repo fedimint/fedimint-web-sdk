@@ -36,13 +36,14 @@ export class Wallet {
       this._resolveOpen = resolve
     })
 
-    // Initialize services
-    this.balance = new BalanceService(this._client)
-    this.mint = new MintService(this._client)
-    this.lightning = new LightningService(this._client)
-    this.federation = new FederationService(this._client)
-    this.recovery = new RecoveryService(this._client)
-    this.wallet = new WalletService(this._client)
+    // nit: are both the client and clientName needed?, or would just the clientName suffice?
+    // might be backwards compatible if we keep both
+    this.balance = new BalanceService(this._client, this._clientName)
+    this.mint = new MintService(this._client, this._clientName)
+    this.lightning = new LightningService(this._client, this._clientName)
+    this.federation = new FederationService(this._client, this._clientName)
+    this.recovery = new RecoveryService(this._client, this._clientName)
+    this.wallet = new WalletService(this._client, this._clientName)
 
     // Register wallet
     WalletRegistry.getInstance().addWallet(this)
@@ -95,13 +96,14 @@ export class Wallet {
     }
 
     try {
-      // Parse invite code to get federation ID
-      // const parsedInvite = await this._client.parseInviteCode(inviteCode)
       logger.info('called joinFederation with invite code:', inviteCode)
       const res = await this._client.joinFederation(
         inviteCode,
         this._clientName,
       )
+      this._federationId = (
+        await this._client.parseInviteCode(inviteCode)
+      ).federation_id
       this._isOpen = true
       this._resolveOpen()
 
@@ -109,7 +111,6 @@ export class Wallet {
         `Wallet ${this.id} successfully joined federation ${this._federationId}`,
       )
       if (res) {
-        this._federationId = inviteCode // for now
         logger.info(
           `Federation ID for wallet ${this.id} is now ${this._federationId}`,
         )
