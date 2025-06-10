@@ -4,20 +4,27 @@ description: Builds the WASM bundle using Nix
 runs:
   using: 'composite'
   steps:
-    - name: Cache wasm
-      id: cache-wasm
-      uses: actions/cache@v4
+    # - name: Cache wasm
+    #   id: cache-wasm
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: /result/share
+    #     key: ${{ runner.os }}-wasm-${{ env.FEDIMINT_REF }}
+
+    - uses: cachix/install-nix-action@V27
       with:
-        path: /result/share
-        key: ${{ runner.os }}-wasm-${{ env.FEDIMINT_REF }}
+        nix_path: nixpkgs=channel:nixos-23.11
+        extra_nix_config: |
+          connect-timeout = 15
+          stalled-download-timeout = 15
+
+    - uses: cachix/cachix-action@v15
+      with:
+        name: fedimint
+        authToken: ${{ inputs.cachix_auth_token }}
 
     - name: Build WASM
-      if: steps.cache-wasm.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
-        nix develop --accept-flake-config --command bash << EOF
-          ./scripts/build_wasm.sh
-        EOF
+      run: nix build -L .#wasmBundle
 
     - name: Copy WASM files
       shell: bash
