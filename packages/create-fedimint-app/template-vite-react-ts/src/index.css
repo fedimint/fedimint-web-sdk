@@ -234,3 +234,101 @@ button[type='submit'] {
   padding: 0.5rem;
   border-radius: 4px;
 }
+
+.wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.wallet-item {
+  position: relative;
+}
+
+.wallet-button {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #444;
+  border-radius: 8px;
+  background: #333;
+  color: rgba(255, 255, 255, 0.87);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.wallet-button:hover {
+  border-color: #007bff;
+  background: #3a3a3a;
+}
+
+.wallet-item.active .wallet-button {
+  border-color: #007bff;
+  background: #1a2a3a;
+}
+
+.wallet-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wallet-id {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loaded-indicator {
+  color: #28a745;
+  font-size: 12px;
+}
+
+.wallet-federation {
+  color: #aaa;
+  font-size: 12px;
+}
+
+.wallet-dates {
+  color: #888;
+  font-size: 10px;
+}
+
+.loaded-wallets {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background-color: #2a2a2a;
+}
+
+.loaded-wallets summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: #aaa;
+}
+
+.loaded-wallets .wallet-list {
+  margin-top: 10px;
+}
+
+.loaded-wallets .wallet-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  background-color: #333;
+}
+
+.loaded-wallets .wallet-item:last-child {
+  margin-bottom: 0;
+}
+
+.loaded-wallets .wallet-item span {
+  font-size: 12px;
+  color: #ccc;
+}

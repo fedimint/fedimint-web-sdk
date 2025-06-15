@@ -26,9 +26,6 @@ export class FedimintWallet {
     logger.info('FedimintWallet global instance created')
   }
 
-  /**
-   * Gets the singleton instance of FedimintWallet
-   */
   static getInstance(createTransport?: TransportFactory): FedimintWallet {
     if (!FedimintWallet.instance) {
       FedimintWallet.instance = new FedimintWallet(createTransport)
@@ -36,9 +33,6 @@ export class FedimintWallet {
     return FedimintWallet.instance
   }
 
-  /**
-   * Initializes the global WASM and transport layer
-   */
   async initialize(): Promise<void> {
     if (this._initialized) {
       return
@@ -59,11 +53,7 @@ export class FedimintWallet {
     logger.info('Global RpcClient initialized')
   }
 
-  /**
-   * Creates a new wallet instance
-   */
   async createWallet(walletId?: string): Promise<Wallet> {
-    // Ensure the global client is initialized
     await this.initialize()
 
     const wallet = new Wallet(this._client, walletId)
@@ -71,35 +61,47 @@ export class FedimintWallet {
     return wallet
   }
 
-  /**
-   * Gets an existing wallet by ID
-   */
+  async openWallet(walletId: string): Promise<Wallet> {
+    await this.initialize()
+    logger.info(`called initialize for openWallet`)
+
+    // Check if wallet exists in storage
+    const pointer = WalletRegistry.getInstance().getWalletPointer(walletId)
+    if (!pointer) {
+      throw new Error(`Wallet ${walletId} not found`)
+    }
+
+    let wallet = new Wallet(this._client, walletId, pointer.federationId)
+    await wallet.open()
+    return wallet
+  }
+
   getWallet(walletId: string): Wallet | undefined {
     return WalletRegistry.getInstance().getWallet(walletId)
   }
 
-  async openWallet(walletId: string): Promise<Wallet> {
-    const wallet = new Wallet(this._client, walletId)
-    return wallet
+  getAllWalletPointers(): Array<{
+    id: string
+    clientName: string
+    federationId?: string
+    createdAt: number
+    lastAccessedAt: number
+  }> {
+    return WalletRegistry.getInstance().getAllWalletPointers()
   }
 
-  /**
-   * Gets all wallets
-   */
+  hasWallet(walletId: string): boolean {
+    return WalletRegistry.getInstance().hasWallet(walletId)
+  }
+
   getAllWallets(): Wallet[] {
     return WalletRegistry.getInstance().getAllWallets()
   }
 
-  /**
-   * Gets wallets by federation ID
-   */
   getWalletsByFederation(federationId: string): Wallet[] {
     return WalletRegistry.getInstance().getWalletsByFederation(federationId)
   }
 
-  /**
-   *
-   */
   async cleanup(): Promise<void> {
     await WalletRegistry.getInstance().cleanup()
     await this._client.cleanup()
@@ -108,9 +110,10 @@ export class FedimintWallet {
     logger.info('FedimintWallet global cleanup completed')
   }
 
-  /**
-   * Sets the log level for the library
-   */
+  async clearAllWallets(): Promise<void> {
+    await WalletRegistry.getInstance().clearAllWallets()
+  }
+
   setLogLevel(level: LogLevel): void {
     logger.setLevel(level)
     logger.info(`Global log level set to ${level}`)
@@ -120,33 +123,18 @@ export class FedimintWallet {
     return this._initialized
   }
 
-  /**
-   * Parses an invite code and returns federation information
-   * @param inviteCode - The federation invite code to parse
-   * @returns Object containing federation_id and url
-   */
   async parseInviteCode(inviteCode: string): Promise<ParsedInviteCode> {
     const data = await this._client.parseInviteCode(inviteCode)
     logger.info(`Parsed invite code: ${inviteCode}`, data)
     return data
   }
 
-  /**
-   * Previews federation information from an invite code
-   * @param inviteCode - The federation invite code to preview
-   * @returns Object containing federation information
-   */
   async previewFederation(inviteCode: string): Promise<PreviewFederation> {
     const data = await this._client.previewFederation(inviteCode)
     logger.info(`Previewed federation for invite code: ${inviteCode}`, data)
     return data
   }
 
-  /**
-   * Parses a Bolt11 invoice
-   * @param invoice - The Bolt11 invoice string to parse
-   * @returns Parsed invoice information
-   */
   async parseBolt11Invoice(invoice: string): Promise<ParsedBolt11Invoice> {
     const data = await this._client.parseBolt11Invoice(invoice)
     logger.info(`Parsed Bolt11 invoice: ${invoice}`, data)

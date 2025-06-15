@@ -75,13 +75,21 @@ const useBalance = (wallet: Wallet | undefined, checkIsOpen: () => void) => {
 
 const App = () => {
   const [wallets, setWallets] = useState<Wallet[]>([])
+  const [walletPointers, setWalletPointers] = useState<
+    Array<{
+      id: string
+      clientName: string
+      federationId?: string
+      createdAt: number
+      lastAccessedAt: number
+    }>
+  >([])
   const [activeWallet, setActiveWallet] = useState<Wallet | undefined>(
     undefined,
   )
   const [walletId, setWalletId] = useState('')
   const [opening, setOpening] = useState(false)
   const [error, setError] = useState('')
-  // Add this state to track federation status changes
   const [federationJoined, setFederationJoined] = useState(false)
 
   const { open, checkIsOpen } = useIsOpen(activeWallet)
@@ -94,6 +102,20 @@ const App = () => {
     }
   }, [activeWallet, activeWallet?.federationId])
 
+  // Load wallet pointers on mount and refresh periodically
+  useEffect(() => {
+    const loadWalletPointers = () => {
+      const pointers = fedimintWallet.getAllWalletPointers()
+      setWalletPointers(pointers)
+    }
+
+    loadWalletPointers()
+
+    // Refresh wallet pointers periodically
+    const interval = setInterval(loadWalletPointers, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
   // Wallet management functions
   const createWallet = useCallback(async () => {
     const wallet = await fedimintWallet.createWallet()
@@ -102,13 +124,15 @@ const App = () => {
     if (!activeWallet) {
       setActiveWallet(wallet)
     }
+    // Refresh wallet pointers after creating
+    setWalletPointers(fedimintWallet.getAllWalletPointers())
     return wallet
   }, [activeWallet])
 
   const openWallet = useCallback(
     async (walletId: string) => {
       try {
-        const wallet = await fedimintWallet.getWallet(walletId)
+        const wallet = await fedimintWallet.openWallet(walletId)
         const existingWallet = wallets.find((w) => w.id === walletId)
         if (!existingWallet) {
           setWallets((prev) => [...prev, wallet])
@@ -116,11 +140,9 @@ const App = () => {
         setActiveWallet(wallet)
         setWalletId('')
         setError('')
-        if (!wallet?.federationId == undefined) {
-          setFederationJoined(false)
-        } else {
-          setFederationJoined(true)
-        }
+        setFederationJoined(!!wallet.federationId)
+        // Refresh wallet pointers after opening
+        setWalletPointers(fedimintWallet.getAllWalletPointers())
         return wallet
       } catch (error) {
         console.error('Error opening wallet:', error)
@@ -131,10 +153,41 @@ const App = () => {
     [wallets],
   )
 
-  const selectWallet = useCallback((walletId: string) => {
-    const wallet = fedimintWallet.getWallet(walletId)
-    if (wallet) {
+  const selectWallet = useCallback(async (walletId: string) => {
+    try {
+      setError('')
+
+      // First try to get from memory
+      let wallet = fedimintWallet.getWallet(walletId)
+
+      if (!wallet) {
+        // If not in memory, open it
+        console.log(`Opening wallet ${walletId} from storage`)
+        wallet = await fedimintWallet.openWallet(walletId)
+
+        // Add to wallets array if not already there
+        setWallets((prev) => {
+          const existingWallet = prev.find((w) => w.id === walletId)
+          if (!existingWallet) {
+            console.log(`Adding wallet ${walletId} to wallets array`)
+            return [...prev, wallet]
+          }
+          return prev
+        })
+      }
+
+      // Update active wallet
+      console.log(
+        `Setting active wallet to ${wallet.id} with federation ${wallet.federationId}`,
+      )
       setActiveWallet(wallet)
+      setFederationJoined(!!wallet.federationId)
+
+      // Refresh wallet pointers after selecting
+      setWalletPointers(fedimintWallet.getAllWalletPointers())
+    } catch (error) {
+      console.error('Error selecting wallet:', error)
+      setError(error instanceof Error ? error.message : String(error))
     }
   }, [])
 
@@ -190,6 +243,7 @@ const App = () => {
       <main>
         <WalletManagement
           wallets={wallets}
+          walletPointers={walletPointers}
           activeWallet={activeWallet}
           walletId={walletId}
           opening={opening}
@@ -236,6 +290,7 @@ const App = () => {
 
 const WalletManagement = ({
   wallets,
+  walletPointers,
   activeWallet,
   walletId,
   opening,
@@ -245,6 +300,13 @@ const WalletManagement = ({
   onWalletIdChange,
 }: {
   wallets: Wallet[]
+  walletPointers: Array<{
+    id: string
+    clientName: string
+    federationId?: string
+    createdAt: number
+    lastAccessedAt: number
+  }>
   activeWallet: Wallet | undefined
   walletId: string
   opening: boolean
@@ -253,6 +315,18 @@ const WalletManagement = ({
   onOpenWallet: (e: React.FormEvent) => void
   onWalletIdChange: (id: string) => void
 }) => {
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString()
+  }
+
+  const formatWalletId = (id: string) => {
+    return id.length > 8 ? `${id.slice(0, 8)}...` : id
+  }
+
+  const isWalletLoaded = (walletId: string) => {
+    return wallets.some((w) => w.id === walletId)
+  }
+
   return (
     <div className="section">
       <h3>Wallet Management</h3>
@@ -281,24 +355,58 @@ const WalletManagement = ({
         </form>
       </div>
 
-      {/* Wallet List */}
-      {wallets.length > 0 && (
+      {/* Wallet Pointers List */}
+      {walletPointers.length > 0 && (
         <div className="wallet-list">
-          <strong>Wallets:</strong>
-          {wallets.map((wallet) => (
-            <div key={wallet.id} className="wallet-item">
-              <button
-                onClick={() => onSelectWallet(wallet.id)}
-                className={activeWallet?.id === wallet.id ? 'active' : ''}
+          <h4>Available Wallets ({walletPointers.length}):</h4>
+          <div className="wallet-grid">
+            {walletPointers.map((pointer) => (
+              <div
+                key={pointer.id}
+                className={`wallet-item ${activeWallet?.id === pointer.id ? 'active' : ''}`}
               >
-                {wallet.id}...
-                {wallet.federationId
-                  ? ` (Fed: ${wallet.federationId.slice(0, 8)}...)`
-                  : ' (No Fed)'}
-              </button>
-            </div>
-          ))}
+                <button
+                  onClick={() => onSelectWallet(pointer.id)}
+                  className="wallet-button"
+                  title={`Wallet ID: ${pointer.id}\nClient: ${pointer.clientName}\nCreated: ${formatDate(pointer.createdAt)}\nLast accessed: ${formatDate(pointer.lastAccessedAt)}`}
+                >
+                  <div className="wallet-info">
+                    <div className="wallet-id">
+                      <strong>{formatWalletId(pointer.id)}</strong>
+                      {isWalletLoaded(pointer.id) && (
+                        <span className="loaded-indicator">●</span>
+                      )}
+                    </div>
+                    <div className="wallet-federation">
+                      {pointer.federationId
+                        ? `Fed: ${pointer.federationId.slice(0, 8)}...`
+                        : 'No Federation'}
+                    </div>
+                    <div className="wallet-dates">
+                      <small>Last: {formatDate(pointer.lastAccessedAt)}</small>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
+      )}
+
+      {/* Currently Loaded Wallets (for debugging) */}
+      {wallets.length > 0 && (
+        <details className="loaded-wallets">
+          <summary>Loaded in Memory ({wallets.length})</summary>
+          <div className="wallet-list">
+            {wallets.map((wallet) => (
+              <div key={wallet.id} className="wallet-item">
+                <span>{formatWalletId(wallet.id)}</span>
+                <span>{wallet.federationId ? 'Joined' : 'No Fed'}</span>
+                <span>{wallet.isOpen() ? 'Open' : 'Closed'}</span>
+              </div>
+            ))}
+          </div>
+        </details>
       )}
     </div>
   )
@@ -461,6 +569,15 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
 
+  // Debug: Log wallet changes
+  useEffect(() => {
+    console.log('GenerateLightningInvoice received wallet:', {
+      id: wallet.id,
+      federationId: wallet.federationId,
+      isOpen: wallet.isOpen(),
+    })
+  }, [wallet.id, wallet.federationId])
+
   // Reset component state when wallet changes
   useEffect(() => {
     setAmount('')
@@ -476,15 +593,17 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
     setError('')
     setGenerating(true)
 
+    console.log('Generating invoice for wallet:', {
+      id: wallet.id,
+      federationId: wallet.federationId,
+      isOpen: wallet.isOpen(),
+    })
+
     try {
       if (!wallet.federationId) {
         throw new Error(
           'Wallet must be joined to a federation before creating invoices',
         )
-      }
-
-      if (!wallet.isOpen()) {
-        throw new Error('Wallet is not open')
       }
 
       const response = await wallet.lightning.createInvoice(
