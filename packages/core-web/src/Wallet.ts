@@ -27,17 +27,17 @@ export class Wallet {
   public recovery: RecoveryService
   public wallet: WalletService
 
-  constructor(client: RpcClient, walletId?: string) {
+  constructor(client: RpcClient, walletId?: string, federationId?: string) {
     this.id = walletId || generateUUID()
     this._client = client
     this._clientName = `wallet-${this.id}`
+    this._federationId = federationId // Set federation ID if provided
 
     this._openPromise = new Promise((resolve) => {
       this._resolveOpen = resolve
     })
 
-    // nit: are both the client and clientName needed?, or would just the clientName suffice?
-    // might be backwards compatible if we keep both
+    // nit: are both the client and clientName needed??
     this.balance = new BalanceService(this._client, this._clientName)
     this.mint = new MintService(this._client, this._clientName)
     this.lightning = new LightningService(this._client, this._clientName)
@@ -48,7 +48,9 @@ export class Wallet {
     // Register wallet
     WalletRegistry.getInstance().addWallet(this)
 
-    logger.info(`Wallet ${this.id} instantiated`)
+    logger.info(
+      `Wallet ${this.id} instantiated${federationId ? ` with federation ${federationId}` : ''}`,
+    )
   }
 
   get federationId(): string | undefined {
@@ -71,10 +73,14 @@ export class Wallet {
     }
 
     try {
+      // Ensure the RPC client is initialized before making the call
+      await this._client.initialize()
       await this._client.openClient(this._clientName)
       this._isOpen = true
       this._resolveOpen()
-      logger.info(`Wallet ${this.id} opened successfully`)
+      logger.info(
+        `Wallet ${this.id} opened successfully${this._federationId ? ` with federation ${this._federationId}` : ''}`,
+      )
       return true
     } catch (e) {
       logger.error(`Error opening wallet ${this.id}:`, e)
@@ -106,6 +112,12 @@ export class Wallet {
       ).federation_id
       this._isOpen = true
       this._resolveOpen()
+
+      // Update the registry with the new federation ID
+      WalletRegistry.getInstance().updateWalletFederation(
+        this.id,
+        this._federationId,
+      )
 
       logger.info(
         `Wallet ${this.id} successfully joined federation ${this._federationId}`,

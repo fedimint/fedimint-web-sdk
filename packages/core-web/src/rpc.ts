@@ -94,22 +94,22 @@ export class RpcClient {
   }
 
   async openClient(clientName: string) {
-    // Set clientName immediately before the call
-    this.clientName = clientName
     try {
       const result = await this.internalRpcSingle({
         type: 'open_client',
         client_name: clientName,
       })
+      logger.info('open client', clientName, 'result', result)
+      this.clientName = clientName
       return result
     } catch (error) {
-      // Reset clientName if the operation failed
       this.clientName = undefined
       throw error
     }
   }
 
   async closeClient(clientName: string) {
+    logger.info('RpcClient.openClient: 2 calling openclient on', clientName)
     await this.internalRpcSingle({
       type: 'close_client',
       client_name: clientName,
@@ -196,7 +196,7 @@ export class RpcClient {
     module: string,
     method: string,
     payload: P,
-    clientName?: string, // Add optional clientName parameter
+    clientName?: string,
   ): Promise<T> {
     const effectiveClientName = clientName || this.clientName
     if (effectiveClientName === undefined) {
