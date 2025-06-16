@@ -1,7 +1,7 @@
 import { Wallet } from './Wallet'
 import { logger } from './utils/logger'
 
-interface WalletPointer {
+interface WalletInfo {
   id: string
   clientName: string
   federationId?: string
@@ -11,11 +11,11 @@ interface WalletPointer {
 
 interface WalletStorageData {
   version: number
-  wallets: WalletPointer[]
+  wallets: WalletInfo[]
 }
 
-export class WalletRegistry {
-  private static instance: WalletRegistry
+export class WalletManager {
+  private static instance: WalletManager
   private wallets: Map<string, Wallet> = new Map()
   private readonly STORAGE_KEY = 'fedimint-wallets'
   private readonly STORAGE_VERSION = 1
@@ -24,16 +24,16 @@ export class WalletRegistry {
     this.loadWalletsFromStorage()
   }
 
-  static getInstance(): WalletRegistry {
-    if (!WalletRegistry.instance) {
-      WalletRegistry.instance = new WalletRegistry()
+  static getInstance(): WalletManager {
+    if (!WalletManager.instance) {
+      WalletManager.instance = new WalletManager()
     }
-    return WalletRegistry.instance
+    return WalletManager.instance
   }
 
   addWallet(wallet: Wallet): void {
     this.wallets.set(wallet.id, wallet)
-    this.saveWalletPointer(wallet)
+    this.saveWalletInfo(wallet)
     logger.debug(`Wallet ${wallet.id} added to registry`)
   }
 
@@ -41,7 +41,7 @@ export class WalletRegistry {
     const wallet = this.wallets.get(walletId)
     if (wallet) {
       this.wallets.delete(walletId)
-      this.removeWalletPointer(walletId)
+      this.removeWalletInfo(walletId)
       logger.debug(`Wallet ${walletId} removed from registry`)
     }
   }
@@ -54,8 +54,9 @@ export class WalletRegistry {
     return wallet
   }
 
-  getAllWallets(): Wallet[] {
-    return Array.from(this.wallets.values())
+  // Get all active wallets
+  getActiveWallets(): Wallet[] {
+    return Array.from(this.wallets.values()).filter((wallet) => wallet.isOpen())
   }
 
   getWalletsByFederation(federationId: string): Wallet[] {
@@ -64,7 +65,7 @@ export class WalletRegistry {
     )
   }
 
-  getAllWalletPointers(): WalletPointer[] {
+  listClients(): WalletInfo[] {
     try {
       const data = this.getStorageData()
       return data.wallets.sort((a, b) => b.lastAccessedAt - a.lastAccessedAt)
@@ -74,17 +75,17 @@ export class WalletRegistry {
     }
   }
 
-  getWalletPointer(walletId: string): WalletPointer | undefined {
-    const pointers = this.getAllWalletPointers()
+  getWalletInfo(walletId: string): WalletInfo | undefined {
+    const pointers = this.listClients()
     return pointers.find((pointer) => pointer.id === walletId)
   }
 
   hasWallet(walletId: string): boolean {
-    return this.getWalletPointer(walletId) !== undefined
+    return this.getWalletInfo(walletId) !== undefined
   }
 
   getClientName(walletId: string): string | undefined {
-    const pointer = this.getWalletPointer(walletId)
+    const pointer = this.getWalletInfo(walletId)
     return pointer?.clientName
   }
 
@@ -141,12 +142,12 @@ export class WalletRegistry {
     }
   }
 
-  private saveWalletPointer(wallet: Wallet): void {
+  private saveWalletInfo(wallet: Wallet): void {
     try {
       const data = this.getStorageData()
       const existingIndex = data.wallets.findIndex((w) => w.id === wallet.id)
 
-      const pointer: WalletPointer = {
+      const pointer: WalletInfo = {
         id: wallet.id,
         clientName: wallet.clientName,
         federationId: wallet.federationId,
@@ -172,7 +173,7 @@ export class WalletRegistry {
     }
   }
 
-  private removeWalletPointer(walletId: string): void {
+  private removeWalletInfo(walletId: string): void {
     try {
       const data = this.getStorageData()
       data.wallets = data.wallets.filter((w) => w.id !== walletId)
