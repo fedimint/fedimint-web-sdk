@@ -1,4 +1,4 @@
-# joinFederation
+# Join Federation
 
 ### `joinFederation(federationId: string)`
 
@@ -8,7 +8,8 @@ Attempts to join a federation.
 // @esModuleInterop
 import { FedimintWallet } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const fedimintWallet = FedimintWallet.getInstance()
+const wallet = await fedimintWallet.createWallet()
 
 const didJoin = await wallet.joinFederation('fed123...') // [!code focus]
 
@@ -23,7 +24,8 @@ To support multiple wallets within a single application, you can pass in a custo
 // @esModuleInterop
 import { FedimintWallet } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const fedimintWallet = FedimintWallet.getInstance()
+const wallet = await fedimintWallet.createWallet()
 
-const didJoin = await wallet.joinFederation('fed456...', 'my-client-name') // [!code focus]
+const didJoin = await wallet.joinFederation('fed456...') // [!code focus]
 ```
