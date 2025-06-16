@@ -8,8 +8,9 @@ Generates ecash notes for spending.
 // @esModuleInterop
 import { FedimintWallet } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+const fedimintWallet = FedimintWallet.getInstance()
+const wallet = await fedimintWallet.createWallet()
+await wallet.joinFederation('fed11qgq...')
 
 const amountMsats = 10_000 // [!code focus]
 const result = await wallet.mint.spendNotes(amountMsats) // [!code focus]

@@ -75,7 +75,7 @@ const useBalance = (wallet: Wallet | undefined, checkIsOpen: () => void) => {
 
 const App = () => {
   const [wallets, setWallets] = useState<Wallet[]>([])
-  const [walletPointers, setWalletPointers] = useState<
+  const [WalletInfo, setWalletInfo] = useState<
     Array<{
       id: string
       clientName: string
@@ -104,15 +104,15 @@ const App = () => {
 
   // Load wallet pointers on mount and refresh periodically
   useEffect(() => {
-    const loadWalletPointers = () => {
-      const pointers = fedimintWallet.getAllWalletPointers()
-      setWalletPointers(pointers)
+    const loadWalletInfo = () => {
+      const pointers = fedimintWallet.listClients()
+      setWalletInfo(pointers)
     }
 
-    loadWalletPointers()
+    loadWalletInfo()
 
     // Refresh wallet pointers periodically
-    const interval = setInterval(loadWalletPointers, 5000)
+    const interval = setInterval(loadWalletInfo, 5000)
     return () => clearInterval(interval)
   }, [])
 
@@ -125,7 +125,7 @@ const App = () => {
       setActiveWallet(wallet)
     }
     // Refresh wallet pointers after creating
-    setWalletPointers(fedimintWallet.getAllWalletPointers())
+    setWalletInfo(fedimintWallet.listClients())
     return wallet
   }, [activeWallet])
 
@@ -142,7 +142,7 @@ const App = () => {
         setError('')
         setFederationJoined(!!wallet.federationId)
         // Refresh wallet pointers after opening
-        setWalletPointers(fedimintWallet.getAllWalletPointers())
+        setWalletInfo(fedimintWallet.listClients())
         return wallet
       } catch (error) {
         console.error('Error opening wallet:', error)
@@ -184,7 +184,7 @@ const App = () => {
       setFederationJoined(!!wallet.federationId)
 
       // Refresh wallet pointers after selecting
-      setWalletPointers(fedimintWallet.getAllWalletPointers())
+      setWalletInfo(fedimintWallet.listClients())
     } catch (error) {
       console.error('Error selecting wallet:', error)
       setError(error instanceof Error ? error.message : String(error))
@@ -206,7 +206,7 @@ const App = () => {
   }
 
   useEffect(() => {
-    const existingWallets = fedimintWallet.getAllWallets()
+    const existingWallets = fedimintWallet.getActiveWallets()
     setWallets(existingWallets)
     if (existingWallets.length > 0 && !activeWallet) {
       setActiveWallet(existingWallets[0])
@@ -243,7 +243,7 @@ const App = () => {
       <main>
         <WalletManagement
           wallets={wallets}
-          walletPointers={walletPointers}
+          WalletInfo={WalletInfo}
           activeWallet={activeWallet}
           walletId={walletId}
           opening={opening}
@@ -290,7 +290,7 @@ const App = () => {
 
 const WalletManagement = ({
   wallets,
-  walletPointers,
+  WalletInfo,
   activeWallet,
   walletId,
   opening,
@@ -300,7 +300,7 @@ const WalletManagement = ({
   onWalletIdChange,
 }: {
   wallets: Wallet[]
-  walletPointers: Array<{
+  WalletInfo: Array<{
     id: string
     clientName: string
     federationId?: string
@@ -356,11 +356,11 @@ const WalletManagement = ({
       </div>
 
       {/* Wallet Pointers List */}
-      {walletPointers.length > 0 && (
+      {WalletInfo.length > 0 && (
         <div className="wallet-list">
-          <h4>Available Wallets ({walletPointers.length}):</h4>
+          <h4>Available Wallets ({WalletInfo.length}):</h4>
           <div className="wallet-grid">
-            {walletPointers.map((pointer) => (
+            {WalletInfo.map((pointer) => (
               <div
                 key={pointer.id}
                 className={`wallet-item ${activeWallet?.id === pointer.id ? 'active' : ''}`}
