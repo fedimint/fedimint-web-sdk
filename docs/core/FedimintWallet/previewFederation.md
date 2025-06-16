@@ -8,7 +8,7 @@ Attempts to give federation details before joining Federation.
 // @esModuleInterop
 import { FedimintWallet } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const fedimintWallet = FedimintWallet.getInstance()
 
-const details = await wallet.previewFederation('fed123...')
+const details = await fedimintWallet.previewFederation('fed123...')
 ```

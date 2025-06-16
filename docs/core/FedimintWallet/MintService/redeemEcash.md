@@ -8,8 +8,9 @@ Redeem a set of ecash notes.
 // @esModuleInterop
 import { FedimintWallet } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+const fedimintWallet = FedimintWallet.getInstance()
+const wallet = await fedimintWallet.createWallet()
+await wallet.joinFederation('fed11qgq...')
 
 try {
   await wallet.mint.redeemEcash('01...') // [!code focus]

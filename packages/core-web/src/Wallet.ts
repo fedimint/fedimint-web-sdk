@@ -9,7 +9,7 @@ import {
 } from './services'
 import { logger } from './utils/logger'
 import { generateUUID } from './utils/uuid'
-import { WalletRegistry } from './WalletRegistry'
+import { WalletManager } from './WalletManager'
 
 export class Wallet {
   public readonly id: string
@@ -37,7 +37,7 @@ export class Wallet {
       this._resolveOpen = resolve
     })
 
-    // nit: are both the client and clientName needed??
+    // nit: are both the client and clientName needed
     this.balance = new BalanceService(this._client, this._clientName)
     this.mint = new MintService(this._client, this._clientName)
     this.lightning = new LightningService(this._client, this._clientName)
@@ -46,7 +46,7 @@ export class Wallet {
     this.wallet = new WalletService(this._client, this._clientName)
 
     // Register wallet
-    WalletRegistry.getInstance().addWallet(this)
+    WalletManager.getInstance().addWallet(this)
 
     logger.info(
       `Wallet ${this.id} instantiated${federationId ? ` with federation ${federationId}` : ''}`,
@@ -68,8 +68,7 @@ export class Wallet {
 
   async open(): Promise<boolean> {
     if (this._isOpen) {
-      logger.warn(`Wallet ${this.id} is already open`)
-      return true
+      throw new Error('The FedimintWallet is already open.')
     }
 
     try {
@@ -88,10 +87,15 @@ export class Wallet {
     }
   }
 
+  /**
+   * Joins a federation using the provided invite code.
+   * @param inviteCode The invite code for the federation.
+   * @returns A promise that resolves to true if the wallet successfully joined the federation, false otherwise.
+   */
   async joinFederation(inviteCode: string) {
     if (this._isOpen) {
       throw new Error(
-        `Wallet ${this.id} is already open. Cannot join federation on an open wallet.`,
+        'The FedimintWallet is already open. You can only call `joinFederation` on closed clients.',
       )
     }
 
@@ -114,7 +118,7 @@ export class Wallet {
       this._resolveOpen()
 
       // Update the registry with the new federation ID
-      WalletRegistry.getInstance().updateWalletFederation(
+      WalletManager.getInstance().updateWalletFederation(
         this.id,
         this._federationId,
       )
@@ -136,12 +140,20 @@ export class Wallet {
     }
   }
 
+  /**
+   * Cleans up the wallet resources.
+   *
+   * This method closes the client and removes the wallet
+   * from the WalletManager. It should be called when the wallet is no longer needed.
+   *
+   * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
+   */
   async cleanup(): Promise<void> {
     try {
       if (this._isOpen) {
         await this._client.closeClient(this._clientName)
       }
-      WalletRegistry.getInstance().removeWallet(this.id)
+      WalletManager.getInstance().removeWallet(this.id)
       this._isOpen = false
       this._openPromise = undefined
       logger.info(`Wallet ${this.id} cleaned up`)
@@ -150,6 +162,10 @@ export class Wallet {
     }
   }
 
+  /**
+   * Checks if the wallet is currently open.
+   * @returns {boolean} True if the wallet is open, false otherwise.
+   */
   isOpen(): boolean {
     return this._isOpen
   }
