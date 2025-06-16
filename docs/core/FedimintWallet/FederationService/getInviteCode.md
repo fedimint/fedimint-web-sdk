@@ -1,4 +1,4 @@
-# Redeem Ecash
+# Get Invite Code
 
 ### `federation.getInviteCode()`
 
@@ -8,8 +8,9 @@ Access the invite code for the connected federation.
 // @esModuleInterop
 import { FedimintWallet } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+const fedimintWallet = FedimintWallet.getInstance()
+const wallet = await fedimintWallet.createWallet()
+await wallet.joinFederation('fed11qgq...')
 
 const peerId = 0 // Index of the guardian to ask for the invite code // [!code focus]
 

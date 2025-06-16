@@ -37,7 +37,7 @@ export class Wallet {
       this._resolveOpen = resolve
     })
 
-    // nit: are both the client and clientName needed??
+    // nit: are both the client and clientName needed
     this.balance = new BalanceService(this._client, this._clientName)
     this.mint = new MintService(this._client, this._clientName)
     this.lightning = new LightningService(this._client, this._clientName)
