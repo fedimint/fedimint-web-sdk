@@ -8,7 +8,7 @@ jobs:
     name: Lint
     permissions:
       contents: write
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
 
     steps:
       - name: Clone repository
@@ -25,7 +25,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     timeout-minutes: 5
 
     steps:
@@ -40,7 +40,7 @@ jobs:
 
   types:
     name: Types
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
 
     steps:
       - name: Clone repository
@@ -84,7 +84,7 @@ jobs:
 
   build-docs:
     name: Build Docs
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
 
     steps:
       - name: Clone repository
