@@ -25,7 +25,6 @@
     "prepare": "pnpm simple-git-hooks",
     "postinstall": "patch-package",
     "preview": "pnpm --filter vite-core preview",
-    "release": "pnpm run build:wasm && pnpm run build && pnpm changeset publish",
     "reset": "pnpm clean && pnpm build && pnpm preview",
     "changeset": "changeset",
     "version": "changeset version",
