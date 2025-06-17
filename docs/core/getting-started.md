@@ -55,8 +55,8 @@ const unsubscribe = wallet.balance.subscribeBalance((balance: number) => {
 
 // Working with multiple wallets
 const wallet2 = await fedimintWallet.createWallet('my-second-wallet')
-const allWallets = fedimintWallet.getAllWallets()
-const walletPointers = fedimintWallet.getAllWalletPointers()
+const allWallets = fedimintWallet.getActiveWallets()
+const ClientList = fedimintWallet.listClients()
 
 // Open an existing wallet by ID
 const existingWallet = await fedimintWallet.openWallet('wallet-id')
@@ -83,8 +83,8 @@ const businessFedWallets =
   fedimintWallet.getWalletsByFederation('federation-id-2')
 
 // List all wallet pointers (metadata)
-const walletPointers = fedimintWallet.getAllWalletPointers()
-walletPointers.forEach((pointer) => {
+const ClientList = fedimintWallet.listClients()
+ClientList.forEach((pointer) => {
   console.log(`Wallet ${pointer.id} - Federation: ${pointer.federationId}`)
   console.log(`Created: ${new Date(pointer.createdAt).toLocaleString()}`)
   console.log(

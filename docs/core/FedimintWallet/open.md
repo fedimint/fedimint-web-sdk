@@ -10,10 +10,10 @@ import { FedimintWallet } from '@fedimint/core-web'
 const fedimintWallet = FedimintWallet.getInstance()
 
 // First, get a list of all available wallet pointers
-const walletPointers = fedimintWallet.getAllWalletPointers()
+const ClientList = fedimintWallet.listClients()
 
 console.log('Available wallets:')
-walletPointers.forEach((pointer) => {
+ClientList.forEach((pointer) => {
   console.log(`- ID: ${pointer.id}`)
   console.log(`  Federation: ${pointer.federationId || 'Not joined'}`)
   console.log(`  Created: ${new Date(pointer.createdAt).toLocaleString()}`)
@@ -56,7 +56,7 @@ The opened wallet instance.
 ## Related Methods
 
 - [`createWallet()`](createWallet.md) - Create a new wallet
-- [`getAllWalletPointers()`](getAllWalletPointers.md) - Get metadata for all stored wallets
+- [`ListClients()`](ListClients.md) - Get metadata for all stored wallets
 - [`hasWallet()`](hasWallet.md) - Check if a wallet exists
 - [`getWallet()`](getWallet.md) - Get an already loaded wallet instance
 ```
