@@ -29,19 +29,15 @@ jobs:
       - name: Build WASM
         uses: ./.github/actions/build-wasm
 
-      - name: Install dependencies and build packages
-        run: |
-          nix develop --accept-flake-config --command bash << EOF
-            # Install dependencies
-            pnpm install
-
-            # Build packages
-            pnpm build
-
-          EOF
-
       - name: Report build size
-        uses: preactjs/compressed-size-action@v2
+        # Fork modifies build-script to run arbitrary buildScript instead of pnpm run ${buildScript}
+        uses: alexlwn123/compressed-size-action@alex/fix-build
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: '{packages/**/dist/**/*.{js,mjs,cjs},packages/**/*.wasm}'
+          install-script: nix develop --accept-flake-config --command pnpm install
+          build-script: nix develop --accept-flake-config --command pnpm build
+
+      # https://github.com/actions/checkout/issues/692#issuecomment-1502203573
+      - name: Cleanup checkout
+        uses: actions/checkout@v4
