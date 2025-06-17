@@ -35,13 +35,29 @@ jobs:
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - name: Install dependencies
-        uses: ./.github/actions/install-deps
+      - name: Build WASM
+        uses: ./.github/actions/build-wasm
+
+      - name: Setup Nix shell and run commands
+        run: |
+          nix develop --accept-flake-config --command bash << EOF
+            # Install dependencies
+            pnpm install
+
+            # Build packages
+            pnpm build
+
+            # Run Tests
+            pnpm test
+          EOF
 
       - name: PR or Publish to NPM
         uses: changesets/action@v1
         with:
-          publish: pnpm release
+          publish: |
+            nix develop --accept-flake-config --command bash << EOF
+              pnpm release
+            EOF
           createGithubReleases: ${{ github.ref == 'refs/heads/main' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -55,9 +71,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          npm config set "//registry.npmjs.org/:_authToken" "$NPM_TOKEN"
-          git reset --hard origin/main
-          pnpm clean
-          pnpm changeset version --no-git-tag --snapshot canary
-          pnpm build
-          pnpm changeset publish --no-git-tag --snapshot canary --tag canary
+          nix develop --accept-flake-config --command bash << EOF
+            npm config set "//registry.npmjs.org/:_authToken" "$NPM_TOKEN"
+            git reset --hard origin/main
+            pnpm clean
+            pnpm changeset version --no-git-tag --snapshot canary
+            pnpm build
+            pnpm changeset publish --no-git-tag --snapshot canary --tag canary
+          EOF

@@ -25,7 +25,7 @@ concurrency:
 jobs:
   # Build job
   build:
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
@@ -54,7 +54,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     needs: build
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     name: Deploy
     steps:
       - name: Deploy to GitHub Pages

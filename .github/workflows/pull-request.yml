@@ -29,8 +29,16 @@ jobs:
       - name: Build WASM
         uses: ./.github/actions/build-wasm
 
-      - name: Install dependencies
-        uses: ./.github/actions/install-deps
+      - name: Install dependencies and build packages
+        run: |
+          nix develop --accept-flake-config --command bash << EOF
+            # Install dependencies
+            pnpm install
+
+            # Build packages
+            pnpm build
+
+          EOF
 
       - name: Report build size
         uses: preactjs/compressed-size-action@v2
