@@ -1,5 +1,24 @@
 # @fedimint/core-web
 
+## 0.1.0
+
+### Minor Changes
+
+- f95792f: Implemented getNotesByDenomination in mint service
+
+  Added and implemented getWalletSummary in wallet service
+
+  Implemented previewFederation
+
+  Added docs for the implementation of getNotesByDenomination, getWalletSummary, previewFederation
+
+### Patch Changes
+
+- 357effb: Bump fedimint version for devimint. Fixed testing harness.
+- Updated dependencies [22ac0ce]
+- Updated dependencies [f95792f]
+  - @fedimint/fedimint-client-wasm-bundler@0.1.0
+
 ## 0.0.11
 
 ### Patch Changes
