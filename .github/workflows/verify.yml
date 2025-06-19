@@ -78,7 +78,7 @@ jobs:
           pnpm build
 
           # Run Tests
-          pnpm test
+          nix develop --accept-flake-config --command pnpm test
 
   build-docs:
     name: Build Docs
