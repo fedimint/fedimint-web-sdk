@@ -1,159 +1,250 @@
-import { WorkerClient } from './worker'
-import {
-  BalanceService,
-  MintService,
-  LightningService,
-  FederationService,
-  RecoveryService,
-  WalletService,
-} from './services'
+import { RpcClient, TransportFactory } from './rpc'
+import { createWebWorkerTransport } from './worker/WorkerTransport'
 import { logger, type LogLevel } from './utils/logger'
-import { FederationConfig, JSONValue } from './types'
+import { Wallet } from './Wallet'
+import { WalletManager } from './WalletManager'
+import type {
+  ParsedInviteCode,
+  PreviewFederation,
+  ParsedBolt11Invoice,
+} from './types'
 
-const DEFAULT_CLIENT_NAME = 'fm-default' as const
+logger.setLevel('debug')
 
+export { Wallet }
 export class FedimintWallet {
-  private _client: WorkerClient
+  // Manager
+  private static instance: FedimintWallet
+  private _client: RpcClient
+  private _initialized: boolean = false
+  private _initPromise?: Promise<void>
 
-  public balance: BalanceService
-  public mint: MintService
-  public lightning: LightningService
-  public federation: FederationService
-  public recovery: RecoveryService
-  public wallet: WalletService
-
-  private _openPromise: Promise<void> | undefined = undefined
-  private _resolveOpen: () => void = () => {}
-  private _isOpen: boolean = false
-
-  /**
-   * Creates a new instance of FedimintWallet.
-   *
-   * This constructor initializes a FedimintWallet instance, which manages communication
-   * with a Web Worker. The Web Worker is responsible for running WebAssembly code that
-   * handles the core Fedimint Client operations.
-   *
-   * (default) When not in lazy mode, the constructor immediately initializes the
-   * Web Worker and begins loading the WebAssembly module in the background. This
-   * allows for faster subsequent operations but may increase initial load time.
-   *
-   * In lazy mode, the Web Worker and WebAssembly initialization are deferred until
-   * the first operation that requires them, reducing initial overhead at the cost
-   * of a slight delay on the first operation.
-   *
-   * @param {boolean} lazy - If true, delays Web Worker and WebAssembly initialization
-   *                         until needed. Default is false.
-   *
-   * @example
-   * // Create a wallet with immediate initialization
-   * const wallet = new FedimintWallet();
-   * wallet.open();
-   *
-   * // Create a wallet with lazy initialization
-   * const lazyWallet = new FedimintWallet(true);
-   * // Some time later...
-   * lazyWallet.initialize();
-   * lazyWallet.open();
-   */
-  constructor(lazy: boolean = false) {
-    this._openPromise = new Promise((resolve) => {
-      this._resolveOpen = resolve
-    })
-    this._client = new WorkerClient()
-    this.mint = new MintService(this._client)
-    this.lightning = new LightningService(this._client)
-    this.balance = new BalanceService(this._client)
-    this.federation = new FederationService(this._client)
-    this.recovery = new RecoveryService(this._client)
-    this.wallet = new WalletService(this._client)
-
-    logger.info('FedimintWallet instantiated')
-
-    if (!lazy) {
-      this.initialize()
-    }
-  }
-
-  async initialize() {
-    logger.info('Initializing WorkerClient')
-    await this._client.initialize()
-    logger.info('WorkerClient initialized')
-  }
-
-  async waitForOpen() {
-    if (this._isOpen) return Promise.resolve()
-    return this._openPromise
-  }
-
-  async open(clientName: string = DEFAULT_CLIENT_NAME) {
-    await this._client.initialize()
-    // TODO: Determine if this should be safe or throw
-    if (this._isOpen) throw new Error('The FedimintWallet is already open.')
-    const { success } = await this._client.sendSingleMessage<{
-      success: boolean
-    }>('open', { clientName })
-    if (success) {
-      this._isOpen = !!success
-      this._resolveOpen()
-    }
-    return success
-  }
-
-  async joinFederation(
-    inviteCode: string,
-    clientName: string = DEFAULT_CLIENT_NAME,
+  private constructor(
+    createTransport: TransportFactory = createWebWorkerTransport,
   ) {
-    await this._client.initialize()
-    // TODO: Determine if this should be safe or throw
-    if (this._isOpen)
-      throw new Error(
-        'The FedimintWallet is already open. You can only call `joinFederation` on closed clients.',
-      )
-    try {
-      const response = await this._client.sendSingleMessage<{
-        success: boolean
-      }>('join', { inviteCode, clientName })
-      if (response.success) {
-        this._isOpen = true
-        this._resolveOpen()
-      }
+    this._client = new RpcClient(createTransport)
+    logger.info('FedimintWallet global instance created')
+  }
 
-      return response.success
-    } catch (e) {
-      logger.error('Error joining federation', e)
-      return false
+  /**
+   * Retrieves the singleton instance of FedimintWallet.
+   *
+   * This method ensures that only one instance of FedimintWallet is created
+   * throughout the application. If an instance already exists, it returns that
+   * instance; otherwise, it creates a new one using the provided transport factory.
+   *
+   * @param {TransportFactory} [createTransport] - Optional factory function to create the transport.
+   * @returns {FedimintWallet} The singleton instance of FedimintWallet.
+   */
+  static getInstance(createTransport?: TransportFactory): FedimintWallet {
+    if (!FedimintWallet.instance) {
+      FedimintWallet.instance = new FedimintWallet(createTransport)
     }
+    return FedimintWallet.instance
   }
 
   /**
-   * This should ONLY be called when UNLOADING the wallet client.
-   * After this call, the FedimintWallet instance should be discarded.
+   * Initializes the FedimintWallet instance.
+   *
+   * This method sets up the global RpcClient and prepares the wallet for use.
+   * It should be called before creating or opening any wallets.
+   *
+   * @returns {Promise<void>} A promise that resolves when the initialization is complete.
    */
-  async cleanup() {
-    this._openPromise = undefined
-    this._isOpen = false
+  // nit: should this be called initializeGlobalClient?
+  async initialize(): Promise<void> {
+    if (this._initialized) {
+      return
+    }
+
+    if (this._initPromise) {
+      return this._initPromise
+    }
+
+    this._initPromise = this._initializeInner()
+    return this._initPromise
+  }
+
+  private async _initializeInner(): Promise<void> {
+    logger.info('Initializing global RpcClient')
+    await this._client.initialize()
+    this._initialized = true
+    logger.info('Global RpcClient initialized')
+  }
+
+  /**
+   * Creates a new wallet instance.
+   *
+   * This method initializes the FedimintWallet if it hasn't been initialized yet,
+   * and then creates a new Wallet instance with a unique ID. If a walletId is
+   * provided, it will use that ID; otherwise, it generates a new one.
+   *
+   * @param {string} [walletId] - Optional ID for the new wallet. If not provided,
+   *                              a new ID will be generated.
+   * @returns {Promise<Wallet>} A promise that resolves to the newly created Wallet instance.
+   */
+  async createWallet(walletId?: string): Promise<Wallet> {
+    await this.initialize()
+
+    const wallet = new Wallet(this._client, walletId)
+    logger.info(`Created new wallet with ID: ${wallet.id}`)
+    return wallet
+  }
+
+  /**
+   * Opens an existing wallet by its ID.
+   *
+   * This method checks if the wallet with the specified ID exists in the
+   * WalletManager. If it does, it creates a new Wallet instance and opens it.
+   * If the wallet does not exist, it throws an error.
+   *
+   * @param {string} walletId - The ID of the wallet to open.
+   * @returns {Promise<Wallet>} A promise that resolves to the opened Wallet instance.
+   * @throws {Error} If the wallet with the specified ID does not exist.
+   */
+  async openWallet(walletId: string): Promise<Wallet> {
+    await this.initialize()
+    logger.info(`called initialize for openWallet`)
+
+    // Check if wallet exists in storage
+    const pointer = WalletManager.getInstance().getWalletInfo(walletId)
+    if (!pointer) {
+      throw new Error(`Wallet ${walletId} not found`)
+    }
+
+    let wallet = new Wallet(this._client, walletId, pointer.federationId)
+    await wallet.open()
+    return wallet
+  }
+
+  /**
+   * Retrieves a wallet by its ID.
+   *
+   * This method checks if the wallet with the specified ID exists and returns
+   * the corresponding Wallet instance if found. If the wallet does not exist,
+   * it returns undefined.
+   *
+   * @param {string} walletId - The ID of the wallet to retrieve.
+   * @returns {Wallet | undefined} The Wallet instance if found, otherwise undefined.
+   */
+  getWallet(walletId: string): Wallet | undefined {
+    return WalletManager.getInstance().getWallet(walletId)
+  }
+
+  /**
+   * Lists all clients managed by the WalletManager.
+   *
+   * This method retrieves an array of objects representing the clients, each
+   * containing the client's ID, name, federation ID (if applicable), creation
+   * timestamp, and last accessed timestamp.
+   *
+   * @returns {Array<{ id: string, clientName: string, federationId?: string, createdAt: number, lastAccessedAt: number }>}
+   *          An array of client objects.
+   */
+  listClients(): Array<{
+    id: string
+    clientName: string
+    federationId?: string
+    createdAt: number
+    lastAccessedAt: number
+  }> {
+    return WalletManager.getInstance().listClients()
+  }
+
+  /**
+   * Checks if a wallet with the given ID exists in the WalletManager.
+   *
+   * This method verifies whether a wallet with the specified ID is managed by
+   * the WalletManager. It returns true if the wallet exists, false otherwise.
+   *
+   * @param {string} walletId - The ID of the wallet to check.
+   * @returns {boolean} True if the wallet exists, false otherwise.
+   */
+  hasWallet(walletId: string): boolean {
+    return WalletManager.getInstance().hasWallet(walletId)
+  }
+
+  /**
+   * Retrieves all wallets managed by the WalletManager.
+   *
+   * This method returns an array of all Wallet instances are open and initialized.
+   *
+   * @returns {Wallet[]} An array of Wallet instances.
+   */
+  getActiveWallets(): Wallet[] {
+    return WalletManager.getInstance().getActiveWallets()
+  }
+
+  /**
+   * Retrieves all wallets associated with a specific federation.
+   *
+   * This method returns an array of Wallet instances that belong to the
+   * specified federation ID. It is useful for managing and accessing wallets
+   * within a particular federation context.
+   * Note: Only wallets that are open and initialized will be returned.
+   *
+   * @param {string} federationId - The ID of the federation to filter wallets by.
+   * @returns {Wallet[]} An array of Wallet instances associated with the given federation ID.
+   */
+  getWalletsByFederation(federationId: string): Wallet[] {
+    return WalletManager.getInstance().getWalletsByFederation(federationId)
+  }
+
+  /**
+   * Cleans up the FedimintWallet instance.
+   *
+   * This method performs necessary cleanup operations, such as closing the
+   * RpcClient and resetting the initialized state. It should be called when
+   * the application is shutting down or when the wallet is no longer needed.
+   *
+   * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
+   */
+  async cleanup(): Promise<void> {
+    await WalletManager.getInstance().cleanup()
     await this._client.cleanup()
-  }
-
-  isOpen() {
-    return this._isOpen
-  }
-
-  async previewFederation(inviteCode: string) {
-    const response = this._client.sendSingleMessage<{
-      config: FederationConfig
-      federation_id: string
-    }>('previewFederation', { inviteCode })
-    return response
+    this._initialized = false
+    this._initPromise = undefined
+    logger.info('FedimintWallet global cleanup completed')
   }
 
   /**
-   * Sets the log level for the library.
-   * @param level The desired log level ('DEBUG', 'INFO', 'WARN', 'ERROR', 'NONE').
+   * Clears all wallets from the WalletManager.
+   *
+   * This method removes all wallets from the WalletManager, effectively resetting
+   * the wallet state. It is useful for scenarios where you want to start fresh
+   * without any existing wallets.
+   * Note: This does not delete any wallet data from storage.
+   *
+   * @returns {Promise<void>} A promise that resolves when all wallets have been cleared.
    */
-  setLogLevel(level: LogLevel) {
+  async clearAllWallets(): Promise<void> {
+    await WalletManager.getInstance().clearAllWallets()
+  }
+
+  /**
+   * Sets the global log level for the FedimintWallet.
+   *
+   * This method allows you to change the log level for all logging operations
+   * within the FedimintWallet. The available log levels are 'debug', 'info',
+   * 'warn', 'error', and 'silent'.
+   *
+   * @param {LogLevel} level - The desired log level to set.
+   */
+  setLogLevel(level: LogLevel): void {
     logger.setLevel(level)
-    logger.info(`Log level set to ${level}.`)
+    logger.info(`Global log level set to ${level}`)
+  }
+
+  /**
+   * Checks if the FedimintWallet has been initialized.
+   *
+   * This method returns a boolean indicating whether the wallet has been
+   * initialized and is ready for use.
+   *
+   * @returns {boolean} True if the wallet is initialized, false otherwise.
+   */
+  isInitialized(): boolean {
+    return this._initialized
   }
 
   /**
@@ -175,13 +266,34 @@ export class FedimintWallet {
    * const parsedCode = await wallet.parseInviteCode(inviteCode);
    * console.log(parsedCode.federation_id, parsedCode.url);
    */
-  async parseInviteCode(inviteCode: string) {
-    const response = await this._client.sendSingleMessage<{
-      type: string
-      data: JSONValue
-      requestId: number
-    }>('parseInviteCode', { inviteCode })
-    return response
+  async parseInviteCode(inviteCode: string): Promise<ParsedInviteCode> {
+    const data = await this._client.parseInviteCode(inviteCode)
+    logger.info(`Parsed invite code: ${inviteCode}`, data)
+    return data
+  }
+
+  /**
+   * Previews a federation based on the provided invite code.
+   *
+   * This method sends the invite code to the WorkerClient to retrieve
+   * a preview of the federation details.
+   *
+   * @param {string} inviteCode - The invite code for the federation.
+   * @returns {Promise<PreviewFederation>} A promise that resolves to an object containing:
+   *          - `config`: The federation configuration.
+   *         - `federation_id`: The id of the federation.
+   *
+   * @throws {Error} If the WorkerClient encounters an issue during the preview process.
+   *
+   * @example
+   * const inviteCode = "fed11qgqrgv.....";
+   * const preview = await wallet.previewFederation(inviteCode);
+   * console.log(preview.federation_id, preview.config);
+   */
+  async previewFederation(inviteCode: string): Promise<PreviewFederation> {
+    const data = await this._client.previewFederation(inviteCode)
+    logger.info(`Previewed federation for invite code: ${inviteCode}`, data)
+    return data
   }
 
   /**
@@ -204,12 +316,12 @@ export class FedimintWallet {
    * const parsedInvoice = await wallet.parseBolt11Invoice(invoiceStr);
    * console.log(parsedInvoice.amount, parsedInvoice.expiry, parsedInvoice.memo);
    */
-  async parseBolt11Invoice(invoiceStr: string) {
-    const response = await this._client.sendSingleMessage<{
-      type: string
-      data: JSONValue
-      requestId: number
-    }>('parseBolt11Invoice', { invoiceStr })
-    return response
+  async parseBolt11Invoice(invoice: string): Promise<ParsedBolt11Invoice> {
+    const data = await this._client.parseBolt11Invoice(invoice)
+    logger.info(`Parsed Bolt11 invoice: ${invoice}`, data)
+    return data
   }
 }
+
+// Legacy support umm might be
+// export { FedimintWallet as FedimintWalletLegacy }

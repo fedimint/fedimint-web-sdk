@@ -8,7 +8,7 @@ Set the log level for the wallet.
 // @esModuleInterop
 import { FedimintWallet } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const fedimintWallet = FedimintWallet.getInstance()
 
-wallet.setLogLevel('debug') // [!code focus]
+fedimintWallet.setLogLevel('debug') // [!code focus]
 ```

@@ -1,22 +1,30 @@
-# cleanup
+# Cleanup
 
 ### `cleanup()`
 
-Cleans up browser resources associated with the wallet. This should be called when the wallet is no longer needed.
+Clean up the wallet instance and free associated resources.
 
 ```ts twoslash
 // @esModuleInterop
 import { FedimintWallet } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const fedimintWallet = FedimintWallet.getInstance()
+const wallet = await fedimintWallet.createWallet()
 
+await wallet.joinFederation('fed11qgq...')
 await wallet.open()
-// ... use the wallet
+// Use the wallet
 
-// Once we're no longer using the wallet, // [!code focus]
-// we can call cleanup to free up resources // [!code focus]
-await wallet.cleanup() // [!code focus]
+// When we're no longer using the wallet,
+// call cleanup to free up resources
+await wallet.cleanup()
 
-// If we want to use the wallet again, we can call open() again
+// If you want to use the wallet again, you can call open() again
 await wallet.open()
 ```
+
+#### Returns
+
+`Promise<void>`
+
+Resolves when cleanup is complete.
