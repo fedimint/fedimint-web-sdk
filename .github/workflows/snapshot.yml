@@ -39,4 +39,4 @@ jobs:
           pnpm clean
           pnpm changeset version --no-git-tag --snapshot $snapshot
           pnpm build
-          pnpm changeset publish --no-git-tag --snapshot $snapshot --tag $snapshot
+          pnpm changeset publish --no-git-tag --snapshot $snapshot --tag snapshot
