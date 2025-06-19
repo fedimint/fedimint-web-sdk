@@ -156,7 +156,11 @@ export class RpcClient {
     })
   }
 
-  rpcStream<
+  // Used by INSTANCES of the Wallet class only... therefore 
+  // there is always a clientName.
+  // For rpc calls that DO NOT require a client (e.g., parsers),
+  // use internalRpcSingle instead.
+  walletRpcStream<
     Response extends JSONValue = JSONValue,
     Body extends JSONValue = JSONValue,
   >(
@@ -166,22 +170,18 @@ export class RpcClient {
     onData: (data: Response) => void,
     onError: (error: string) => void,
     onEnd: () => void = () => {},
-    clientName?: string, // Add optional clientName parameter
+    clientName: string,
   ): CancelFunction {
-    const effectiveClientName = clientName || this.clientName
     console.debug(
       'RpcClient.rpcStream: using clientName',
-      effectiveClientName,
+      clientName,
       'for method',
       method,
     )
-    if (effectiveClientName === undefined) {
-      throw new Error('Wallet is not open')
-    }
     return this.internalRpcStream(
       {
         type: 'client_rpc',
-        client_name: effectiveClientName,
+        client_name: clientName,
         module,
         method,
         payload: body,
@@ -196,15 +196,11 @@ export class RpcClient {
     module: string,
     method: string,
     payload: P,
-    clientName?: string,
+    clientName: string,
   ): Promise<T> {
-    const effectiveClientName = clientName || this.clientName
-    if (effectiveClientName === undefined) {
-      throw new Error('Wallet is not open')
-    }
     return this.internalRpcSingle<T>({
       type: 'client_rpc',
-      client_name: effectiveClientName,
+      client_name: clientName,
       module,
       method,
       payload,

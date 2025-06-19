@@ -8,7 +8,7 @@ import { RpcClient } from '../rpc'
 export class BalanceService {
   constructor(
     private client: RpcClient,
-    private clientName?: string,
+    private clientName: string,
   ) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/BalanceService/getBalance */
@@ -26,7 +26,7 @@ export class BalanceService {
     onSuccess: (balanceMsats: number) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    return this.client.rpcStream<string>(
+    return this.client.walletRpcStream<string>(
       '',
       'subscribe_balance_changes',
       {},

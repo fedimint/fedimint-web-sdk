@@ -10,9 +10,9 @@ import type {
 } from '../types'
 
 export class LightningService {
-  constructor(
+  private constructor(
     private client: RpcClient,
-    private clientName?: string,
+    private clientName: string,
   ) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
@@ -154,7 +154,7 @@ export class LightningService {
     onSuccess: (state: LnReceiveState) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    return this.client.rpcStream(
+    return this.client.walletRpcStream(
       'ln',
       'subscribe_ln_claim',
       { operation_id: operationId },
@@ -171,7 +171,7 @@ export class LightningService {
     onSuccess: (state: LnPayState) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    return this.client.rpcStream(
+    return this.client.walletRpcStream(
       'ln',
       'subscribe_ln_pay',
       { operation_id: operationId },
@@ -218,12 +218,13 @@ export class LightningService {
     onSuccess: (state: LnReceiveState) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    return this.client.rpcStream(
+    return this.client.walletRpcStream(
       'ln',
       'subscribe_ln_receive',
       { operation_id: operationId },
       onSuccess,
       onError,
+      this.clientName,
     )
   }
 
@@ -264,6 +265,7 @@ export class LightningService {
         gateway_id: gatewayId,
         force_internal: forceInternal,
       },
+      this.clientName,
     )
   }
 
@@ -272,10 +274,16 @@ export class LightningService {
       'ln',
       'list_gateways',
       {},
+      this.clientName,
     )
   }
 
   async updateGatewayCache() {
-    return await this.client.rpcSingle('ln', 'update_gateway_cache', {})
+    return await this.client.rpcSingle(
+      'ln',
+      'update_gateway_cache',
+      {},
+      this.clientName,
+    )
   }
 }

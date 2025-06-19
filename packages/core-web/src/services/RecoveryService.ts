@@ -29,7 +29,7 @@ export class RecoveryService {
     onSuccess: (progress: { module_id: number; progress: JSONValue }) => void,
     onError: (error: string) => void,
   ) {
-    return this.client.rpcStream<{
+    return this.client.walletRpcStream<{
       module_id: number
       progress: JSONValue
     }>(

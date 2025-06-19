@@ -45,7 +45,7 @@ export class MintService {
     onSuccess: (state: ReissueExternalNotesState) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    const unsubscribe = this.client.rpcStream<ReissueExternalNotesState>(
+    const unsubscribe = this.client.walletRpcStream<ReissueExternalNotesState>(
       'mint',
       'subscribe_reissue_external_notes',
       { operation_id: operationId },
@@ -119,7 +119,7 @@ export class MintService {
     onSuccess: (state: SpendNotesState) => void = () => {},
     onError: (error: string) => void = () => {},
   ) {
-    return this.client.rpcStream<SpendNotesState>(
+    return this.client.walletRpcStream<SpendNotesState>(
       'mint',
       'subscribe_spend_notes',
       { operation_id: operationId },
