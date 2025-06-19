@@ -71,16 +71,14 @@ jobs:
 
       - name: Setup Nix shell and run commands
         run: |
-          nix develop --accept-flake-config --command bash << EOF
-            # Install dependencies
-            pnpm install
+          # Install dependencies
+          pnpm install
 
-            # Build packages
-            pnpm build
+          # Build packages
+          pnpm build
 
-            # Run Tests
-            pnpm test
-          EOF
+          # Run Tests
+          nix develop --accept-flake-config --command pnpm test
 
   build-docs:
     name: Build Docs
