@@ -25,7 +25,9 @@ if (result.success) {
 
 Attempts to pay a lightning invoice. Returns an `OutgoingLightningPayment` object containing details about the in-flight payment.
 
-You can use `subscribeLnPay` to track the payment status. `waitForPay` returns a `Promise` that resolves when the payment succeeds or fails / times out.
+You can use `subscribeLnPay` and `subscribeInternalPay` to track the payment status. `waitForPay` returns a `Promise` that resolves when the payment succeeds or fails / times out.
+
+`subscribeInternalPay` can be used to track the internal payments status
 
 ```ts twoslash
 // @esModuleInterop
