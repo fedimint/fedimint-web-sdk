@@ -22,3 +22,31 @@ walletTest(
     expect(summary).toEqual(expect.objectContaining(expectedSummary))
   },
 )
+
+walletTest('pegin should always return an address', async ({ wallet }) => {
+  expect(wallet).toBeDefined()
+  expect(wallet.isOpen()).toBe(true)
+  const response = await wallet.wallet.generateAddress()
+
+  expect(response).toEqual({
+    deposit_address: expect.any(String),
+    operation_id: expect.any(String),
+  })
+})
+
+walletTest(
+  'pegout should return an operation ID after sending funds',
+  async ({ wallet }) => {
+    expect(wallet).toBeDefined()
+    expect(wallet.isOpen()).toBe(true)
+
+    const amountSat = 10
+    const destination = (await wallet.wallet.generateAddress()).deposit_address
+
+    const response = await wallet.wallet.withdraw(amountSat, destination)
+
+    expect(response).toEqual({
+      operation_id: expect.any(String),
+    })
+  },
+)
