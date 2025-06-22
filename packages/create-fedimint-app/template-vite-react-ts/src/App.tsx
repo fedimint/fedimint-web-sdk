@@ -1,13 +1,22 @@
 import { useCallback, useEffect, useState } from 'react'
-import { FedimintWallet, Wallet } from '@fedimint/core-web'
+import { 
+  Wallet,
+  joinFederation,
+  openWallet,
+  getWallet,
+  getActiveWallets,
+  listClients,
+  previewFederation,
+  parseInviteCode,
+  parseBolt11Invoice,
+  initialize
+} from '@fedimint/core-web'
 
 const TESTNET_FEDERATION_CODE =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
 
-// Initialize global FedimintWallet
-const fedimintWallet = FedimintWallet.getInstance()
-// @ts-ignore - Expose for testing
-globalThis.fedimintWallet = fedimintWallet
+// Initialize the global instance
+initialize()
 
 // Custom hooks
 const useIsOpen = (wallet: Wallet | undefined) => {
@@ -105,7 +114,7 @@ const App = () => {
   // Load wallet pointers on mount and refresh periodically
   useEffect(() => {
     const loadWalletInfo = () => {
-      const pointers = fedimintWallet.listClients()
+      const pointers = listClients()
       setWalletInfo(pointers)
     }
 
@@ -117,22 +126,10 @@ const App = () => {
   }, [])
 
   // Wallet management functions
-  const createWallet = useCallback(async () => {
-    const wallet = await fedimintWallet.createWallet()
-    setError('')
-    setWallets((prev) => [...prev, wallet])
-    if (!activeWallet) {
-      setActiveWallet(wallet)
-    }
-    // Refresh wallet pointers after creating
-    setWalletInfo(fedimintWallet.listClients())
-    return wallet
-  }, [activeWallet])
-
-  const openWallet = useCallback(
+  const openWalletById = useCallback(
     async (walletId: string) => {
       try {
-        const wallet = await fedimintWallet.openWallet(walletId)
+        const wallet = await openWallet(walletId)
         const existingWallet = wallets.find((w) => w.id === walletId)
         if (!existingWallet) {
           setWallets((prev) => [...prev, wallet])
@@ -142,7 +139,7 @@ const App = () => {
         setError('')
         setFederationJoined(!!wallet.federationId)
         // Refresh wallet pointers after opening
-        setWalletInfo(fedimintWallet.listClients())
+        setWalletInfo(listClients())
         return wallet
       } catch (error) {
         console.error('Error opening wallet:', error)
@@ -158,12 +155,12 @@ const App = () => {
       setError('')
 
       // First try to get from memory
-      let wallet = fedimintWallet.getWallet(walletId)
+      let wallet = getWallet(walletId)
 
       if (!wallet) {
         // If not in memory, open it
         console.log(`Opening wallet ${walletId} from storage`)
-        wallet = await fedimintWallet.openWallet(walletId)
+        wallet = await openWallet(walletId)
 
         // Add to wallets array if not already there
         setWallets((prev) => {
@@ -184,7 +181,7 @@ const App = () => {
       setFederationJoined(!!wallet.federationId)
 
       // Refresh wallet pointers after selecting
-      setWalletInfo(fedimintWallet.listClients())
+      setWalletInfo(listClients())
     } catch (error) {
       console.error('Error selecting wallet:', error)
       setError(error instanceof Error ? error.message : String(error))
@@ -197,7 +194,7 @@ const App = () => {
     setError('')
 
     try {
-      await openWallet(walletId)
+      await openWalletById(walletId)
     } catch (error) {
       console.error('Error opening wallet:', error)
     } finally {
@@ -205,8 +202,23 @@ const App = () => {
     }
   }
 
+  // Handle wallet creation from federation join
+  const handleWalletCreated = useCallback((wallet: Wallet) => {
+    setWallets((prev) => {
+      const existingWallet = prev.find((w) => w.id === wallet.id)
+      if (!existingWallet) {
+        return [...prev, wallet]
+      }
+      return prev
+    })
+    setActiveWallet(wallet)
+    setFederationJoined(true)
+    // Refresh wallet pointers after creating
+    setWalletInfo(listClients())
+  }, [])
+
   useEffect(() => {
-    const existingWallets = fedimintWallet.getActiveWallets()
+    const existingWallets = getActiveWallets()
     setWallets(existingWallets)
     if (existingWallets.length > 0 && !activeWallet) {
       setActiveWallet(existingWallets[0])
@@ -221,7 +233,9 @@ const App = () => {
         <div className="steps">
           <strong>Steps to get started:</strong>
           <ol>
-            <li>Join a Federation (persists across sessions)</li>
+            <li>
+              Join a Federation (creates wallet and persists across sessions)
+            </li>
             <li>Generate an Invoice</li>
             <li>
               Pay the Invoice using the{' '}
@@ -241,13 +255,13 @@ const App = () => {
         </div>
       </header>
       <main>
+        <JoinFederation onWalletCreated={handleWalletCreated} />
         <WalletManagement
           wallets={wallets}
           WalletInfo={WalletInfo}
           activeWallet={activeWallet}
           walletId={walletId}
           opening={opening}
-          onCreateWallet={createWallet}
           onSelectWallet={selectWallet}
           onOpenWallet={handleOpenWallet}
           onWalletIdChange={setWalletId}
@@ -260,12 +274,6 @@ const App = () => {
               open={open}
               checkIsOpen={checkIsOpen}
               balance={balance}
-            />
-            <JoinFederation
-              wallet={activeWallet}
-              open={open}
-              checkIsOpen={checkIsOpen}
-              onFederationJoined={() => setFederationJoined(true)}
             />
 
             {/* Only show these components if wallet has joined a federation */}
@@ -294,7 +302,6 @@ const WalletManagement = ({
   activeWallet,
   walletId,
   opening,
-  onCreateWallet,
   onSelectWallet,
   onOpenWallet,
   onWalletIdChange,
@@ -310,7 +317,6 @@ const WalletManagement = ({
   activeWallet: Wallet | undefined
   walletId: string
   opening: boolean
-  onCreateWallet: () => void
   onSelectWallet: (walletId: string) => void
   onOpenWallet: (e: React.FormEvent) => void
   onWalletIdChange: (id: string) => void
@@ -330,30 +336,29 @@ const WalletManagement = ({
   return (
     <div className="section">
       <h3>Wallet Management</h3>
-      <div className="row">
-        <button onClick={onCreateWallet}>Create New Wallet</button>
-      </div>
 
-      {/* Open Wallet Form */}
-      <div className="section">
-        <h3>Open Existing Wallet</h3>
-        <form onSubmit={onOpenWallet}>
-          <div className="input-group">
-            <label htmlFor="walletId">Wallet ID:</label>
-            <input
-              id="walletId"
-              type="text"
-              placeholder="Enter wallet ID"
-              required
-              value={walletId}
-              onChange={(e) => onWalletIdChange(e.target.value)}
-            />
-          </div>
-          <button type="submit" disabled={opening || !walletId.trim()}>
-            {opening ? 'Opening...' : 'Open Wallet'}
-          </button>
-        </form>
-      </div>
+      {/* Open Wallet Form - only show if there are existing wallets */}
+      {WalletInfo.length > 0 && (
+        <div className="section">
+          <h3>Open Existing Wallet</h3>
+          <form onSubmit={onOpenWallet}>
+            <div className="input-group">
+              <label htmlFor="walletId">Wallet ID:</label>
+              <input
+                id="walletId"
+                type="text"
+                placeholder="Enter wallet ID"
+                required
+                value={walletId}
+                onChange={(e) => onWalletIdChange(e.target.value)}
+              />
+            </div>
+            <button type="submit" disabled={opening || !walletId.trim()}>
+              {opening ? 'Opening...' : 'Open Wallet'}
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* Wallet Pointers List */}
       {WalletInfo.length > 0 && (
@@ -444,15 +449,9 @@ const WalletStatus = ({
 }
 
 const JoinFederation = ({
-  wallet,
-  open,
-  checkIsOpen,
-  onFederationJoined,
+  onWalletCreated,
 }: {
-  wallet: Wallet
-  open: boolean
-  checkIsOpen: () => void
-  onFederationJoined?: () => void // Add optional callback
+  onWalletCreated: (wallet: Wallet) => void
 }) => {
   const [inviteCode, setInviteCode] = useState(TESTNET_FEDERATION_CODE)
   const [previewData, setPreviewData] = useState<any>(null)
@@ -461,14 +460,14 @@ const JoinFederation = ({
   const [joinError, setJoinError] = useState('')
   const [joining, setJoining] = useState(false)
 
-  const previewFederation = async () => {
+  const previewFederationHandler = async () => {
     if (!inviteCode.trim()) return
 
     setPreviewing(true)
     setJoinError('')
 
     try {
-      const data = await fedimintWallet.previewFederation(inviteCode)
+      const data = await previewFederation(inviteCode)
       setPreviewData(data)
       console.log('Preview federation:', data)
     } catch (error) {
@@ -480,21 +479,26 @@ const JoinFederation = ({
     }
   }
 
-  const joinFederation = async (e: React.FormEvent) => {
+  const joinFederationHandler = async (e: React.FormEvent) => {
     e.preventDefault()
-    checkIsOpen()
 
-    console.log('Joining federation:', inviteCode)
+    console.log('Joining federation and creating wallet:', inviteCode)
     try {
       setJoining(true)
-      const res = await wallet.joinFederation(inviteCode)
-      console.log('join federation res', res)
-      setJoinResult('Joined!')
       setJoinError('')
-      // Call the callback to notify parent component
-      onFederationJoined?.()
+
+      // Call the new joinFederation method that creates and opens wallet automatically
+      const wallet = await joinFederation(inviteCode)
+
+      console.log('Join federation successful, with wallet id:', wallet.id)
+      setJoinResult(
+        'Successfully joined federation and with wallet id: ' + wallet.id,
+      )
+
+      // Notify parent component about the new wallet
+      onWalletCreated(wallet)
     } catch (e: any) {
-      console.log('Error joining federation', e)
+      console.log('Error joining federation and creating wallet', e)
       setJoinError(typeof e === 'object' ? e.toString() : (e as string))
       setJoinResult('')
     } finally {
@@ -502,19 +506,10 @@ const JoinFederation = ({
     }
   }
 
-  if (wallet.federationId) {
-    return (
-      <div className="section">
-        <h3>Federation Status</h3>
-        <div>Already joined federation: {wallet.federationId}</div>
-      </div>
-    )
-  }
-
   return (
     <div className="section">
-      <h3>Join Federation</h3>
-      <form onSubmit={joinFederation}>
+      <h3>Create a new wallet</h3>
+      <form onSubmit={joinFederationHandler}>
         <input
           placeholder="Invite Code..."
           required
@@ -527,13 +522,13 @@ const JoinFederation = ({
         <div className="button-group">
           <button
             type="button"
-            onClick={previewFederation}
+            onClick={previewFederationHandler}
             disabled={previewing || !inviteCode.trim()}
           >
             {previewing ? 'Previewing...' : 'Preview Federation'}
           </button>
           <button type="submit" disabled={joining}>
-            {joining ? 'Joining...' : 'Join Federation'}
+            {joining ? 'Joining Federation' : 'Join Federation'}
           </button>
         </div>
       </form>
@@ -762,14 +757,14 @@ const ParseInviteCode = () => {
   const [parsing, setParsing] = useState(false)
   const [error, setError] = useState('')
 
-  const parseInviteCode = async () => {
+  const parseInviteCodeHandler = async () => {
     if (!parseInviteInput.trim()) return
 
     setParsing(true)
     setError('')
 
     try {
-      const data = await fedimintWallet.parseInviteCode(parseInviteInput)
+      const data = await parseInviteCode(parseInviteInput)
       setParsedInviteData(data)
       console.log('Parsed invite code:', data)
     } catch (error) {
@@ -791,7 +786,7 @@ const ParseInviteCode = () => {
           value={parseInviteInput}
           onChange={(e) => setParseInviteInput(e.target.value)}
         />
-        <button onClick={parseInviteCode} disabled={parsing}>
+        <button onClick={parseInviteCodeHandler} disabled={parsing}>
           {parsing ? 'Parsing...' : 'Parse Invite Code'}
         </button>
       </div>
@@ -821,15 +816,16 @@ const ParseBolt11Invoice = () => {
   const [parsing, setParsing] = useState(false)
   const [error, setError] = useState('')
 
-  const parseBolt11Invoice = async () => {
+  const parseBolt11InvoiceHandler = async () => {
     if (!parseBolt11Input.trim()) return
 
     setParsing(true)
     setError('')
 
     try {
-      const data = await fedimintWallet.parseBolt11Invoice(parseBolt11Input)
+      const data = await parseBolt11Invoice(parseBolt11Input)
       setParsedBolt11Data(data)
+      console.log(data.amount)
       console.log('Parsed Bolt11 invoice:', data)
     } catch (error) {
       console.error('Error parsing Bolt11 invoice:', error)
@@ -850,7 +846,7 @@ const ParseBolt11Invoice = () => {
           onChange={(e) => setParseBolt11Input(e.target.value)}
           rows={3}
         />
-        <button onClick={parseBolt11Invoice} disabled={parsing}>
+        <button onClick={parseBolt11InvoiceHandler} disabled={parsing}>
           {parsing ? 'Parsing...' : 'Parse Bolt11 Invoice'}
         </button>
       </div>
@@ -859,7 +855,7 @@ const ParseBolt11Invoice = () => {
           <strong>Parsed Bolt11 Invoice:</strong>
           <details>
             <summary>Full Details</summary>
-            <pre>{JSON.stringify(parsedBolt11Data, null, 2)}</pre>
+            <pre>{(JSON.stringify(parsedBolt11Data, null, 2))}</pre>
           </details>
         </div>
       )}
