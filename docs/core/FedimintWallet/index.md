@@ -1,6 +1,33 @@
-# FedimintWallet Overview
+# FedimintWallet API (Deprecated)
 
-The `FedimintWallet` class serves as the main entry point for the library. It orchestrates the various services and the WorkerClient.
+::: danger 🚨 DEPRECATED API
+The entire `FedimintWallet` class-based API documented in this section is **deprecated** and will be removed in a future version.
+
+**🎉 NEW FUNCTIONAL API AVAILABLE**
+
+The library now provides a clean, modern functional API that's easier to use and more tree-shakeable:
+
+**New (Recommended):**
+
+```typescript
+import { initialize, joinFederation, openWallet } from '@fedimint/core-web'
+
+await initialize()
+const wallet = await joinFederation('fed11...')
+```
+
+**📖 See the [Getting Started Guide](../getting-started) for complete examples and the [API Reference](../getting-started#api-reference) for all available functions.**
+:::
+
+---
+
+## Legacy Documentation
+
+The `FedimintWallet` class served as the main entry point for the library. It orchestrated the various services and the WorkerClient.
+
+::: warning
+This documentation is kept for reference but the API is deprecated. Please use the new functional API instead.
+:::
 
 ::: info
 Check out the [Getting Started](../getting-started) guide to get started using the Fedimint Web SDK.

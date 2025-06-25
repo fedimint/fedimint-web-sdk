@@ -1,16 +1,27 @@
 # Architecture
 
-The Fedimint Web SDK **Core Web** library is a modular and extensible JavaScript library designed to interact with the Fedimint client in a web browser. It provides a high-level API for developers to manage federated ecash wallets, perform operations like minting and spending ecash, and interact with the Lightning Network. The library is structured to promote maintainability, scalability, and ease of use, leveraging modern software development practices.
+The Fedimint Web SDK **Core Web** library is a modular and extensible JavaScript library designed to interact with the Fedimint client in a web browser. It provides a high-level functional API for developers to manage federated ecash wallets, perform operations like minting and spending ecash, and interact with the Lightning Network. The library is structured to promote maintainability, scalability, and ease of use, leveraging modern software development practices.
 
 The **Core Web** library is built around a set of composable services and a communication layer that interacts with a Web Worker running WebAssembly (WASM) code.
 
 <img src="/architecture-diagram.svg" alt="Architecture" />
 
-## [**FedimintWallet**](FedimintWallet/index)
+## **Functional API**
 
-The `FedimintWallet` class serves as the main entry point for the library. It orchestrates the various services and the WorkerClient.
+The library exposes a clean functional interface as the main entry point for developers. Functions like `initialize()`, `joinFederation()`, `openWallet()`, and `getWallet()` provide a simple, tree-shakeable API that abstracts away the underlying complexity.
 
-[Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core-web/src/FedimintWallet.ts)
+Key functions include:
+
+- **Initialization**: `initialize()` - Sets up the SDK
+- **Wallet Management**: `joinFederation()`, `openWallet()`, `getWallet()`, `removeWallet()`
+- **Multi-wallet Support**: `getActiveWallets()`, `getWalletsByFederation()`, `listClients()`
+- **Utility Functions**: `parseInviteCode()`, `previewFederation()`, `parseBolt11Invoice()`
+
+## **WalletDirector (Internal)**
+
+The `WalletDirector` class serves as the internal orchestrator for the library, managing wallet instances and coordinating with various services. It implements a singleton pattern but is not exposed to end users, who interact only through the functional API.
+
+[Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core-web/src/WalletDirector.ts)
 
 ## **WorkerClient**
 
@@ -21,7 +32,7 @@ The `WorkerClient` manages all communication between the main thread and the Web
 - Provides methods for sending RPC requests and handling streaming responses.
 
 ::: info
-The `WorkerClient` should not be used directly by the end user. Instead, the `FedimintWallet` class should be used to interact with the library.
+The `WorkerClient` should not be used directly by the end user. Instead, use the functional API (`initialize`, `joinFederation`, `openWallet`, etc.) to interact with the library.
 :::
 
 [Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core-web/src/worker/WorkerClient.ts)

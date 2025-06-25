@@ -5,30 +5,35 @@
 Open an existing wallet by its ID. The wallet must have been previously created and stored.
 
 ```ts twoslash
-import { FedimintWallet } from '@fedimint/core-web'
+import {
+  initialize,
+  listClients,
+  hasWallet,
+  openWallet,
+} from '@fedimint/core-web'
 
-const fedimintWallet = FedimintWallet.getInstance()
+await initialize()
 
-// First, get a list of all available wallet pointers
-const ClientList = fedimintWallet.listClients()
+// First, get a list of all available wallet metadata
+const clientList = listClients()
 
 console.log('Available wallets:')
-ClientList.forEach((pointer) => {
-  console.log(`- ID: ${pointer.id}`)
-  console.log(`  Federation: ${pointer.federationId || 'Not joined'}`)
-  console.log(`  Created: ${new Date(pointer.createdAt).toLocaleString()}`)
+clientList.forEach((walletInfo) => {
+  console.log(`- ID: ${walletInfo.id}`)
+  console.log(`  Federation: ${walletInfo.federationId || 'Not joined'}`)
+  console.log(`  Created: ${new Date(walletInfo.createdAt).toLocaleString()}`)
   console.log(
-    `  Last accessed: ${new Date(pointer.lastAccessedAt).toLocaleString()}`,
+    `  Last accessed: ${new Date(walletInfo.lastAccessedAt).toLocaleString()}`,
   )
 })
 
 // Check if a specific wallet exists before trying to open it
 const walletId = 'my-wallet-id'
-if (fedimintWallet.hasWallet(walletId)) {
-  const wallet = await fedimintWallet.openWallet(walletId)
+if (hasWallet(walletId)) {
+  const wallet = await openWallet(walletId)
   console.log(`Opened wallet: ${wallet.id}`)
 } else {
-  console.error('wallet does not exists, Please create a new one instead')
+  console.error('wallet does not exist, Please create a new one instead')
 }
 ```
 
