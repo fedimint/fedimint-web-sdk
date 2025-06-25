@@ -6,16 +6,21 @@ Check if the wallet is currently open and connected to a federation.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, getWallet, joinFederation } from '@fedimint/core-web'
 
-const fedimintWallet = FedimintWallet.getInstance()
-const wallet = await fedimintWallet.createWallet()
+await initialize()
 
-const isOpen = wallet.isOpen() // [!code focus]
+// Get an existing wallet
+const wallet = getWallet('my-wallet-id')
 
-if (!isOpen) {
-  await wallet.joinFederation('fed123...')
+if (wallet) {
+  const isOpen = wallet.isOpen() // [!code focus]
+
+  if (isOpen) {
+    const balance = await wallet.balance.getBalance()
+  }
 } else {
-  const balance = await wallet.balance.getBalance()
+  // Create a new wallet
+  const newWallet = await joinFederation('fed123...', 'my-wallet-id')
 }
 ```

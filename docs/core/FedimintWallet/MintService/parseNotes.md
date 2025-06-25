@@ -6,11 +6,10 @@ Parses an ecash note string without redeeming it. Use [`redeemEcash()`](./redeem
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation } from '@fedimint/core-web'
 
-const fedimintWallet = FedimintWallet.getInstance()
-const wallet = await fedimintWallet.createWallet()
-await wallet.joinFederation('fed11qgq...')
+await initialize()
+const wallet = await joinFederation('fed11qgq...')
 
 const longEcashNoteString = '01A...'
 

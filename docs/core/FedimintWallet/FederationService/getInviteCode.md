@@ -6,11 +6,10 @@ Access the invite code for the connected federation.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation } from '@fedimint/core-web'
 
-const fedimintWallet = FedimintWallet.getInstance()
-const wallet = await fedimintWallet.createWallet()
-await wallet.joinFederation('fed11qgq...')
+await initialize()
+const wallet = await joinFederation('fed11qgq...')
 
 const peerId = 0 // Index of the guardian to ask for the invite code // [!code focus]
 

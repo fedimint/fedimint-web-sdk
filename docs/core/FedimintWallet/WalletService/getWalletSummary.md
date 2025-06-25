@@ -5,12 +5,10 @@
 Gives wallet UTXO set
 
 ```ts twoslash
-// @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation } from '@fedimint/core-web'
 
-const fedimintWallet = FedimintWallet.getInstance()
-const wallet = await fedimintWallet.createWallet()
-await wallet.joinFederation('fed11qgq...')
+await initialize()
+const wallet = await joinFederation('fed11qgq...')
 
 const utxos = await wallet.wallet.getWalletSummary()
 console.log('spendable utxos are: ', utxos.spendable_utxos)

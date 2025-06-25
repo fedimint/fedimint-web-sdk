@@ -6,21 +6,16 @@ Clean up the wallet instance and free associated resources.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation, cleanup } from '@fedimint/core-web'
 
-const fedimintWallet = FedimintWallet.getInstance()
-const wallet = await fedimintWallet.createWallet()
+await initialize()
+const wallet = await joinFederation('fed11qgq...')
 
-await wallet.joinFederation('fed11qgq...')
-await wallet.open()
 // Use the wallet
+const balance = await wallet.balance.getBalance()
 
-// When we're no longer using the wallet,
-// call cleanup to free up resources
-await wallet.cleanup()
-
-// If you want to use the wallet again, you can call open() again
-await wallet.open()
+// When you're done with all wallets, clean up resources
+await cleanup()
 ```
 
 #### Returns

@@ -5,11 +5,10 @@
 Subscribe to balance updates. Returns an unsubscribe function.
 
 ```ts twoslash
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation } from '@fedimint/core-web'
 
-const fedimintWallet = FedimintWallet.getInstance()
-const wallet = await fedimintWallet.createWallet()
-await wallet.joinFederation('fed11qgq...')
+await initialize()
+const wallet = await joinFederation('fed11qgq...')
 
 const unsubscribe = wallet.balance.subscribeBalance((mSats) => { // [!code focus]
   console.log('Balance updated:', mSats) // [!code focus]

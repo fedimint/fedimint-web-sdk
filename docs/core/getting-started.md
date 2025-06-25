@@ -2,6 +2,19 @@
 
 Welcome to the Fedimint Web SDK! This guide will help you get started with integrating Fedimint into your web application.
 
+::: danger Disclaimer
+This is very new. Use with caution. [Report bugs](https://github.com/fedimint/fedimint-web-sdk/issues).
+Welcome to the Fedimint Web SDK! This guide will help you get started with integrating Fedimint into your web application.
+
+APIs may change.
+:::
+
+## Scaffolding your first project
+
+::: tip Compatibility Note
+Most `create-fedimint-app` templates require [Node.js](https://nodejs.org/en/) version 18+ or 20+.
+:::
+
 ## Installation
 
 ::: code-group
@@ -24,24 +37,51 @@ bun add @fedimint/core-web
 
 :::
 
+You can also directly specify the project name and the template you want to use via additional command line options. For example, to scaffold a Fedimint + React project, run:
+
+::: code-group
+
+```bash [npm]
+npm create fedimint-app@latest my-fedimint-app -- --template vite-react-ts
+```
+
+```bash [yarn]
+yarn create fedimint-app my-fedimint-app --template vite-react-ts
+```
+
+```bash [pnpm]
+pnpm create fedimint-app my-fedimint-app --template vite-react-ts
+```
+
+```bash [bun]
+bun create fedimint-app my-fedimint-app --template vite-react-ts
+```
+
+:::
+
+See [create-fedimint-app](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/create-fedimint-app) for more details on each supported template.
+
 ## Usage
 
-Here's a basic example of how to use the `@fedimint/core-web` library with the new multi-wallet support:
+Here's a basic example of how to use the `@fedimint/core-web` library with the functional API:
 
 ::: code-group
 
 ```ts twoslash [example.ts]
-import { FedimintWallet } from '@fedimint/core-web'
+import {
+  initialize,
+  joinFederation,
+  openWallet,
+  getWallet,
+  getActiveWallets,
+} from '@fedimint/core-web'
 
-// Get the singleton FedimintWallet instance
-const fedimintWallet = FedimintWallet.getInstance()
+// Initialize the SDK first
+await initialize()
 
-// Create a new wallet
-const wallet = await fedimintWallet.createWallet()
-
-// Join a Federation
+// Create a new wallet and join a federation
 const inviteCode = 'fed11qgqpw9thwvaz7t...'
-await wallet.joinFederation(inviteCode)
+const wallet = await joinFederation(inviteCode)
 
 // Get Wallet Balance
 const balance = await wallet.balance.getBalance()
@@ -54,43 +94,58 @@ const unsubscribe = wallet.balance.subscribeBalance((balance: number) => {
 // Remember to call unsubscribe() when done
 
 // Working with multiple wallets
-const wallet2 = await fedimintWallet.createWallet('my-second-wallet')
-const allWallets = fedimintWallet.getActiveWallets()
-const ClientList = fedimintWallet.listClients()
+const wallet2 = await joinFederation(inviteCode, 'my-second-wallet')
+const allWallets = getActiveWallets()
 
 // Open an existing wallet by ID
-const existingWallet = await fedimintWallet.openWallet('wallet-id')
+const existingWallet = await openWallet('wallet-id')
 ```
 
 ```ts twoslash [multi-wallet-example.ts]
-import { FedimintWallet } from '@fedimint/core-web'
+import {
+  initialize,
+  joinFederation,
+  openWallet,
+  getWalletsByFederation,
+  listClients,
+  getWallet,
+} from '@fedimint/core-web'
 
-// Get the singleton instance
-const fedimintWallet = FedimintWallet.getInstance()
+// Initialize the SDK
+await initialize()
 
 // Create multiple wallets for different federations
-const personalWallet = await fedimintWallet.createWallet('personal')
-const businessWallet = await fedimintWallet.createWallet('business')
-
-// Join different federations
-await personalWallet.joinFederation('fed11qgqpw9thwvaz7t...')
-await businessWallet.joinFederation('fed11qgqrgvnhwden5te0v9...')
+const personalWallet = await joinFederation(
+  'fed11qgqpw9thwvaz7t...',
+  'personal',
+)
+const businessWallet = await joinFederation(
+  'fed11qgqrgvnhwden5te0v9...',
+  'business',
+)
 
 // Get wallets by federation
-const personalFedWallets =
-  fedimintWallet.getWalletsByFederation('federation-id-1')
-const businessFedWallets =
-  fedimintWallet.getWalletsByFederation('federation-id-2')
+const personalFedWallets = getWalletsByFederation('federation-id-1')
+const businessFedWallets = getWalletsByFederation('federation-id-2')
 
-// List all wallet pointers (metadata)
-const ClientList = fedimintWallet.listClients()
-ClientList.forEach((pointer) => {
-  console.log(`Wallet ${pointer.id} - Federation: ${pointer.federationId}`)
-  console.log(`Created: ${new Date(pointer.createdAt).toLocaleString()}`)
+// List all wallet metadata
+const clientList = listClients()
+clientList.forEach((walletInfo) => {
   console.log(
-    `Last accessed: ${new Date(pointer.lastAccessedAt).toLocaleString()}`,
+    `Wallet ${walletInfo.id} - Federation: ${walletInfo.federationId}`,
+  )
+  console.log(`Created: ${new Date(walletInfo.createdAt).toLocaleString()}`)
+  console.log(
+    `Last accessed: ${new Date(walletInfo.lastAccessedAt).toLocaleString()}`,
   )
 })
+
+// Get a specific wallet
+const myWallet = getWallet('personal')
+if (myWallet) {
+  const balance = await myWallet.balance.getBalance()
+  console.log('Personal wallet balance:', balance)
+}
 ```
 
 :::
@@ -277,4 +332,94 @@ For a list of public federations with invite codes, visit [Bitcoin Mints](https:
 
 - [SDK Overview](overview)
 - [Library Architecture](architecture)
-- [API Reference](FedimintWallet/index)
+- [Functional API Reference](#api-reference)
+
+## API Reference
+
+The `@fedimint/core-web` package exports the following functions for managing wallets:
+
+// TODO: seperate docs for all new functions introduced
+
+### Core Functions
+
+#### `initialize(createTransport?: TransportFactory): Promise<void>`
+
+Initializes the SDK. Must be called before using other functions.
+
+#### `joinFederation(inviteCode: string, walletId?: string): Promise<Wallet>`
+
+Creates a new wallet and joins a federation using the provided invite code.
+
+#### `openWallet(walletId: string): Promise<Wallet>`
+
+Opens an existing wallet by its ID.
+
+#### `getWallet(walletId: string): Wallet | undefined`
+
+Retrieves a wallet instance by its ID.
+
+#### `removeWallet(walletId: string): void`
+
+Removes a wallet and cleans up its resources.
+
+### Multi-Wallet Management
+
+#### `getActiveWallets(): Wallet[]`
+
+Returns all currently active (open) wallets.
+
+#### `getWalletsByFederation(federationId: string): Wallet[]`
+
+Returns all wallets associated with a specific federation.
+
+#### `listClients(): WalletInfo[]`
+
+Lists all wallet metadata stored in local storage.
+
+#### `getWalletInfo(walletId: string): WalletInfo | undefined`
+
+Gets metadata for a specific wallet.
+
+#### `hasWallet(walletId: string): boolean`
+
+Checks if a wallet with the given ID exists.
+
+#### `getClientName(walletId: string): string | undefined`
+
+Gets the client name for a specific wallet.
+
+### Utility Functions
+
+#### `parseInviteCode(inviteCode: string): Promise<ParsedInviteCode>`
+
+Parses a federation invite code and retrieves its details.
+
+#### `previewFederation(inviteCode: string): Promise<PreviewFederation>`
+
+Previews federation information without joining.
+
+#### `parseBolt11Invoice(invoice: string): Promise<ParsedBolt11Invoice>`
+
+Parses a BOLT11 Lightning invoice.
+
+#### `cleanup(): Promise<void>`
+
+Cleans up all wallets and SDK resources.
+
+#### `clearAllWallets(): Promise<void>`
+
+Removes all wallets and clears local storage.
+
+#### `setLogLevel(level: LogLevel): void`
+
+Sets the global log level for debugging.
+
+#### `isInitialized(): boolean`
+
+Checks if the SDK has been initialized.
+
+### Classes
+
+#### `Wallet`
+
+The main wallet class that provides access to balance, lightning, mint, federation, and recovery services.
