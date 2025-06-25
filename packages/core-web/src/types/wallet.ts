@@ -116,6 +116,19 @@ type WalletSummary = {
 /** Keys are powers of 2 */
 type NoteCountByDenomination = Record<number, number>
 
+type WalletInfo = {
+  id: string
+  clientName: string
+  federationId: string
+  createdAt: number
+  lastAccessedAt: number
+}
+
+type WalletStorageData = {
+  version: number
+  wallets: WalletInfo[]
+}
+
 export {
   LightningGateway,
   FederationConfig,
@@ -138,4 +151,6 @@ export {
   WalletSummary,
   TxOutputSummary,
   NoteCountByDenomination,
+  WalletInfo,
+  WalletStorageData,
 }
