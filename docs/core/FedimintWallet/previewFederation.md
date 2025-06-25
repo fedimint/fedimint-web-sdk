@@ -6,9 +6,7 @@ Attempts to give federation details before joining Federation.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { previewFederation } from '@fedimint/core-web'
 
-const fedimintWallet = FedimintWallet.getInstance()
-
-const details = await fedimintWallet.previewFederation('fed123...')
+const details = await previewFederation('fed123...')
 ```
