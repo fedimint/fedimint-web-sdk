@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { 
+import {
   Wallet,
   joinFederation,
   openWallet,
@@ -9,7 +9,7 @@ import {
   previewFederation,
   parseInviteCode,
   parseBolt11Invoice,
-  initialize
+  initialize,
 } from '@fedimint/core-web'
 
 const TESTNET_FEDERATION_CODE =
@@ -855,7 +855,7 @@ const ParseBolt11Invoice = () => {
           <strong>Parsed Bolt11 Invoice:</strong>
           <details>
             <summary>Full Details</summary>
-            <pre>{(JSON.stringify(parsedBolt11Data, null, 2))}</pre>
+            <pre>{JSON.stringify(parsedBolt11Data, null, 2)}</pre>
           </details>
         </div>
       )}
