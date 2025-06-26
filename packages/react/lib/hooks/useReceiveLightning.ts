@@ -12,7 +12,8 @@ export const useReceiveLightning = () => {
 
   const generateInvoice = useCallback(
     async (amount: number, description: string) => {
-      if (walletStatus !== 'open') throw new Error('Wallet is not open')
+      if (walletStatus !== 'open' || !wallet)
+        throw new Error('Wallet is not open')
       const response = await wallet.lightning.createInvoice(amount, description)
       setInvoice(response)
       return response.invoice
@@ -21,13 +22,13 @@ export const useReceiveLightning = () => {
   )
 
   useEffect(() => {
-    if (walletStatus !== 'open' || !invoice) return
+    if (walletStatus !== 'open' || !invoice || !wallet) return
     const unsubscribe = wallet.lightning.subscribeLnReceive(
       invoice.operation_id,
-      (state) => {
+      (state: LnReceiveState) => {
         setInvoiceReceiveState(state)
       },
-      (error) => {
+      (error: string) => {
         setError(error)
       },
     )
@@ -35,7 +36,7 @@ export const useReceiveLightning = () => {
     return () => {
       unsubscribe()
     }
-  }, [walletStatus, invoice])
+  }, [walletStatus, invoice, wallet])
 
   return {
     generateInvoice,
