@@ -11,14 +11,14 @@ export const useReceiveEcash = () => {
   const [error, setError] = useState<string>()
 
   useEffect(() => {
-    if (!operationId) return
+    if (!operationId || !wallet) return
 
     const unsubscribe = wallet.mint.subscribeReissueExternalNotes(
       operationId,
-      (_state) => {
+      (_state: ReissueExternalNotesState) => {
         setState(_state)
       },
-      (error) => {
+      (error: string) => {
         setError(error)
       },
     )
@@ -26,11 +26,12 @@ export const useReceiveEcash = () => {
     return () => {
       unsubscribe()
     }
-  }, [operationId])
+  }, [operationId, wallet])
 
   const redeemEcash = useCallback(
     async (notes: string) => {
-      if (walletStatus !== 'open') throw new Error('Wallet is not open')
+      if (walletStatus !== 'open' || !wallet)
+        throw new Error('Wallet is not open')
       try {
         const response = await wallet.mint.redeemEcash(notes)
         setOperationId(response)

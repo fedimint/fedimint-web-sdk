@@ -3,7 +3,7 @@ import { FedimintWalletContext } from '../contexts'
 
 export const useFedimintWallet = () => {
   const value = useContext(FedimintWalletContext)
-  if (!value?.wallet) {
+  if (!value) {
     throw new Error(
       'useFedimintWallet must be used within a FedimintWalletProvider',
     )

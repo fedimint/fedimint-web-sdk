@@ -392,12 +392,7 @@ const WalletManagement = ({
   )
 }
 
-const WalletStatus = ({
-  wallet,
-  open,
-  checkIsOpen,
-  balance,
-}) => {
+const WalletStatus = ({ wallet, open, checkIsOpen, balance }) => {
   return (
     <div className="section">
       <h3>Wallet Status</h3>
@@ -418,9 +413,7 @@ const WalletStatus = ({
   )
 }
 
-const JoinFederation = ({
-  onWalletCreated,
-}) => {
+const JoinFederation = ({ onWalletCreated }) => {
   const [inviteCode, setInviteCode] = useState(TESTNET_FEDERATION_CODE)
   const [previewData, setPreviewData] = useState(null)
   const [previewing, setPreviewing] = useState(false)

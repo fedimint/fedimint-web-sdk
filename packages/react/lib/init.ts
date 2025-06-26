@@ -1,10 +1,10 @@
-import { FedimintWallet } from '@fedimint/core-web'
+import { Wallet, initialize } from '@fedimint/core-web'
 
-let wallet: FedimintWallet | undefined
+let wallet: Wallet | undefined
 
-export const initFedimintReact = (lazy: boolean = false) => {
+export const initFedimintReact = async (lazy: boolean = false) => {
   if (!lazy) {
-    wallet = new FedimintWallet(lazy)
+    await initialize()
   }
 
   return {}
