@@ -7,16 +7,16 @@ export const useBalance = () => {
   const [balance, setBalance] = useState<number>()
 
   useEffect(() => {
-    if (walletStatus !== 'open') return
+    if (walletStatus !== 'open' || !wallet) return
 
-    const unsubscribe = wallet.balance.subscribeBalance((balance) => {
+    const unsubscribe = wallet.balance.subscribeBalance((balance: number) => {
       setBalance(balance)
     })
 
     return () => {
       unsubscribe()
     }
-  }, [walletStatus])
+  }, [walletStatus, wallet])
 
   return balance
 }
