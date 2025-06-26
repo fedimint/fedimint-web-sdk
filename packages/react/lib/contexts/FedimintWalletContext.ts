@@ -1,4 +1,9 @@
-import { FedimintWallet } from '@fedimint/core-web'
+import {
+  Wallet,
+  initialize,
+  setLogLevel,
+  type WalletInfo,
+} from '@fedimint/core-web'
 import {
   createContext,
   createElement,
@@ -7,27 +12,35 @@ import {
   useState,
 } from 'react'
 
-let wallet: FedimintWallet
+let currentWallet: Wallet | null = null
+let isInitialized = false
 
 type FedimintWalletConfig = {
   lazy?: boolean
   debug?: boolean
 }
 
-export type WalletStatus = 'open' | 'closed' | 'opening'
+export type WalletStatus = 'open' | 'closed' | 'opening' | 'uninitialized'
 
-export const setupFedimintWallet = (config: FedimintWalletConfig) => {
-  wallet = new FedimintWallet(!!config.lazy)
+export const setupFedimintWallet = async (
+  config: FedimintWalletConfig = {},
+) => {
+  if (!isInitialized) {
+    await initialize()
+    isInitialized = true
+  }
+
   if (config.debug) {
-    wallet.setLogLevel('debug')
+    setLogLevel('debug')
   }
 }
 
 export const FedimintWalletContext = createContext<
   | {
-      wallet: FedimintWallet
+      wallet: Wallet | null
       walletStatus: WalletStatus
       setWalletStatus: (status: WalletStatus) => void
+      setWallet: (wallet: Wallet | null) => void
     }
   | undefined
 >(undefined)
@@ -37,27 +50,34 @@ export type FedimintWalletProviderProps = {}
 export const FedimintWalletProvider = (
   parameters: React.PropsWithChildren<FedimintWalletProviderProps>,
 ) => {
-  const [walletStatus, setWalletStatus] = useState<WalletStatus>('closed')
+  const [walletStatus, setWalletStatus] = useState<WalletStatus>(() =>
+    isInitialized ? 'closed' : 'uninitialized',
+  )
+  const [wallet, setWallet] = useState<Wallet | null>(currentWallet)
   const { children } = parameters
-
-  if (!wallet)
-    throw new Error(
-      'You must call setupFedimintWallet() first. See the getting started guide.',
-    )
 
   const contextValue = useMemo(
     () => ({
       wallet,
       walletStatus,
       setWalletStatus,
+      setWallet: (newWallet: Wallet | null) => {
+        currentWallet = newWallet
+        setWallet(newWallet)
+      },
     }),
-    [walletStatus],
+    [wallet, walletStatus],
   )
 
   useEffect(() => {
-    wallet.waitForOpen().then(() => {
+    if (!isInitialized) {
+      setWalletStatus('uninitialized')
+      return
+    }
+
+    if (wallet && wallet.isOpen()) {
       setWalletStatus('open')
-    })
+    }
   }, [wallet])
 
   return createElement(
