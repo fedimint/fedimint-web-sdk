@@ -1,112 +1,393 @@
 import { useCallback, useEffect, useState } from 'react'
-import { FedimintWallet, Wallet } from '@fedimint/core-web'
+import {
+  Wallet,
+  joinFederation,
+  openWallet,
+  getWallet,
+  getActiveWallets,
+  listClients,
+  previewFederation,
+  parseInviteCode,
+  parseBolt11Invoice,
+  initialize,
+} from '@fedimint/core-web'
 
 const TESTNET_FEDERATION_CODE =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
 
-// Initialize global FedimintWallet
-const fedimintWallet = FedimintWallet.getInstance()
-// log.level('debug') // Set log level to debug for development
-// @ts-ignore - Expose for testing
-globalThis.fedimintWallet = fedimintWallet
+// Initialize the global instance
+initialize()
 
-const useWallets = () => {
-  const [wallets, setWallets] = useState<Wallet[]>([])
-  const [activeWallet, setActiveWallet] = useState<Wallet | null>(null)
+// Custom hooks
+const useBalance = (wallet: Wallet | undefined) => {
+  const [balance, setBalance] = useState(0)
 
-  const createWallet = useCallback(async () => {
-    const wallet = await fedimintWallet.createWallet()
-    setWallets((prev) => [...prev, wallet])
-    if (!activeWallet) {
-      setActiveWallet(wallet)
+  useEffect(() => {
+    setBalance(0)
+
+    if (!wallet?.federationId) {
+      return
     }
-    return wallet
-  }, [activeWallet])
 
-  const selectWallet = useCallback((walletId: string) => {
-    const wallet = fedimintWallet.getWallet(walletId)
-    if (wallet) {
+    // Fetch current balance immediately
+    const fetchBalance = async () => {
+      try {
+        const currentBalance = await wallet.balance.getBalance()
+        setBalance(currentBalance)
+      } catch (error) {
+        console.error('Error fetching balance:', error)
+        setBalance(0)
+      }
+    }
+
+    fetchBalance()
+
+    // Subscribe to balance changes
+    const unsubscribe = wallet.balance.subscribeBalance(
+      (balance) => {
+        setBalance(balance)
+      },
+      (error) => {
+        console.error('Balance subscription error:', error)
+        setBalance(0)
+      },
+    )
+
+    return () => {
+      unsubscribe()
+    }
+  }, [wallet, wallet?.federationId])
+
+  return balance
+}
+
+const App = () => {
+  const [wallets, setWallets] = useState<Wallet[]>([])
+  const [WalletInfo, setWalletInfo] = useState<
+    Array<{
+      id: string
+      clientName: string
+      federationId?: string
+      createdAt: number
+      lastAccessedAt: number
+    }>
+  >([])
+  const [activeWallet, setActiveWallet] = useState<Wallet | undefined>(
+    undefined,
+  )
+  const [walletId, setWalletId] = useState('')
+  const [opening, setOpening] = useState(false)
+  const [error, setError] = useState('')
+  const [federationJoined, setFederationJoined] = useState(false)
+
+  const balance = useBalance(activeWallet)
+
+  // Add effect to watch for federation changes
+  useEffect(() => {
+    if (activeWallet) {
+      setFederationJoined(!!activeWallet.federationId)
+    }
+  }, [activeWallet, activeWallet?.federationId])
+
+  // Load wallet pointers on mount and refresh periodically
+  useEffect(() => {
+    const loadWalletInfo = () => {
+      const pointers = listClients()
+      setWalletInfo(pointers)
+    }
+
+    loadWalletInfo()
+
+    // Refresh wallet pointers periodically
+    const interval = setInterval(loadWalletInfo, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Wallet management functions
+  const openWalletById = useCallback(
+    async (walletId: string) => {
+      try {
+        const wallet = await openWallet(walletId)
+        const existingWallet = wallets.find((w) => w.id === walletId)
+        if (!existingWallet) {
+          setWallets((prev) => [...prev, wallet])
+        }
+        setActiveWallet(wallet)
+        setWalletId('')
+        setError('')
+        setFederationJoined(!!wallet.federationId)
+        // Refresh wallet pointers after opening
+        setWalletInfo(listClients())
+        return wallet
+      } catch (error) {
+        console.error('Error opening wallet:', error)
+        setError(error instanceof Error ? error.message : String(error))
+        throw error
+      }
+    },
+    [wallets],
+  )
+
+  const selectWallet = useCallback(async (walletId: string) => {
+    try {
+      setError('')
+
+      // First try to get from memory
+      let wallet = getWallet(walletId)
+
+      if (!wallet) {
+        // If not in memory, open it
+        console.log(`Opening wallet ${walletId} from storage`)
+        wallet = await openWallet(walletId)
+
+        // Add to wallets array if not already there
+        if (wallet) {
+          setWallets((prev) => {
+            const existingWallet = prev.find((w) => w.id === walletId)
+            if (!existingWallet) {
+              console.log(`Adding wallet ${walletId} to wallets array`)
+              return [...prev, wallet!]
+            }
+            return prev
+          })
+        }
+      }
+
+      // Update active wallet
+      console.log(
+        `Setting active wallet to ${wallet.id} with federation ${wallet.federationId}`,
+      )
       setActiveWallet(wallet)
+      setFederationJoined(!!wallet.federationId)
+
+      // Refresh wallet pointers after selecting
+      setWalletInfo(listClients())
+    } catch (error) {
+      console.error('Error selecting wallet:', error)
+      setError(error instanceof Error ? error.message : String(error))
     }
   }, [])
 
+  const handleOpenWallet = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setOpening(true)
+    setError('')
+
+    try {
+      await openWalletById(walletId)
+    } catch (error) {
+      console.error('Error opening wallet:', error)
+    } finally {
+      setOpening(false)
+    }
+  }
+
+  // Handle wallet creation from federation join
+  const handleWalletCreated = useCallback((wallet: Wallet) => {
+    setWallets((prev) => {
+      const existingWallet = prev.find((w) => w.id === wallet.id)
+      if (!existingWallet) {
+        return [...prev, wallet]
+      }
+      return prev
+    })
+    setActiveWallet(wallet)
+    setFederationJoined(true)
+    // Refresh wallet pointers after creating
+    setWalletInfo(listClients())
+  }, [])
+
   useEffect(() => {
-    // Load existing wallets on mount
-    const existingWallets = fedimintWallet.getAllWallets()
+    const existingWallets = getActiveWallets()
     setWallets(existingWallets)
     if (existingWallets.length > 0 && !activeWallet) {
       setActiveWallet(existingWallets[0])
     }
   }, [activeWallet])
 
-  return { wallets, activeWallet, createWallet, selectWallet }
-}
-
-const useBalance = (wallet: Wallet | null) => {
-  const [balance, setBalance] = useState(0)
-
-  useEffect(() => {
-    // Reset balance when wallet changes
-    setBalance(0)
-
-    if (!wallet || !wallet.isOpen()) {
-      return
-    }
-
-    // Get current balance immediately
-    const getCurrentBalance = async () => {
-      try {
-        const currentBalance = await wallet.balance.getBalance()
-        setBalance(currentBalance)
-      } catch (error) {
-        console.error('Error fetching balance:', error)
-      }
-    }
-
-    // Get initial balance
-    getCurrentBalance()
-
-    // Subscribe to balance changes
-    const unsubscribe = wallet.balance.subscribeBalance((balance) => {
-      setBalance(balance)
-    })
-
-    return () => {
-      unsubscribe()
-    }
-  }, [wallet])
-
-  return balance
-}
-
-const App = () => {
-  const { wallets, activeWallet, createWallet, selectWallet } = useWallets()
-  const balance = useBalance(activeWallet)
-
   return (
     <>
       <header>
-        <h1>Multi-Wallet Fedimint Demo</h1>
+        <h1>Fedimint Typescript Library Demo</h1>
+
+        <div className="steps">
+          <strong>Steps to get started:</strong>
+          <ol>
+            <li>
+              Join a Federation (creates wallet and persists across sessions)
+            </li>
+            <li>Generate an Invoice</li>
+            <li>
+              Pay the Invoice using the{' '}
+              <a href="https://faucet.mutinynet.com/" target="_blank">
+                mutinynet faucet
+              </a>
+            </li>
+            <li>
+              Investigate the Browser Tools
+              <ul>
+                <li>Browser Console for logs</li>
+                <li>Network Tab (websocket) for guardian requests</li>
+                <li>Application Tab for state</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
       </header>
       <main>
-        <WalletSelector
+        <JoinFederation onWalletCreated={handleWalletCreated} />
+        <WalletManagement
           wallets={wallets}
+          WalletInfo={WalletInfo}
           activeWallet={activeWallet}
-          onCreateWallet={createWallet}
+          walletId={walletId}
+          opening={opening}
           onSelectWallet={selectWallet}
+          onOpenWallet={handleOpenWallet}
+          onWalletIdChange={setWalletId}
         />
+
         {activeWallet && (
           <>
             <WalletStatus wallet={activeWallet} balance={balance} />
-            <JoinFederation wallet={activeWallet} />
-            <GenerateLightningInvoice wallet={activeWallet} />
-            {/* Add more components as needed */}
 
-            {/* Other components */}
+            {/* Only show these components if wallet has joined a federation */}
+            {federationJoined && (
+              <>
+                <GenerateLightningInvoice wallet={activeWallet} />
+                <RedeemEcash wallet={activeWallet} />
+                <SendLightning wallet={activeWallet} />
+              </>
+            )}
           </>
         )}
+
+        <ParseInviteCode />
+        <ParseBolt11Invoice />
+
+        {error && <div className="error">{error}</div>}
       </main>
     </>
+  )
+}
+
+const WalletManagement = ({
+  wallets,
+  WalletInfo,
+  activeWallet,
+  walletId,
+  opening,
+  onSelectWallet,
+  onOpenWallet,
+  onWalletIdChange,
+}: {
+  wallets: Wallet[]
+  WalletInfo: Array<{
+    id: string
+    clientName: string
+    federationId?: string
+    createdAt: number
+    lastAccessedAt: number
+  }>
+  activeWallet: Wallet | undefined
+  walletId: string
+  opening: boolean
+  onSelectWallet: (walletId: string) => void
+  onOpenWallet: (e: React.FormEvent) => void
+  onWalletIdChange: (id: string) => void
+}) => {
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString()
+  }
+
+  const formatWalletId = (id: string) => {
+    return id.length > 8 ? `${id.slice(0, 8)}...` : id
+  }
+
+  const isWalletLoaded = (walletId: string) => {
+    return wallets.some((w) => w.id === walletId)
+  }
+
+  return (
+    <div className="section">
+      <h3>Wallet Management</h3>
+
+      {/* Open Wallet Form - only show if there are existing wallets */}
+      {WalletInfo.length > 0 && (
+        <div className="section">
+          <h3>Open Existing Wallet</h3>
+          <form onSubmit={onOpenWallet}>
+            <div className="input-group">
+              <label htmlFor="walletId">Wallet ID:</label>
+              <input
+                id="walletId"
+                type="text"
+                placeholder="Enter wallet ID"
+                required
+                value={walletId}
+                onChange={(e) => onWalletIdChange(e.target.value)}
+              />
+            </div>
+            <button type="submit" disabled={opening || !walletId.trim()}>
+              {opening ? 'Opening...' : 'Open Wallet'}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Wallet Pointers List */}
+      {WalletInfo.length > 0 && (
+        <div className="wallet-list">
+          <h4>Available Wallets ({WalletInfo.length}):</h4>
+          <div className="wallet-grid">
+            {WalletInfo.map((pointer) => (
+              <div
+                key={pointer.id}
+                className={`wallet-item ${activeWallet?.id === pointer.id ? 'active' : ''}`}
+              >
+                <button
+                  onClick={() => onSelectWallet(pointer.id)}
+                  className="wallet-button"
+                  title={`Wallet ID: ${pointer.id}\nClient: ${pointer.clientName}\nCreated: ${formatDate(pointer.createdAt)}\nLast accessed: ${formatDate(pointer.lastAccessedAt)}`}
+                >
+                  <div className="wallet-info">
+                    <div className="wallet-id">
+                      <strong>{formatWalletId(pointer.id)}</strong>
+                      {isWalletLoaded(pointer.id) && (
+                        <span className="loaded-indicator">●</span>
+                      )}
+                    </div>
+                    <div className="wallet-federation">
+                      {pointer.federationId
+                        ? `Fed: ${pointer.federationId.slice(0, 8)}...`
+                        : 'No Federation'}
+                    </div>
+                    <div className="wallet-dates">
+                      <small>Last: {formatDate(pointer.lastAccessedAt)}</small>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Currently Loaded Wallets (for debugging) */}
+      {wallets.length > 0 && (
+        <details className="loaded-wallets">
+          <summary>Loaded in Memory ({wallets.length})</summary>
+          <div className="wallet-list">
+            {wallets.map((wallet) => (
+              <div key={wallet.id} className="wallet-item">
+                <span>{formatWalletId(wallet.id)}</span>
+                <span>{wallet.federationId ? 'Joined' : 'No Fed'}</span>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
   )
 }
 
@@ -120,18 +401,128 @@ const WalletStatus = ({
   return (
     <div className="section">
       <h3>Wallet Status</h3>
-      <div>
-        <strong>Wallet ID:</strong> {wallet.id.substring(0, 8)}...
+      <div className="row">
+        <strong>Wallet ID:</strong>
+        <div>{wallet.id}</div>
       </div>
-      <div>
-        <strong>Balance:</strong> {balance} sats
+      <div className="row">
+        <strong>Balance:</strong>
+        <div className="balance">{balance}</div>
+        Msats
       </div>
-      <div>
-        <strong>Federation ID:</strong>{' '}
-        {wallet.federationId
-          ? wallet.federationId.substring(0, 8) + '...'
-          : 'Not joined'}
+      <div className="row">
+        <strong>Federation ID:</strong>
+        <div>{wallet.federationId ? wallet.federationId : 'Not joined'}</div>
       </div>
+    </div>
+  )
+}
+
+const JoinFederation = ({
+  onWalletCreated,
+}: {
+  onWalletCreated: (wallet: Wallet) => void
+}) => {
+  const [inviteCode, setInviteCode] = useState(TESTNET_FEDERATION_CODE)
+  const [previewData, setPreviewData] = useState<any>(null)
+  const [previewing, setPreviewing] = useState(false)
+  const [joinResult, setJoinResult] = useState<string | null>(null)
+  const [joinError, setJoinError] = useState('')
+  const [joining, setJoining] = useState(false)
+
+  const previewFederationHandler = async () => {
+    if (!inviteCode.trim()) return
+
+    setPreviewing(true)
+    setJoinError('')
+
+    try {
+      const data = await previewFederation(inviteCode)
+      setPreviewData(data)
+      console.log('Preview federation:', data)
+    } catch (error) {
+      console.error('Error previewing federation:', error)
+      setJoinError(error instanceof Error ? error.message : String(error))
+      setPreviewData(null)
+    } finally {
+      setPreviewing(false)
+    }
+  }
+
+  const joinFederationHandler = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    console.log('Joining federation and creating wallet:', inviteCode)
+    try {
+      setJoining(true)
+      setJoinError('')
+
+      // Call the new joinFederation method that creates and opens wallet automatically
+      const wallet = await joinFederation(inviteCode)
+
+      console.log('Join federation successful, with wallet id:', wallet.id)
+      setJoinResult(
+        'Successfully joined federation and with wallet id: ' + wallet.id,
+      )
+
+      // Notify parent component about the new wallet
+      onWalletCreated(wallet)
+    } catch (e: any) {
+      console.log('Error joining federation and creating wallet', e)
+      setJoinError(typeof e === 'object' ? e.toString() : (e as string))
+      setJoinResult('')
+    } finally {
+      setJoining(false)
+    }
+  }
+
+  return (
+    <div className="section">
+      <h3>Create a new wallet</h3>
+      <form onSubmit={joinFederationHandler}>
+        <input
+          placeholder="Invite Code..."
+          required
+          value={inviteCode}
+          onChange={(e) => {
+            setInviteCode(e.target.value)
+            setPreviewData(null)
+          }}
+        />
+        <div className="button-group">
+          <button
+            type="button"
+            onClick={previewFederationHandler}
+            disabled={previewing || !inviteCode.trim()}
+          >
+            {previewing ? 'Previewing...' : 'Preview Federation'}
+          </button>
+          <button type="submit" disabled={joining}>
+            {joining ? 'Joining Federation' : 'Join Federation'}
+          </button>
+        </div>
+      </form>
+
+      {previewData && (
+        <div className="preview-result">
+          <h4>Federation Preview:</h4>
+          <div className="preview-info">
+            <div>
+              <strong>Federation ID:</strong> {previewData.federation_id}
+            </div>
+            <div>
+              <strong>Config:</strong> {previewData.url}
+            </div>
+            <details>
+              <summary>Full Details</summary>
+              <pre>{JSON.stringify(previewData, null, 2)}</pre>
+            </details>
+          </div>
+        </div>
+      )}
+
+      {joinResult && <div className="success">{joinResult}</div>}
+      {joinError && <div className="error">{joinError}</div>}
     </div>
   )
 }
@@ -143,23 +534,39 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
 
+  // Debug: Log wallet changes
+  useEffect(() => {
+    console.log('GenerateLightningInvoice received wallet:', {
+      id: wallet.id,
+      federationId: wallet.federationId,
+    })
+  }, [wallet.id, wallet.federationId])
+
+  // Reset component state when wallet changes
+  useEffect(() => {
+    setAmount('')
+    setDescription('')
+    setInvoice('')
+    setError('')
+    setGenerating(false)
+  }, [wallet.id])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setInvoice('')
     setError('')
     setGenerating(true)
 
+    console.log('Generating invoice for wallet:', {
+      id: wallet.id,
+      federationId: wallet.federationId,
+    })
+
     try {
-      // Check if wallet is joined to federation
       if (!wallet.federationId) {
         throw new Error(
           'Wallet must be joined to a federation before creating invoices',
         )
-      }
-
-      // Ensure wallet is open
-      if (!wallet.isOpen()) {
-        throw new Error('Wallet is not open')
       }
 
       const response = await wallet.lightning.createInvoice(
@@ -175,25 +582,12 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
     }
   }
 
-  // Don't show form if wallet isn't joined to federation
-  if (!wallet.federationId) {
-    return (
-      <div className="section">
-        <h3>Generate Lightning Invoice</h3>
-        <div className="error">
-          Wallet must be joined to a federation before creating Lightning
-          invoices.
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="section">
       <h3>Generate Lightning Invoice</h3>
       <form onSubmit={handleSubmit}>
         <div className="input-group">
-          <label htmlFor="amount">Amount (sats):</label>
+          <label htmlFor="amount">Amount (Msats):</label>
           <input
             id="amount"
             type="number"
@@ -237,99 +631,202 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
   )
 }
 
-const WalletSelector = ({
-  wallets,
-  activeWallet,
-  onCreateWallet,
-  onSelectWallet,
-}: {
-  wallets: Wallet[]
-  activeWallet: Wallet | null
-  onCreateWallet: () => Promise<Wallet>
-  onSelectWallet: (walletId: string) => void
-}) => {
+const RedeemEcash = ({ wallet }: { wallet: Wallet }) => {
+  const [ecashInput, setEcashInput] = useState('')
+  const [redeemResult, setRedeemResult] = useState('')
+  const [redeemError, setRedeemError] = useState('')
+
+  // Reset state when wallet changes
+  useEffect(() => {
+    setEcashInput('')
+    setRedeemResult('')
+    setRedeemError('')
+  }, [wallet.id])
+
+  const handleRedeem = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const res = await wallet.mint.redeemEcash(ecashInput)
+      console.log('redeem ecash res', res)
+      setRedeemResult('Redeemed!')
+      setRedeemError('')
+    } catch (e) {
+      console.log('Error redeeming ecash', e)
+      setRedeemError(e as string)
+      setRedeemResult('')
+    }
+  }
+
   return (
     <div className="section">
-      <h3>Wallet Management</h3>
-      <div className="row">
-        <button onClick={onCreateWallet}>Create New Wallet</button>
-      </div>
-      {wallets.length > 0 && (
-        <div className="wallet-list">
-          <strong>Wallets:</strong>
-          {wallets.map((wallet) => (
-            <div key={wallet.id} className="wallet-item">
-              <button
-                onClick={() => onSelectWallet(wallet.id)}
-                className={activeWallet?.id === wallet.id ? 'active' : ''}
-              >
-                {wallet.id.substring(0, 8)}...
-                {wallet.federationId
-                  ? ` (Fed: ${wallet.federationId.substring(0, 8)}...)`
-                  : ' (No Fed)'}
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+      <h3>Redeem Ecash</h3>
+      <form onSubmit={handleRedeem} className="row">
+        <input
+          className="ecash-input"
+          placeholder="Long ecash string..."
+          required
+          value={ecashInput}
+          onChange={(e) => setEcashInput(e.target.value)}
+        />
+        <button type="submit">Redeem</button>
+      </form>
+      {redeemResult && <div className="success">{redeemResult}</div>}
+      {redeemError && <div className="error">{redeemError}</div>}
     </div>
   )
 }
 
-const JoinFederation = ({ wallet }: { wallet: Wallet }) => {
-  const [inviteCode, setInviteCode] = useState(TESTNET_FEDERATION_CODE)
-  const [joining, setJoining] = useState(false)
-  const [error, setError] = useState('')
-  const [joinSuccess, setJoinSuccess] = useState(false)
+const SendLightning = ({ wallet }: { wallet: Wallet }) => {
+  const [lightningInput, setLightningInput] = useState('')
+  const [lightningResult, setLightningResult] = useState('')
+  const [lightningError, setLightningError] = useState('')
 
-  const handleJoin = async (e: React.FormEvent) => {
-    setJoining(true)
-    setJoinSuccess(false)
+  // Reset state when wallet changes
+  useEffect(() => {
+    setLightningInput('')
+    setLightningResult('')
+    setLightningError('')
+  }, [wallet.id])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     try {
-      const res = await wallet.joinFederation(inviteCode)
-      console.log('join federation res', res)
-
-      // Check if the result indicates success
-      if (res && wallet.federationId) {
-        setJoinSuccess(true)
-        setError('')
-      } else {
-        throw new Error('Failed to join federation')
-      }
-    } catch (error) {
-      setError(error instanceof Error ? error.message : String(error))
-      setJoinSuccess(false)
-    } finally {
-      setJoining(false)
+      await wallet.lightning.payInvoice(lightningInput)
+      setLightningResult('Paid!')
+      setLightningError('')
+    } catch (e) {
+      console.log('Error paying lightning', e)
+      setLightningError(e as string)
+      setLightningResult('')
     }
-  }
-
-  // Show success state if either federationId exists or we just successfully joined
-  if (wallet.federationId || joinSuccess) {
-    return (
-      <div className="section">
-        <h3>Federation Status</h3>
-        <div>Already joined federation: {wallet.federationId}</div>
-      </div>
-    )
   }
 
   return (
     <div className="section">
-      <h3>Join Federation</h3>
-      <form onSubmit={handleJoin}>
+      <h3>Pay Lightning</h3>
+      <form onSubmit={handleSubmit} className="row">
         <input
-          value={inviteCode}
-          onChange={(e) => setInviteCode(e.target.value)}
-          placeholder="Invite code..."
+          placeholder="lnbc..."
           required
+          value={lightningInput}
+          onChange={(e) => setLightningInput(e.target.value)}
         />
-        <button type="submit" disabled={joining}>
-          {joining ? 'Joining...' : 'Join Federation'}
-        </button>
+        <button type="submit">Pay</button>
       </form>
+      {lightningResult && <div className="success">{lightningResult}</div>}
+      {lightningError && <div className="error">{lightningError}</div>}
+    </div>
+  )
+}
+
+const ParseInviteCode = () => {
+  const [parseInviteInput, setParseInviteInput] = useState('')
+  const [parsedInviteData, setParsedInviteData] = useState<any>(null)
+  const [parsing, setParsing] = useState(false)
+  const [error, setError] = useState('')
+
+  const parseInviteCodeHandler = async () => {
+    if (!parseInviteInput.trim()) return
+
+    setParsing(true)
+    setError('')
+
+    try {
+      const data = await parseInviteCode(parseInviteInput)
+      setParsedInviteData(data)
+      console.log('Parsed invite code:', data)
+    } catch (error) {
+      console.error('Error parsing invite code:', error)
+      setError(error instanceof Error ? error.message : String(error))
+      setParsedInviteData(null)
+    } finally {
+      setParsing(false)
+    }
+  }
+
+  return (
+    <div className="section">
+      <h3>Parse Invite Code</h3>
+      <div className="input-group">
+        <input
+          type="text"
+          placeholder="Enter invite code to parse"
+          value={parseInviteInput}
+          onChange={(e) => setParseInviteInput(e.target.value)}
+        />
+        <button onClick={parseInviteCodeHandler} disabled={parsing}>
+          {parsing ? 'Parsing...' : 'Parse Invite Code'}
+        </button>
+      </div>
+      {parsedInviteData && (
+        <div className="success">
+          <strong>Parsed Invite Code:</strong>
+          <div>
+            <strong>Federation ID:</strong> {parsedInviteData.federation_id}
+          </div>
+          <div>
+            <strong>URL:</strong> {parsedInviteData.url}
+          </div>
+          <details>
+            <summary>Full Details</summary>
+            <pre>{JSON.stringify(parsedInviteData, null, 2)}</pre>
+          </details>
+        </div>
+      )}
+      {error && <div className="error">{error}</div>}
+    </div>
+  )
+}
+
+const ParseBolt11Invoice = () => {
+  const [parseBolt11Input, setParseBolt11Input] = useState('')
+  const [parsedBolt11Data, setParsedBolt11Data] = useState<any>(null)
+  const [parsing, setParsing] = useState(false)
+  const [error, setError] = useState('')
+
+  const parseBolt11InvoiceHandler = async () => {
+    if (!parseBolt11Input.trim()) return
+
+    setParsing(true)
+    setError('')
+
+    try {
+      const data = await parseBolt11Invoice(parseBolt11Input)
+      setParsedBolt11Data(data)
+      console.log(data.amount)
+      console.log('Parsed Bolt11 invoice:', data)
+    } catch (error) {
+      console.error('Error parsing Bolt11 invoice:', error)
+      setError(error instanceof Error ? error.message : String(error))
+      setParsedBolt11Data(null)
+    } finally {
+      setParsing(false)
+    }
+  }
+
+  return (
+    <div className="section">
+      <h3>Parse Bolt11 Invoice</h3>
+      <div className="input-group">
+        <textarea
+          placeholder="Enter Bolt11 invoice to parse (e.g. lnbc1...)"
+          value={parseBolt11Input}
+          onChange={(e) => setParseBolt11Input(e.target.value)}
+          rows={3}
+        />
+        <button onClick={parseBolt11InvoiceHandler} disabled={parsing}>
+          {parsing ? 'Parsing...' : 'Parse Bolt11 Invoice'}
+        </button>
+      </div>
+      {parsedBolt11Data && (
+        <div className="success">
+          <strong>Parsed Bolt11 Invoice:</strong>
+          <details>
+            <summary>Full Details</summary>
+            <pre>{JSON.stringify(parsedBolt11Data, null, 2)}</pre>
+          </details>
+        </div>
+      )}
       {error && <div className="error">{error}</div>}
     </div>
   )
