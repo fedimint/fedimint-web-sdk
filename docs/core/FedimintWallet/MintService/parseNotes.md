@@ -1,4 +1,4 @@
-# Spend Ecash
+# Parse Ecash Notes
 
 ### `mint.parseNotes(oobNotes: string)`
 
@@ -6,14 +6,14 @@ Parses an ecash note string without redeeming it. Use [`redeemEcash()`](./redeem
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+await initialize()
+const wallet = await joinFederation('fed11qgq...')
 
 const longEcashNoteString = '01A...'
 
-const valueMsats = await wallet.mint.parseNotes(longEcashNoteString) // [!code focus]
+const valueMsats = await wallet.mint.parseNotes(longEcashNoteString)
 
 // later...
 

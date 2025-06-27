@@ -1,4 +1,4 @@
-# joinFederation
+# Join Federation
 
 ### `joinFederation(federationId: string)`
 
@@ -6,24 +6,20 @@ Attempts to join a federation.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+await initialize()
+const wallet = await joinFederation('fed123...') // [!code focus]
 
-const didJoin = await wallet.joinFederation('fed123...') // [!code focus]
-
-if (didJoin) {
-  const balance = await wallet.balance.getBalance()
-}
+const balance = await wallet.balance.getBalance()
 ```
 
-To support multiple wallets within a single application, you can pass in a custom client name.
+To support multiple wallets within a single application, you can pass in a custom wallet ID:
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-
-const didJoin = await wallet.joinFederation('fed456...', 'my-client-name') // [!code focus]
+await initialize()
+const wallet = await joinFederation('fed456...', 'my-wallet-id') // [!code focus]
 ```

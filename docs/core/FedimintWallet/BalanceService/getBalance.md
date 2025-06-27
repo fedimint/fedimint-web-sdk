@@ -6,10 +6,10 @@ Get the current balance of the wallet in milli-satoshis (MSats).
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-await wallet.open()
+await initialize()
+const wallet = await joinFederation('fed11qgq...')
 
 const mSats = await wallet.balance.getBalance() // [!code focus]
 

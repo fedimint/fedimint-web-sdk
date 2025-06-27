@@ -27,7 +27,7 @@ A curated list of awesome projects, resources, and tools built with the **Fedimi
 
 ## Tools & Libraries
 
-- [@fedimint/core-web](https://web.fedimint.org/core/FedimintWallet/) - Core Fedimint web utilities
+- [@fedimint/core-web](https://web.fedimint.org/core/getting-started) - Core Fedimint web utilities
 - [@fedimint/react](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/react) - React contexts and hooks
 
 ## Contributing

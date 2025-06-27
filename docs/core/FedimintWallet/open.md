@@ -1,33 +1,67 @@
-# open
+# Open Wallet
 
-### `open(clientName?: string)`
+### `openWallet(walletId)`
 
-Attempts to open an existing wallet.
-
-Default client name is `fm-wallet`.
+Open an existing wallet by its ID. The wallet must have been previously created and stored.
 
 ```ts twoslash
-// @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import {
+  initialize,
+  listClients,
+  hasWallet,
+  openWallet,
+} from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+await initialize()
 
-const isOpen = await wallet.open() // [!code focus]
+// First, get a list of all available wallet metadata
+const clientList = listClients()
 
-if (isOpen) {
-  const balance = await wallet.balance.getBalance()
+console.log('Available wallets:')
+clientList.forEach((walletInfo) => {
+  console.log(`- ID: ${walletInfo.id}`)
+  console.log(`  Federation: ${walletInfo.federationId || 'Not joined'}`)
+  console.log(`  Created: ${new Date(walletInfo.createdAt).toLocaleString()}`)
+  console.log(
+    `  Last accessed: ${new Date(walletInfo.lastAccessedAt).toLocaleString()}`,
+  )
+})
+
+// Check if a specific wallet exists before trying to open it
+const walletId = 'my-wallet-id'
+if (hasWallet(walletId)) {
+  const wallet = await openWallet(walletId)
+  console.log(`Opened wallet: ${wallet.id}`)
 } else {
-  await wallet.joinFederation('fed123...')
+  console.error('wallet does not exist, Please create a new one instead')
 }
 ```
 
-To support multiple wallets within a single application, you can pass in a custom client name.
+#### Parameters
 
-```ts twoslash
-// @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+• **walletId**: `string`
 
-const wallet = new FedimintWallet()
+The ID of the wallet to open. Must be an existing wallet that was previously created.
 
-const isOpen = await wallet.open('my-client-name') // [!code focus]
+#### Returns
+
+`Promise<Wallet>`
+
+The opened wallet instance.
+
+#### Throws
+
+`Error` if the wallet with the specified ID does not exist in storage.
+
+---
+
+```
+---
+
+## Related Methods
+
+- [`createWallet()`](createWallet.md) - Create a new wallet
+- [`ListClients()`](ListClients.md) - Get metadata for all stored wallets
+- [`hasWallet()`](hasWallet.md) - Check if a wallet exists
+- [`getWallet()`](getWallet.md) - Get an already loaded wallet instance
 ```
