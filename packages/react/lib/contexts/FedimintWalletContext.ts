@@ -75,7 +75,7 @@ export const FedimintWalletProvider = (
       return
     }
 
-    if (wallet && wallet.isOpen()) {
+    if (wallet) {
       setWalletStatus('open')
     }
   }, [wallet])
