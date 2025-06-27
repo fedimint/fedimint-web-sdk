@@ -28,8 +28,6 @@ export class RpcClient {
   private requestCounter = 0
   private subscriptionManager: SubscriptionManager
   private initPromise?: Promise<void>
-  // Won't have this as a instance variable
-  private clientName: string | undefined
 
   constructor(createTransport: TransportFactory) {
     this.createTransport = createTransport
@@ -69,7 +67,6 @@ export class RpcClient {
   async joinFederation(inviteCode: string, clientName: string) {
     console.debug('RpcClient.joinFederation: Setting clientName to', clientName)
     // Set clientName immediately before the call to ensure it's available
-    this.clientName = clientName
     try {
       console.log('RpcClient.joinFederation: Making RPC call')
       console.info('info: RpcClient.joinFederation: Making RPC call')
@@ -80,15 +77,13 @@ export class RpcClient {
       })
       console.debug(
         'RpcClient.joinFederation: RPC call successful, clientName is',
-        this.clientName,
+        clientName,
       )
       return result
     } catch (error) {
       console.debug(
         'RpcClient.joinFederation: RPC call failed, resetting clientName',
       )
-      // Reset clientName if the operation failed
-      this.clientName = undefined
       throw error
     }
   }
@@ -100,10 +95,8 @@ export class RpcClient {
         client_name: clientName,
       })
       logger.info('open client', clientName, 'result', result)
-      this.clientName = clientName
       return result
     } catch (error) {
-      this.clientName = undefined
       throw error
     }
   }
@@ -114,7 +107,6 @@ export class RpcClient {
       type: 'close_client',
       client_name: clientName,
     })
-    this.clientName = undefined
   }
 
   private internalRpcStream<Response extends JSONValue = JSONValue>(
@@ -168,7 +160,7 @@ export class RpcClient {
     onEnd: () => void = () => {},
     clientName?: string, // Add optional clientName parameter
   ): CancelFunction {
-    const effectiveClientName = clientName || this.clientName
+    const effectiveClientName = clientName
     console.debug(
       'RpcClient.rpcStream: using clientName',
       effectiveClientName,
@@ -198,7 +190,7 @@ export class RpcClient {
     payload: P,
     clientName?: string,
   ): Promise<T> {
-    const effectiveClientName = clientName || this.clientName
+    const effectiveClientName = clientName
     if (effectiveClientName === undefined) {
       throw new Error('Wallet is not open')
     }

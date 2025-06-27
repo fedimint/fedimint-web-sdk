@@ -1,6 +1,7 @@
 import { RpcClient, TransportFactory } from './rpc'
 import { createWebWorkerTransport } from './worker/WorkerTransport'
 import { logger, type LogLevel } from './utils/logger'
+import { generateUUID } from './utils/uuid'
 import { Wallet } from './Wallet'
 import type {
   ParsedInviteCode,
@@ -84,17 +85,32 @@ class WalletDirector {
 
   async joinFederation(inviteCode: string, walletId?: string): Promise<Wallet> {
     await this.initialize()
-    // check if walletid exists Initializein storage
+    // check if walletid exists in storage
     if (walletId && this.hasWallet(walletId)) {
       throw new Error(`Wallet with ID ${walletId} already exists`)
     }
-    const wallet = new Wallet(this._client!, walletId)
-    const res = await wallet.joinFederation(inviteCode)
-    if (res) {
+
+    try {
+      logger.debug('Joining federation with invite code:', inviteCode)
+
+      // Parse the invite code to get federation ID
+      const parsedInvite = await this._client!.parseInviteCode(inviteCode)
+      const federationId = parsedInvite.federation_id
+
+      const finalWalletId = walletId || generateUUID()
+      const clientName = `wallet-${finalWalletId}`
+
+      await this._client!.joinFederation(inviteCode, clientName)
+
+      const wallet = new Wallet(this._client!, federationId, finalWalletId)
+
       this.addWallet(wallet)
+      logger.info(`Joined federation and created wallet with ID: ${wallet.id}`)
+      return wallet
+    } catch (error) {
+      logger.error(`Error joining federation:`, error)
+      throw error
     }
-    logger.info(`Joined federation and created wallet with ID: ${wallet.id}`)
-    return wallet
   }
 
   /**
@@ -110,13 +126,26 @@ class WalletDirector {
     if (!pointer) {
       throw new Error(`Wallet ${walletId} not found`)
     }
-    const fed = pointer.federationId
-    let wallet = new Wallet(this._client!, walletId)
-    const walletOpen = await wallet.open(pointer.federationId)
-    if (walletOpen) {
+
+    try {
+      const clientName = `wallet-${walletId}`
+
+      // Ensure the RPC client is initialized
+      await this._client!.initialize()
+
+      await this._client!.openClient(clientName)
+
+      const wallet = new Wallet(this._client!, pointer.federationId, walletId)
+
       this.addWallet(wallet)
+      logger.info(
+        `Wallet ${walletId} opened successfully with federation ${pointer.federationId}`,
+      )
+      return wallet
+    } catch (error) {
+      logger.error(`Error opening wallet ${walletId}:`, error)
+      throw error
     }
-    return wallet
   }
 
   private addWallet(wallet: Wallet): void {
@@ -144,7 +173,8 @@ class WalletDirector {
   }
 
   getActiveWallets(): Wallet[] {
-    return Array.from(this.wallets.values()).filter((wallet) => wallet.isOpen())
+    // All wallets in the registry are now considered active/open
+    return Array.from(this.wallets.values())
   }
 
   getWalletsByFederation(federationId: string): Wallet[] {

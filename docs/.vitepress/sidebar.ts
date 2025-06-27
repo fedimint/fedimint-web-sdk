@@ -64,8 +64,8 @@ const FedimintWalletSidebar = [
         link: 'joinFederation',
       },
       {
-        text: 'isOpen()',
-        link: 'isOpen',
+        text: 'Wallet State',
+        link: 'walletState',
       },
       {
         text: 'open()',
