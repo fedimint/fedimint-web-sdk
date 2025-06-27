@@ -118,20 +118,6 @@ After this call, the FedimintWallet instance should be discarded.
 
 ---
 
-### isOpen()
-
-> **isOpen**(): `boolean`
-
-#### Returns
-
-`boolean`
-
-#### Defined in
-
-[FedimintWallet.ts:140](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L140)
-
----
-
 ### parseInviteCode()
 
 > **parseInviteCode**(`inviteCode`): `Promise`\<`{ url: string; federation_id: string }`\>
