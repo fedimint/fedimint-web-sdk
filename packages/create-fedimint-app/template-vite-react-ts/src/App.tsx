@@ -19,26 +19,7 @@ const TESTNET_FEDERATION_CODE =
 initialize()
 
 // Custom hooks
-const useIsOpen = (wallet: Wallet | undefined) => {
-  const [open, setIsOpen] = useState(false)
-
-  const checkIsOpen = useCallback(() => {
-    if (wallet) {
-      const isOpen = wallet.isOpen()
-      if (open !== isOpen) {
-        setIsOpen(isOpen)
-      }
-    }
-  }, [open, wallet])
-
-  useEffect(() => {
-    checkIsOpen()
-  }, [checkIsOpen, wallet])
-
-  return { open, checkIsOpen }
-}
-
-const useBalance = (wallet: Wallet | undefined, checkIsOpen: () => void) => {
+const useBalance = (wallet: Wallet | undefined) => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
@@ -53,7 +34,6 @@ const useBalance = (wallet: Wallet | undefined, checkIsOpen: () => void) => {
       try {
         const currentBalance = await wallet.balance.getBalance()
         setBalance(currentBalance)
-        checkIsOpen()
       } catch (error) {
         console.error('Error fetching balance:', error)
         setBalance(0)
@@ -65,7 +45,6 @@ const useBalance = (wallet: Wallet | undefined, checkIsOpen: () => void) => {
     // Subscribe to balance changes
     const unsubscribe = wallet.balance.subscribeBalance(
       (balance) => {
-        checkIsOpen()
         setBalance(balance)
       },
       (error) => {
@@ -77,7 +56,7 @@ const useBalance = (wallet: Wallet | undefined, checkIsOpen: () => void) => {
     return () => {
       unsubscribe()
     }
-  }, [wallet, wallet?.federationId, checkIsOpen])
+  }, [wallet, wallet?.federationId])
 
   return balance
 }
@@ -101,8 +80,7 @@ const App = () => {
   const [error, setError] = useState('')
   const [federationJoined, setFederationJoined] = useState(false)
 
-  const { open, checkIsOpen } = useIsOpen(activeWallet)
-  const balance = useBalance(activeWallet, checkIsOpen)
+  const balance = useBalance(activeWallet)
 
   // Add effect to watch for federation changes
   useEffect(() => {
@@ -163,14 +141,16 @@ const App = () => {
         wallet = await openWallet(walletId)
 
         // Add to wallets array if not already there
-        setWallets((prev) => {
-          const existingWallet = prev.find((w) => w.id === walletId)
-          if (!existingWallet) {
-            console.log(`Adding wallet ${walletId} to wallets array`)
-            return [...prev, wallet]
-          }
-          return prev
-        })
+        if (wallet) {
+          setWallets((prev) => {
+            const existingWallet = prev.find((w) => w.id === walletId)
+            if (!existingWallet) {
+              console.log(`Adding wallet ${walletId} to wallets array`)
+              return [...prev, wallet!]
+            }
+            return prev
+          })
+        }
       }
 
       // Update active wallet
@@ -269,12 +249,7 @@ const App = () => {
 
         {activeWallet && (
           <>
-            <WalletStatus
-              wallet={activeWallet}
-              open={open}
-              checkIsOpen={checkIsOpen}
-              balance={balance}
-            />
+            <WalletStatus wallet={activeWallet} balance={balance} />
 
             {/* Only show these components if wallet has joined a federation */}
             {federationJoined && (
@@ -407,7 +382,6 @@ const WalletManagement = ({
               <div key={wallet.id} className="wallet-item">
                 <span>{formatWalletId(wallet.id)}</span>
                 <span>{wallet.federationId ? 'Joined' : 'No Fed'}</span>
-                <span>{wallet.isOpen() ? 'Open' : 'Closed'}</span>
               </div>
             ))}
           </div>
@@ -419,13 +393,9 @@ const WalletManagement = ({
 
 const WalletStatus = ({
   wallet,
-  open,
-  checkIsOpen,
   balance,
 }: {
   wallet: Wallet
-  open: boolean
-  checkIsOpen: () => void
   balance: number
 }) => {
   return (
@@ -569,7 +539,6 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
     console.log('GenerateLightningInvoice received wallet:', {
       id: wallet.id,
       federationId: wallet.federationId,
-      isOpen: wallet.isOpen(),
     })
   }, [wallet.id, wallet.federationId])
 
@@ -591,7 +560,6 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
     console.log('Generating invoice for wallet:', {
       id: wallet.id,
       federationId: wallet.federationId,
-      isOpen: wallet.isOpen(),
     })
 
     try {
