@@ -35,8 +35,8 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           pattern: '{packages/**/dist/**/*.{js,mjs,cjs},packages/**/*.wasm}'
-          install-script: nix develop --accept-flake-config --command pnpm install
-          build-script: nix develop --accept-flake-config --command pnpm build
+          install-script: pnpm install
+          build-script: pnpm build
 
       # https://github.com/actions/checkout/issues/692#issuecomment-1502203573
       - name: Cleanup checkout
