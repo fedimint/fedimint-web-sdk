@@ -23,19 +23,22 @@ walletTest(
   },
 )
 
-walletTest('pegin should always return an address', async ({ wallet }) => {
-  expect(wallet).toBeDefined()
-  expect(wallet.isOpen()).toBe(true)
-  const response = await wallet.wallet.generateAddress()
+walletTest(
+  'generateAddress should always return an address',
+  async ({ wallet }) => {
+    expect(wallet).toBeDefined()
+    expect(wallet.isOpen()).toBe(true)
+    const response = await wallet.wallet.generateAddress()
 
-  expect(response, 'generateAddress').toEqual({
-    deposit_address: expect.any(String),
-    operation_id: expect.any(String),
-  })
-})
+    expect(response, 'generateAddress').toEqual({
+      deposit_address: expect.any(String),
+      operation_id: expect.any(String),
+    })
+  },
+)
 
 walletTest(
-  'pegout should return an operation ID after sending funds',
+  'sendOnchain should return an operation ID after sending funds',
   async ({ fundedWalletBeefy }) => {
     expect(fundedWalletBeefy).toBeDefined()
     expect(fundedWalletBeefy.isOpen()).toBe(true)
@@ -44,9 +47,12 @@ walletTest(
     const address =
       'bcrt1qphk8q2v8he2autevdcefnnwjl4yc2hm74uuvhaa6nhrnkd3gfrwq6mnr76'
 
-    const response = await fundedWalletBeefy.wallet.withdraw(amountSat, address)
+    const response = await fundedWalletBeefy.wallet.sendOnchain(
+      amountSat,
+      address,
+    )
 
-    expect(response, 'withdrawal').toEqual({
+    expect(response, 'send onchain').toEqual({
       operation_id: expect.any(String),
     })
   },

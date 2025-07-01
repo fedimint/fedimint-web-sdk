@@ -84,7 +84,7 @@ const App = () => {
         <InviteCodeParser />
         <ParseLightningInvoice />
         <Deposit />
-        <Withdraw />
+        <SendOnchain />
       </main>
     </>
   )
@@ -469,7 +469,7 @@ const Deposit = () => {
   )
 }
 
-const Withdraw = () => {
+const SendOnchain = () => {
   const [address, setAddress] = useState('')
   const [amount, setAmount] = useState(0)
   const [withdrawalResult, setWithdrawalResult] = useState('')
@@ -480,7 +480,7 @@ const Withdraw = () => {
     e.preventDefault()
     try {
       setWithdrawalStatus(true)
-      const result = await wallet.wallet.withdraw(amount, address)
+      const result = await wallet.wallet.sendOnchain(amount, address)
       setWithdrawalResult(result.operation_id)
     } catch (e) {
       console.error('Error ', e)
@@ -491,7 +491,7 @@ const Withdraw = () => {
   }
   return (
     <div className="section">
-      <h3>Withdraw amount from Fedimint</h3>
+      <h3>Send Onchain</h3>
       <form onSubmit={handleWithdraw} className="row">
         <input
           placeholder="Enter amount"
@@ -507,12 +507,12 @@ const Withdraw = () => {
           required
         />
         <button type="submit" disabled={withdrawalStatus}>
-          {withdrawalStatus ? 'Withdrawing' : 'Withdraw'}
+          {withdrawalStatus ? 'Sending' : 'Send'}
         </button>
       </form>
       {withdrawalResult && (
         <div className="success">
-          <p>Withdrawal Successful</p>
+          <p>Onchain Send Successful</p>
         </div>
       )}
       {withdrawalError && <div className="error">{withdrawalError}</div>}

@@ -1,4 +1,4 @@
-import { JSONValue, WalletSummary, PegInResponse } from '../types'
+import { JSONValue, WalletSummary, GenerateAddressResponse } from '../types'
 import { WorkerClient } from '../worker'
 
 export class WalletService {
@@ -9,12 +9,16 @@ export class WalletService {
   }
 
   async generateAddress(extraMeta: JSONValue = {}) {
-    return await this.client.rpcSingle<PegInResponse>('wallet', 'peg_in', {
-      extra_meta: extraMeta,
-    })
+    return await this.client.rpcSingle<GenerateAddressResponse>(
+      'wallet',
+      'peg_in',
+      {
+        extra_meta: extraMeta,
+      },
+    )
   }
 
-  async withdraw(
+  async sendOnchain(
     amountSat: number,
     address: string,
     extraMeta: JSONValue = {},
