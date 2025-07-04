@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { wallet } from './wallet'
 
 const TESTNET_FEDERATION_CODE =
@@ -83,6 +83,8 @@ const App = () => {
         <SendLightning />
         <InviteCodeParser />
         <ParseLightningInvoice />
+        <Deposit />
+        <SendOnchain />
       </main>
     </>
   )
@@ -427,6 +429,93 @@ const ParseLightningInvoice = () => {
         </div>
       )}
       {parseError && <div className="error">{parseError}</div>}
+    </div>
+  )
+}
+
+const Deposit = () => {
+  const [address, setAddress] = useState<string>('')
+  const [addressError, setAddressError] = useState('')
+  const [addressStatus, setAddressStatus] = useState(false)
+
+  const handleGenerateAddress = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAddressStatus(true)
+    try {
+      const result = await wallet.wallet.generateAddress()
+      setAddress(result.deposit_address)
+    } catch (e) {
+      console.error('Error', e)
+      setAddressError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setAddressStatus(false)
+    }
+  }
+  return (
+    <div className="section">
+      <h3>Generate Deposit Address</h3>
+      <form onSubmit={handleGenerateAddress} className="row">
+        <button type="submit" disabled={addressStatus}>
+          {addressStatus ? 'Generating...' : 'Generate'}
+        </button>
+      </form>
+      {address && (
+        <div className="success">
+          <p>{address}</p>
+        </div>
+      )}
+      {addressError && <div className="error">{addressError}</div>}
+    </div>
+  )
+}
+
+const SendOnchain = () => {
+  const [address, setAddress] = useState('')
+  const [amount, setAmount] = useState(0)
+  const [withdrawalResult, setWithdrawalResult] = useState('')
+  const [withdrawalError, setWithdrawalError] = useState('')
+  const [withdrawalStatus, setWithdrawalStatus] = useState(false)
+
+  const handleWithdraw = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      setWithdrawalStatus(true)
+      const result = await wallet.wallet.sendOnchain(amount, address)
+      setWithdrawalResult(result.operation_id)
+    } catch (e) {
+      console.error('Error ', e)
+      setWithdrawalError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setWithdrawalStatus(false)
+    }
+  }
+  return (
+    <div className="section">
+      <h3>Send Onchain</h3>
+      <form onSubmit={handleWithdraw} className="row">
+        <input
+          placeholder="Enter amount"
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(Number(e.target.value))}
+          required
+        />
+        <input
+          placeholder="Enter onchain address"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          required
+        />
+        <button type="submit" disabled={withdrawalStatus}>
+          {withdrawalStatus ? 'Sending' : 'Send'}
+        </button>
+      </form>
+      {withdrawalResult && (
+        <div className="success">
+          <p>Onchain Send Successful</p>
+        </div>
+      )}
+      {withdrawalError && <div className="error">{withdrawalError}</div>}
     </div>
   )
 }
