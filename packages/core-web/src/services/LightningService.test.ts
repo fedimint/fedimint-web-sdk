@@ -228,18 +228,29 @@ walletTest(
     expect(payment.payment_type).toHaveProperty('internal')
     if ('internal' in payment.payment_type) {
       const id = payment.payment_type.internal
-      const subscribe = fundedWallet.lightning.subscribeInternalPayment(
-        id,
-        (state) => {
-          expect(state).toBeDefined()
-          expect(state).toBe('Funding')
-        },
-      )
+      await new Promise<void>((resolve, reject) => {
+        fundedWallet.lightning.subscribeInternalPayment(id, (state) => {
+          try {
+            expect(state).toBeDefined()
+            expect(state).toBe('funding')
+            resolve()
+          } catch (err) {
+            reject(err)
+          }
+        })
+      })
     } else {
       const id = payment.payment_type.lightning
-      const subscribe = fundedWallet.lightning.subscribeLnPay(id, (state) => {
-        expect(state).toBeDefined()
-        expect(state).toBe('created')
+      await new Promise<void>((resolve, reject) => {
+        fundedWallet.lightning.subscribeLnPay(id, (state) => {
+          try {
+            expect(state).toBeDefined()
+            expect(state).toBe('created')
+            resolve()
+          } catch (err) {
+            reject(err)
+          }
+        })
       })
     }
   },
