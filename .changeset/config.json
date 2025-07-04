@@ -3,9 +3,17 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [],
-  "linked": [],
+  "linked": [
+    [
+      "@fedimint/fedimint-client-wasm-bundler",
+      "@fedimint/fedimint-client-wasm-web"
+    ]
+  ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": []
+  "ignore": [],
+  "snapshot": {
+    "prereleaseTemplate": "{tag}-{commit}"
+  }
 }

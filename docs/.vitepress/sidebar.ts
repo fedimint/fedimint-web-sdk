@@ -119,8 +119,8 @@ const FedimintWalletSidebar = [
         base: '/core/FedimintWallet/WalletService/',
         items: [
           { text: 'getWalletSummary()', link: 'getWalletSummary' },
-          { text: 'pegin()', link: 'pegin' },
-          { text: 'pegout()', link: 'pegout' },
+          { text: 'generateAddress()', link: 'generateAddress' },
+          { text: 'sendOnchain()', link: 'sendOnchain' },
         ],
       },
       {

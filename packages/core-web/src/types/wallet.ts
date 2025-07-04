@@ -116,7 +116,7 @@ type WalletSummary = {
 /** Keys are powers of 2 */
 type NoteCountByDenomination = Record<number, number>
 
-type PegInResponse = {
+type GenerateAddressResponse = {
   deposit_address: string
   operation_id: string
 }
@@ -143,5 +143,5 @@ export {
   WalletSummary,
   TxOutputSummary,
   NoteCountByDenomination,
-  PegInResponse,
+  GenerateAddressResponse,
 }

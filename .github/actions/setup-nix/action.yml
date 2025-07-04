@@ -23,3 +23,16 @@ runs:
         name: fedimint
         authToken: ${{ inputs.cachix_auth_token }}
       continue-on-error: true
+
+    - name: Expose fedimint ref, Node, PNPM from dev shell
+      shell: bash
+      run: |
+        nix develop --accept-flake-config --command bash << 'EOF'
+          echo "FEDIMINT_REF=${{ env.FEDIMINT_REF }}" >> $GITHUB_ENV
+
+          NODE_BIN_DIR=$(dirname "$(which node)")
+          PNPM_BIN_DIR=$(dirname "$(which pnpm)")
+
+          echo "$NODE_BIN_DIR"  >> $GITHUB_PATH
+          echo "$PNPM_BIN_DIR" >> $GITHUB_PATH
+        EOF
