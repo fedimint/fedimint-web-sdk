@@ -55,12 +55,12 @@ type LnReceiveState =
   | 'claimed'
 
 type LnInternalPayState =
-  | 'Funding'
-  | { Preimage: string }
-  | { RefundSuccess: { out_points: BtcOutPoint[]; error: string } }
-  | { RefundError: { error_message: string; error: string } }
-  | { FundingFailed: { error: string } }
-  | { UnexpectedError: string }
+  | 'funding'
+  | { preimage: string }
+  | { refund_success: { out_points: BtcOutPoint[]; error: string } }
+  | { refund_error: { error_message: string; error: string } }
+  | { funding_failed: { error: string } }
+  | { unexpected_error: string }
 
 type CreateBolt11Response = {
   operation_id: string

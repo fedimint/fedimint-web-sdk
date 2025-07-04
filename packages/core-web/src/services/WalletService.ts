@@ -1,4 +1,9 @@
-import { JSONValue, WalletSummary, GenerateAddressResponse, WalletDepositState } from '../types'
+import {
+  JSONValue,
+  WalletSummary,
+  GenerateAddressResponse,
+  WalletDepositState,
+} from '../types'
 import { WorkerClient } from '../worker'
 
 export class WalletService {
