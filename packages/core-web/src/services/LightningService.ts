@@ -12,7 +12,7 @@ import type {
 export class LightningService {
   constructor(
     private client: RpcClient,
-    private clientName?: string,
+    private clientName: string,
   ) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
@@ -23,6 +23,12 @@ export class LightningService {
     gatewayInfo?: GatewayInfo,
     extraMeta?: JSONObject,
   ) {
+    if (!this.clientName) {
+      throw new Error(
+        'LightningService: clientName is not set. Wallet may not be properly initialized.',
+      )
+    }
+
     const gateway = gatewayInfo ?? (await this._getDefaultGatewayInfo())
     return await this.client.rpcSingle<CreateBolt11Response>(
       'ln',
@@ -160,6 +166,8 @@ export class LightningService {
       { operation_id: operationId },
       onSuccess,
       onError,
+      () => {},
+      this.clientName,
     )
   }
 
@@ -177,6 +185,8 @@ export class LightningService {
       { operation_id: operationId },
       onSuccess,
       onError,
+      () => {},
+      this.clientName,
     )
   }
 
@@ -224,6 +234,8 @@ export class LightningService {
       { operation_id: operationId },
       onSuccess,
       onError,
+      () => {},
+      this.clientName,
     )
   }
 
@@ -264,6 +276,7 @@ export class LightningService {
         gateway_id: gatewayId,
         force_internal: forceInternal,
       },
+      this.clientName,
     )
   }
 
@@ -272,10 +285,16 @@ export class LightningService {
       'ln',
       'list_gateways',
       {},
+      this.clientName,
     )
   }
 
   async updateGatewayCache() {
-    return await this.client.rpcSingle('ln', 'update_gateway_cache', {})
+    return await this.client.rpcSingle(
+      'ln',
+      'update_gateway_cache',
+      {},
+      this.clientName,
+    )
   }
 }

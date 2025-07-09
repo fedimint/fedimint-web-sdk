@@ -98,7 +98,7 @@ const wallet2 = await joinFederation(inviteCode, 'my-second-wallet')
 const allWallets = getActiveWallets()
 
 // Open an existing wallet by ID
-const existingWallet = await openWallet('wallet-id')
+const existingWallet = await openWallet('my-wallet-id')
 ```
 
 ```ts twoslash [multi-wallet-example.ts]

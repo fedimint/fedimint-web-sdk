@@ -26,7 +26,7 @@ export class Wallet {
   constructor(client: RpcClient, federationId: string, walletId?: string) {
     this.id = walletId || generateUUID()
     this._client = client
-    this._clientName = `wallet-${this.id}`
+    this._clientName = this.id
     this._federationId = federationId
 
     this.balance = new BalanceService(this._client, this._clientName)

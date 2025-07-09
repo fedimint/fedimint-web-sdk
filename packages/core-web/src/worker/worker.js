@@ -5,7 +5,6 @@
 globalThis.__vitest_browser_runner__ = { wrapDynamicImport: (foo) => foo() }
 
 let rpcHandler = null
-let wasmModule = null
 
 console.log('Worker - init')
 
@@ -23,10 +22,30 @@ console.log('Worker - init')
 self.onmessage = async (event) => {
   if (event.data.type === 'init') {
     try {
-      const wasm = await import('@fedimint/fedimint-client-wasm-bundler')
-      const { RpcHandler } = wasm
-      wasmModule = wasm
-      rpcHandler = new RpcHandler()
+      // Check if OPFS is supported
+      if (!('storage' in navigator) || !('getDirectory' in navigator.storage)) {
+        throw new Error('Origin Private File System is not supported')
+      }
+
+      // Get the OPFS root directory
+      const opfsRoot = await navigator.storage.getDirectory()
+
+      // Create or get the database file
+      const fileHandle = await opfsRoot.getFileHandle('fedimint-client.db', {
+        create: true,
+      })
+
+      // Create a sync access handle
+      const dbSyncHandle = await fileHandle.createSyncAccessHandle()
+
+      // Import the WASM module
+      const { RpcHandler } = await import(
+        '@fedimint/fedimint-client-wasm-bundler'
+      )
+
+      // Initialize the RPC handler
+      rpcHandler = new RpcHandler(dbSyncHandle)
+
       console.log('Worker: WASM module loaded successfully')
       self.postMessage({
         type: 'init_success',
@@ -48,7 +67,10 @@ self.onmessage = async (event) => {
     event.data.type === 'cancel_rpc' ||
     event.data.type === 'parse_invite_code' ||
     event.data.type === 'preview_federation' ||
-    event.data.type === 'parse_bolt11_invoice'
+    event.data.type === 'parse_bolt11_invoice' ||
+    event.data.type === 'set_mnemonic' ||
+    event.data.type === 'generate_mnemonic' ||
+    event.data.type === 'get_mnemonic'
   ) {
     // Check if rpcHandler is initialized before calling rpc
     if (!rpcHandler) {
@@ -73,7 +95,7 @@ self.onmessage = async (event) => {
           'Worker: RPC response for',
           event.data.type,
           ':',
-          parsedResponse.type,
+          parsedResponse.kind?.type || parsedResponse.type,
         )
         console.log('Worker: RPC response data:', parsedResponse || 'no data')
         self.postMessage(parsedResponse)
@@ -89,9 +111,8 @@ self.onmessage = async (event) => {
   } else {
     self.postMessage({
       type: 'error',
-      error: `Worker - unimplemented message type, this is the worst error, type not got: ${event.data.type}`,
+      error: `Worker - unimplemented message type: ${event.data.type}`,
       request_id: event.data.request_id,
     })
-    return
   }
 }

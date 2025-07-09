@@ -41,6 +41,16 @@ export type RpcRequest =
       type: 'parse_bolt11_invoice'
       invoice: string
     }
+  | {
+      type: 'generate_mnemonic'
+    }
+  | {
+      type: 'set_mnemonic'
+      words: string[]
+    }
+  | {
+      type: 'get_mnemonic'
+    }
 
 export type RpcResponseFull = {
   request_id: number
