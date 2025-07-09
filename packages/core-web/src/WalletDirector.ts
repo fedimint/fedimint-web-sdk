@@ -83,6 +83,39 @@ class WalletDirector {
     logger.info('Global RpcClient initialized')
   }
 
+  async generateMnemonic() {
+    await this.initialize()
+    try {
+      const res = await this._client!.generateMnemonic()
+      return res.mnemonic
+    } catch (error) {
+      logger.error('Error generating mnemonic:', error)
+      throw error
+    }
+  }
+
+  async setMnemonic(words: string[]) {
+    await this.initialize()
+    try {
+      const res = await this._client!.setMnemonic(words)
+      return res.success
+    } catch (error) {
+      logger.error('Error setting mnemonic:', error)
+      throw error
+    }
+  }
+
+  async getMnemonic() {
+    await this.initialize()
+    try {
+      const res = await this._client!.getMnemonic()
+      return res.mnemonic
+    } catch (error) {
+      logger.error('Error getting mnemonic:', error)
+      throw error
+    }
+  }
+
   async joinFederation(inviteCode: string, walletId?: string): Promise<Wallet> {
     await this.initialize()
     // check if walletid exists in storage
@@ -97,12 +130,11 @@ class WalletDirector {
       const parsedInvite = await this._client!.parseInviteCode(inviteCode)
       const federationId = parsedInvite.federation_id
 
-      const finalWalletId = walletId || generateUUID()
-      const clientName = `wallet-${finalWalletId}`
+      const clientName = walletId || generateUUID()
 
       await this._client!.joinFederation(inviteCode, clientName)
 
-      const wallet = new Wallet(this._client!, federationId, finalWalletId)
+      const wallet = new Wallet(this._client!, federationId, clientName)
 
       this.addWallet(wallet)
       logger.info(`Joined federation and created wallet with ID: ${wallet.id}`)
@@ -122,13 +154,23 @@ class WalletDirector {
    */
   async openWallet(walletId: string): Promise<Wallet> {
     await this.initialize()
+
+    // Check if wallet is already open in memory
+    const existingWallet = this.getWallet(walletId)
+    if (existingWallet) {
+      logger.info(
+        `Wallet ${walletId} is already open, returning existing instance`,
+      )
+      return existingWallet
+    }
+
     const pointer = this.getWalletInfo(walletId)
     if (!pointer) {
       throw new Error(`Wallet ${walletId} not found`)
     }
 
     try {
-      const clientName = `wallet-${walletId}`
+      const clientName = walletId
 
       // Ensure the RPC client is initialized
       await this._client!.initialize()

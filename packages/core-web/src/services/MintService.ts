@@ -12,7 +12,7 @@ import type {
 export class MintService {
   constructor(
     private client: RpcClient,
-    private clientName?: string,
+    private clientName: string,
   ) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/MintService/redeemEcash */

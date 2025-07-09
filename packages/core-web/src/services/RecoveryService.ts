@@ -4,7 +4,7 @@ import { RpcClient } from '../rpc'
 export class RecoveryService {
   constructor(
     private client: RpcClient,
-    private clientName?: string,
+    private clientName: string,
   ) {}
 
   async hasPendingRecoveries() {

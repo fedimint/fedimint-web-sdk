@@ -8,7 +8,7 @@ import { RpcClient } from '../rpc'
 export class BalanceService {
   constructor(
     private client: RpcClient,
-    private clientName?: string,
+    private clientName: string,
   ) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/BalanceService/getBalance */

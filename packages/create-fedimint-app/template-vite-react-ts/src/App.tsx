@@ -10,6 +10,9 @@ import {
   parseInviteCode,
   parseBolt11Invoice,
   initialize,
+  generateMnemonic,
+  getMnemonic,
+  setMnemonic,
 } from '@fedimint/core-web'
 
 const TESTNET_FEDERATION_CODE =
@@ -17,6 +20,17 @@ const TESTNET_FEDERATION_CODE =
 
 // Initialize the global instance
 initialize()
+
+// for testing , to be removed
+if (typeof globalThis !== 'undefined') {
+  ;(globalThis as any).generateMnemonic = generateMnemonic
+}
+if (typeof globalThis !== 'undefined') {
+  ;(globalThis as any).getMnemonic = getMnemonic
+}
+if (typeof globalThis !== 'undefined') {
+  ;(globalThis as any).setMnemonic = setMnemonic
+}
 
 // Custom hooks
 const useBalance = (wallet: Wallet | undefined) => {
@@ -78,16 +92,8 @@ const App = () => {
   const [walletId, setWalletId] = useState('')
   const [opening, setOpening] = useState(false)
   const [error, setError] = useState('')
-  const [federationJoined, setFederationJoined] = useState(false)
 
   const balance = useBalance(activeWallet)
-
-  // Add effect to watch for federation changes
-  useEffect(() => {
-    if (activeWallet) {
-      setFederationJoined(!!activeWallet.federationId)
-    }
-  }, [activeWallet, activeWallet?.federationId])
 
   // Load wallet pointers on mount and refresh periodically
   useEffect(() => {
@@ -115,7 +121,6 @@ const App = () => {
         setActiveWallet(wallet)
         setWalletId('')
         setError('')
-        setFederationJoined(!!wallet.federationId)
         // Refresh wallet pointers after opening
         setWalletInfo(listClients())
         return wallet
@@ -158,7 +163,6 @@ const App = () => {
         `Setting active wallet to ${wallet.id} with federation ${wallet.federationId}`,
       )
       setActiveWallet(wallet)
-      setFederationJoined(!!wallet.federationId)
 
       // Refresh wallet pointers after selecting
       setWalletInfo(listClients())
@@ -192,7 +196,6 @@ const App = () => {
       return prev
     })
     setActiveWallet(wallet)
-    setFederationJoined(true)
     // Refresh wallet pointers after creating
     setWalletInfo(listClients())
   }, [])
@@ -235,6 +238,8 @@ const App = () => {
         </div>
       </header>
       <main>
+        <MnemonicManager />
+
         <JoinFederation onWalletCreated={handleWalletCreated} />
         <WalletManagement
           wallets={wallets}
@@ -250,15 +255,9 @@ const App = () => {
         {activeWallet && (
           <>
             <WalletStatus wallet={activeWallet} balance={balance} />
-
-            {/* Only show these components if wallet has joined a federation */}
-            {federationJoined && (
-              <>
-                <GenerateLightningInvoice wallet={activeWallet} />
-                <RedeemEcash wallet={activeWallet} />
-                <SendLightning wallet={activeWallet} />
-              </>
-            )}
+            <GenerateLightningInvoice wallet={activeWallet} />
+            <RedeemEcash wallet={activeWallet} />
+            <SendLightning wallet={activeWallet} />
           </>
         )}
 
@@ -412,7 +411,11 @@ const WalletStatus = ({
       </div>
       <div className="row">
         <strong>Federation ID:</strong>
-        <div>{wallet.federationId ? wallet.federationId : 'Not joined'}</div>
+        <div>
+          {wallet.federationId
+            ? `${wallet.federationId.slice(0, 16)}...`
+            : 'Not joined'}
+        </div>
       </div>
     </div>
   )
@@ -539,6 +542,7 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
     console.log('GenerateLightningInvoice received wallet:', {
       id: wallet.id,
       federationId: wallet.federationId,
+      federationIdValid: !!wallet.federationId,
     })
   }, [wallet.id, wallet.federationId])
 
@@ -560,15 +564,10 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
     console.log('Generating invoice for wallet:', {
       id: wallet.id,
       federationId: wallet.federationId,
+      clientName: wallet.clientName,
     })
 
     try {
-      if (!wallet.federationId) {
-        throw new Error(
-          'Wallet must be joined to a federation before creating invoices',
-        )
-      }
-
       const response = await wallet.lightning.createInvoice(
         Number(amount),
         description,
@@ -767,10 +766,6 @@ const ParseInviteCode = () => {
           <div>
             <strong>URL:</strong> {parsedInviteData.url}
           </div>
-          <details>
-            <summary>Full Details</summary>
-            <pre>{JSON.stringify(parsedInviteData, null, 2)}</pre>
-          </details>
         </div>
       )}
       {error && <div className="error">{error}</div>}
@@ -828,6 +823,202 @@ const ParseBolt11Invoice = () => {
         </div>
       )}
       {error && <div className="error">{error}</div>}
+    </div>
+  )
+}
+
+const MnemonicManager = () => {
+  const [mnemonicState, setMnemonicState] = useState<string>('')
+  const [inputMnemonic, setInputMnemonic] = useState<string>('')
+  const [activeAction, setActiveAction] = useState<
+    'get' | 'set' | 'generate' | null
+  >(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [message, setMessage] = useState<{
+    text: string
+    type: 'success' | 'error'
+  }>()
+  const [showMnemonic, setShowMnemonic] = useState(false)
+
+  const clearMessage = () => setMessage(undefined)
+
+  // Helper function to extract user-friendly error messages
+  const extractErrorMessage = (error: any): string => {
+    let errorMsg = 'Operation failed'
+
+    if (error instanceof Error) {
+      errorMsg = error.message
+    } else if (typeof error === 'object' && error !== null) {
+      // Handle RPC error objects
+      const rpcError = error as any
+      if (rpcError.error) {
+        errorMsg = rpcError.error
+      } else if (rpcError.message) {
+        errorMsg = rpcError.message
+      }
+    }
+
+    return errorMsg
+  }
+
+  const handleAction = async (action: 'get' | 'set' | 'generate') => {
+    if (activeAction === action) {
+      setActiveAction(null)
+      return
+    }
+    setActiveAction(action)
+    clearMessage()
+
+    if (action === 'get') {
+      await handleGetMnemonic()
+    } else if (action === 'generate') {
+      await handleGenerateMnemonic()
+    }
+  }
+
+  const handleGenerateMnemonic = async () => {
+    setIsLoading(true)
+    try {
+      const newMnemonic = await generateMnemonic()
+      setMnemonicState(newMnemonic.join(' '))
+      setMessage({ text: 'New mnemonic generated!', type: 'success' })
+      setShowMnemonic(true)
+    } catch (error) {
+      console.error('Error generating mnemonic:', error)
+      const errorMsg = extractErrorMessage(error)
+      setMessage({ text: errorMsg, type: 'error' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGetMnemonic = async () => {
+    setIsLoading(true)
+    try {
+      const mnemonic = await getMnemonic()
+      if (mnemonic && mnemonic.length > 0) {
+        setMnemonicState(mnemonic.join(' '))
+        setMessage({ text: 'Mnemonic retrieved!', type: 'success' })
+        setShowMnemonic(true)
+      } else {
+        setMessage({ text: 'No mnemonic found', type: 'error' })
+      }
+    } catch (error) {
+      console.error('Error getting mnemonic:', error)
+      const errorMsg = extractErrorMessage(error)
+      setMessage({ text: errorMsg, type: 'error' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSetMnemonic = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inputMnemonic.trim()) return
+
+    setIsLoading(true)
+    try {
+      const words = inputMnemonic.trim().split(/\s+/)
+      await setMnemonic(words)
+      setMessage({ text: 'Mnemonic set successfully!', type: 'success' })
+      setInputMnemonic('')
+      setMnemonicState(words.join(' '))
+      setActiveAction(null)
+    } catch (error) {
+      console.error('Error setting mnemonic:', error)
+      const errorMsg = extractErrorMessage(error)
+      setMessage({ text: errorMsg, type: 'error' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(mnemonicState)
+      setMessage({ text: 'Copied to clipboard!', type: 'success' })
+    } catch (error) {
+      setMessage({ text: 'Failed to copy', type: 'error' })
+    }
+  }
+
+  return (
+    <div className="section mnemonic-section">
+      <h3>🔑 Mnemonic Manager</h3>
+
+      <div className="mnemonic-buttons">
+        <button
+          onClick={() => handleAction('get')}
+          disabled={isLoading}
+          className={`btn ${activeAction === 'get' ? 'active' : ''}`}
+        >
+          Get
+        </button>
+        <button
+          onClick={() => handleAction('set')}
+          disabled={isLoading}
+          className={`btn ${activeAction === 'set' ? 'active' : ''}`}
+        >
+          Set
+        </button>
+        <button
+          onClick={() => handleAction('generate')}
+          disabled={isLoading}
+          className={`btn ${activeAction === 'generate' ? 'active' : ''}`}
+        >
+          Generate
+        </button>
+      </div>
+
+      {activeAction === 'set' && (
+        <form onSubmit={handleSetMnemonic} className="mnemonic-form">
+          <textarea
+            placeholder="Enter 12 or 24 words separated by spaces"
+            value={inputMnemonic}
+            onChange={(e) => setInputMnemonic(e.target.value)}
+            rows={2}
+            className="mnemonic-input"
+          />
+          <button
+            type="submit"
+            disabled={isLoading || !inputMnemonic.trim()}
+            className="btn btn-primary"
+          >
+            {isLoading ? 'Setting...' : 'Set Mnemonic'}
+          </button>
+        </form>
+      )}
+
+      {mnemonicState && (
+        <div className="mnemonic-display">
+          <div className="mnemonic-output">
+            <span className={showMnemonic ? '' : 'blurred'}>
+              {mnemonicState}
+            </span>
+            <div className="mnemonic-actions">
+              <button
+                onClick={() => setShowMnemonic(!showMnemonic)}
+                className="btn btn-small"
+                title={showMnemonic ? 'Hide mnemonic' : 'Show mnemonic'}
+              >
+                {showMnemonic ? '👁️' : '👁️‍🗨️'}
+              </button>
+              <button
+                onClick={copyToClipboard}
+                className="btn btn-small"
+                disabled={!showMnemonic}
+                title="Copy to clipboard"
+              >
+                📋
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {message && (
+        <div className={`message ${message.type}`}>{message.text}</div>
+      )}
     </div>
   )
 }
