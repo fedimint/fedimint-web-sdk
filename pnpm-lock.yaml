@@ -88,7 +88,7 @@ importers:
     dependencies:
       '@fedimint/core-web':
         specifier: latest
-        version: 0.0.10
+        version: 0.0.11
       next:
         specifier: 15.2.4
         version: 15.2.4(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -125,7 +125,7 @@ importers:
     dependencies:
       '@fedimint/core-web':
         specifier: latest
-        version: 0.0.10
+        version: 0.0.11
       react:
         specifier: '>=19.1.0'
         version: 19.1.0
@@ -159,7 +159,7 @@ importers:
     dependencies:
       '@fedimint/core-web':
         specifier: latest
-        version: 0.0.10
+        version: 0.0.11
     devDependencies:
       '@babel/core':
         specifier: ^7.27.1
@@ -194,6 +194,9 @@ importers:
       '@fedimint/fedimint-client-wasm-bundler':
         specifier: workspace:*
         version: link:../wasm-bundler
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
     devDependencies:
       '@rollup/plugin-terser':
         specifier: ^0.4.4
@@ -207,6 +210,9 @@ importers:
       '@types/secp256k1':
         specifier: ^4.0.6
         version: 4.0.6
+      '@types/uuid':
+        specifier: ^10.0.0
+        version: 10.0.0
       rollup:
         specifier: ^4.41.0
         version: 4.41.0
@@ -1484,11 +1490,11 @@ packages:
     resolution: {integrity: sha512-0J+zgWxHN+xXONWIyPWKFMgVuJoZuGiIFu8yxk7RJjxkzpGmyja5wRFqZIVtjDVOQpV+Rw0iOAjYPE2eQyjr0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@fedimint/core-web@0.0.10':
-    resolution: {integrity: sha512-1xfWOSKjNi0virkLa19jikdfbqMSo4rn5+CW1gsc7KFgUIcddAV7MQ6ydrKoV2U6YYZ/SqoEIbzk72dlm9y7DA==}
+  '@fedimint/core-web@0.0.11':
+    resolution: {integrity: sha512-7Sx9gg43JzrobFg+GDAn75hctQ4i9/STXY6D7ZKQkP5YbWvsuz5zaz7WIfQIq+JLIQY9BMIMDQiFc6cTzNH9qQ==}
 
-  '@fedimint/fedimint-client-wasm-bundler@0.0.2':
-    resolution: {integrity: sha512-+6chBN4sItrPTS792na6ZZJL3OlZf+edzhy0W40B8PULesjRURV0DbCmR4mCdg+QHds3CkuKkISn/UQpN/cDdQ==}
+  '@fedimint/fedimint-client-wasm-bundler@0.0.3':
+    resolution: {integrity: sha512-6YKr+OjlFIy7RyGqNo2mTbNW6UoyC7M/UOJtqok//PdOEQbaZYGI23qFASHMnJLJQFmHK9xi9IfrF44jwo2ofg==}
 
   '@floating-ui/core@1.6.8':
     resolution: {integrity: sha512-7XJ9cPU+yI2QeLS+FCSlqNFZJq8arvswefkZrYI1yQBbftw6FyrZOxYSh+9S7z7TpeWlRt9zJ5IhM1WIL334jA==}
@@ -2342,6 +2348,9 @@ packages:
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
+
+  '@types/uuid@10.0.0':
+    resolution: {integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==}
 
   '@types/web-bluetooth@0.0.20':
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
@@ -5930,6 +5939,10 @@ packages:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
 
+  uuid@11.1.0:
+    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+    hasBin: true
+
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
@@ -7533,11 +7546,11 @@ snapshots:
       '@eslint/core': 0.14.0
       levn: 0.4.1
 
-  '@fedimint/core-web@0.0.10':
+  '@fedimint/core-web@0.0.11':
     dependencies:
-      '@fedimint/fedimint-client-wasm-bundler': 0.0.2
+      '@fedimint/fedimint-client-wasm-bundler': 0.0.3
 
-  '@fedimint/fedimint-client-wasm-bundler@0.0.2': {}
+  '@fedimint/fedimint-client-wasm-bundler@0.0.3': {}
 
   '@floating-ui/core@1.6.8':
     dependencies:
@@ -8395,6 +8408,8 @@ snapshots:
     optional: true
 
   '@types/unist@3.0.3': {}
+
+  '@types/uuid@10.0.0': {}
 
   '@types/web-bluetooth@0.0.20': {}
 
@@ -12360,6 +12375,8 @@ snapshots:
   utila@0.4.0: {}
 
   utils-merge@1.0.1: {}
+
+  uuid@11.1.0: {}
 
   uuid@8.3.2: {}
 

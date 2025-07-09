@@ -223,6 +223,20 @@ button[type='submit'] {
   .button-group button {
     flex: none;
   }
+
+  .mnemonic-controls {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .mnemonic-controls button {
+    width: 100%;
+  }
+
+  .mnemonic-words {
+    font-size: 0.9rem;
+    word-spacing: 0.3em;
+  }
 }
 
 .invoice-wrap {
@@ -331,4 +345,198 @@ button[type='submit'] {
 .loaded-wallets .wallet-item span {
   font-size: 12px;
   color: #ccc;
+}
+
+/* Mnemonic Manager Styles */
+.mnemonic-section {
+  background-color: #242424;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.mnemonic-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #333;
+  color: rgba(255, 255, 255, 0.87);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.btn:hover {
+  background-color: #444;
+  border-color: #555;
+}
+
+.btn.active {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.btn-small {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  min-width: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mnemonic-form {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 8px;
+}
+
+.mnemonic-display {
+  margin: 1.5rem 0;
+}
+
+.mnemonic-output {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border: 2px solid #444;
+  border-radius: 12px;
+  padding: 1.25rem;
+  position: relative;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.mnemonic-output:hover {
+  border-color: #555;
+  box-shadow:
+    0 6px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.mnemonic-output span {
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.9);
+  display: block;
+  word-spacing: 0.5em;
+  letter-spacing: 0.05em;
+  padding-right: 4rem;
+  transition: all 0.3s ease;
+  user-select: text;
+}
+
+.mnemonic-output span.blurred {
+  filter: blur(4px);
+  color: rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  user-select: none;
+  cursor: pointer;
+}
+
+.mnemonic-actions {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.message {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.message.success {
+  background-color: rgba(40, 167, 69, 0.15);
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.message.error {
+  background-color: rgba(220, 53, 69, 0.15);
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.mnemonic-input {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #333;
+  color: rgba(255, 255, 255, 0.87);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.mnemonic-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+  .mnemonic-buttons {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .mnemonic-output {
+    padding: 1rem;
+  }
+
+  .mnemonic-output span {
+    padding-right: 0;
+    font-size: 0.9rem;
+    word-spacing: 0.3em;
+  }
+
+  .mnemonic-actions {
+    position: static;
+    margin-top: 1rem;
+    justify-content: center;
+  }
 }

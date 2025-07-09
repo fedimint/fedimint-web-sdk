@@ -4,7 +4,7 @@ import { RpcClient } from '../rpc'
 export class WalletService {
   constructor(
     private client: RpcClient,
-    private clientName?: string,
+    private clientName: string,
   ) {}
 
   async getWalletSummary(): Promise<WalletSummary> {

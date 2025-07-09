@@ -14,7 +14,7 @@ import { RpcClient } from '../rpc'
 export class FederationService {
   constructor(
     private client: RpcClient,
-    private clientName?: string,
+    private clientName: string,
   ) {}
 
   async getConfig() {

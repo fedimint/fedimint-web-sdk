@@ -168,7 +168,9 @@ export class RpcClient {
       method,
     )
     if (effectiveClientName === undefined) {
-      throw new Error('Wallet is not open')
+      throw new Error(
+        `Wallet is not open - no clientName provided for ${module}.${method}. Make sure to call openWallet() or joinFederation() first.`,
+      )
     }
     return this.internalRpcStream(
       {
@@ -192,7 +194,9 @@ export class RpcClient {
   ): Promise<T> {
     const effectiveClientName = clientName
     if (effectiveClientName === undefined) {
-      throw new Error('Wallet is not open')
+      throw new Error(
+        `Wallet is not open - no clientName provided for ${module}.${method}. Make sure to call openWallet() or joinFederation() first.`,
+      )
     }
     return this.internalRpcSingle<T>({
       type: 'client_rpc',
@@ -221,6 +225,25 @@ export class RpcClient {
     return this.internalRpcSingle<ParsedBolt11Invoice>({
       type: 'parse_bolt11_invoice',
       invoice: invoice,
+    })
+  }
+
+  async generateMnemonic() {
+    return this.internalRpcSingle<{ mnemonic: string[] }>({
+      type: 'generate_mnemonic',
+    })
+  }
+
+  async setMnemonic(words: string[]) {
+    return this.internalRpcSingle<{ success: boolean }>({
+      type: 'set_mnemonic',
+      words: words,
+    })
+  }
+
+  async getMnemonic() {
+    return this.internalRpcSingle<{ mnemonic: string[] }>({
+      type: 'get_mnemonic',
     })
   }
 
