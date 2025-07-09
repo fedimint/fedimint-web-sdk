@@ -10,6 +10,7 @@ import {
   parseInviteCode,
   parseBolt11Invoice,
   initialize,
+  generateMnemonic,
 } from '@fedimint/core-web'
 
 const TESTNET_FEDERATION_CODE =
@@ -17,6 +18,11 @@ const TESTNET_FEDERATION_CODE =
 
 // Initialize the global instance
 initialize()
+
+// for testing , to be removed
+if (typeof globalThis !== 'undefined') {
+  ;(globalThis as any).generateMnemonic = generateMnemonic
+}
 
 // Custom hooks
 const useBalance = (wallet: Wallet | undefined) => {
@@ -78,16 +84,8 @@ const App = () => {
   const [walletId, setWalletId] = useState('')
   const [opening, setOpening] = useState(false)
   const [error, setError] = useState('')
-  const [federationJoined, setFederationJoined] = useState(false)
 
   const balance = useBalance(activeWallet)
-
-  // Add effect to watch for federation changes
-  useEffect(() => {
-    if (activeWallet) {
-      setFederationJoined(!!activeWallet.federationId)
-    }
-  }, [activeWallet, activeWallet?.federationId])
 
   // Load wallet pointers on mount and refresh periodically
   useEffect(() => {
@@ -115,7 +113,6 @@ const App = () => {
         setActiveWallet(wallet)
         setWalletId('')
         setError('')
-        setFederationJoined(!!wallet.federationId)
         // Refresh wallet pointers after opening
         setWalletInfo(listClients())
         return wallet
@@ -158,7 +155,6 @@ const App = () => {
         `Setting active wallet to ${wallet.id} with federation ${wallet.federationId}`,
       )
       setActiveWallet(wallet)
-      setFederationJoined(!!wallet.federationId)
 
       // Refresh wallet pointers after selecting
       setWalletInfo(listClients())
@@ -192,7 +188,6 @@ const App = () => {
       return prev
     })
     setActiveWallet(wallet)
-    setFederationJoined(true)
     // Refresh wallet pointers after creating
     setWalletInfo(listClients())
   }, [])
@@ -250,15 +245,9 @@ const App = () => {
         {activeWallet && (
           <>
             <WalletStatus wallet={activeWallet} balance={balance} />
-
-            {/* Only show these components if wallet has joined a federation */}
-            {federationJoined && (
-              <>
-                <GenerateLightningInvoice wallet={activeWallet} />
-                <RedeemEcash wallet={activeWallet} />
-                <SendLightning wallet={activeWallet} />
-              </>
-            )}
+            <GenerateLightningInvoice wallet={activeWallet} />
+            <RedeemEcash wallet={activeWallet} />
+            <SendLightning wallet={activeWallet} />
           </>
         )}
 
@@ -539,6 +528,7 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
     console.log('GenerateLightningInvoice received wallet:', {
       id: wallet.id,
       federationId: wallet.federationId,
+      federationIdValid: !!wallet.federationId,
     })
   }, [wallet.id, wallet.federationId])
 
@@ -560,15 +550,12 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
     console.log('Generating invoice for wallet:', {
       id: wallet.id,
       federationId: wallet.federationId,
+      clientName: wallet.clientName,
     })
 
-    try {
-      if (!wallet.federationId) {
-        throw new Error(
-          'Wallet must be joined to a federation before creating invoices',
-        )
-      }
+    console.log('Wallet object:', wallet)
 
+    try {
       const response = await wallet.lightning.createInvoice(
         Number(amount),
         description,

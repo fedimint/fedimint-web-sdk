@@ -6,7 +6,7 @@
       url = "github:fedimint/fedimint/v0.7.2";
     };
     fedimint-wasm = {
-      url = "github:fedimint/fedimint?rev=ba238118bf5b204bc73c1113b6cadd62bca4e66c";
+      url = "github:fedimint/fedimint?rev=072e4c17f411914cfba4d2e3cd222189e55df703";
     };
   };
   outputs =

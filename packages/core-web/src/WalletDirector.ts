@@ -83,6 +83,16 @@ class WalletDirector {
     logger.info('Global RpcClient initialized')
   }
 
+  async generateMnemonic() {
+    await this.initialize()
+    try {
+      return await this._client!.generateMnemonic()
+    } catch (error) {
+      logger.error('Error generating mnemonic:', error)
+      throw error
+    }
+  }
+
   async joinFederation(inviteCode: string, walletId?: string): Promise<Wallet> {
     await this.initialize()
     // check if walletid exists in storage

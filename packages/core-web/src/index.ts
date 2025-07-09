@@ -5,6 +5,7 @@ import {
   ParsedBolt11Invoice,
   ParsedInviteCode,
   PreviewFederation,
+  Mnemonic,
 } from './types'
 import { type LogLevel } from './utils/logger'
 import { TransportFactory } from './rpc'
@@ -229,6 +230,19 @@ const previewFederation = (inviteCode: string): Promise<PreviewFederation> =>
 const parseBolt11Invoice = (invoice: string): Promise<ParsedBolt11Invoice> =>
   getDirector().parseBolt11Invoice(invoice)
 
+/** * Generates a new mnemonic phrase for wallet creation.
+ * This method sends a request to the WorkerClient to generate a mnemonic.
+ * The mnemonic is used for creating a new wallet.
+ * @returns {Promise<Mnemonic>} A promise that resolves to an object containing:
+ *          - `mnemonic`: The generated mnemonic phrase.
+ * @throws {Error} If the WorkerClient encounters an issue during the mnemonic generation process.
+ *  * @example
+ * const mnemonic = await wallet.generateMnemonic();
+ * console.log(mnemonic.mnemonic);
+ */
+const generateMnemonic = (): Promise<Mnemonic> =>
+  getDirector().generateMnemonic()
+
 export type * from './types'
 
 // Export all functions and the class
@@ -241,6 +255,7 @@ export {
   getWallet,
   getActiveWallets,
   getWalletsByFederation,
+  generateMnemonic,
 
   // Wallet management functions
   listClients,

@@ -12,7 +12,7 @@ import type {
 export class LightningService {
   constructor(
     private client: RpcClient,
-    private clientName?: string,
+    private clientName: string,
   ) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
