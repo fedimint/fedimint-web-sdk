@@ -11,8 +11,9 @@ import {
   parseBolt11Invoice,
   initialize,
   generateMnemonic,
+  getMnemonic,
+  setMnemonic,
 } from '@fedimint/core-web'
-import { M } from 'vite/dist/node/types.d-aGj9QkWt'
 
 const TESTNET_FEDERATION_CODE =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
@@ -23,6 +24,12 @@ initialize()
 // for testing , to be removed
 if (typeof globalThis !== 'undefined') {
   ;(globalThis as any).generateMnemonic = generateMnemonic
+}
+if (typeof globalThis !== 'undefined') {
+  ;(globalThis as any).getMnemonic = getMnemonic
+}
+if (typeof globalThis !== 'undefined') {
+  ;(globalThis as any).setMnemonic = setMnemonic
 }
 
 // Custom hooks

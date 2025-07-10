@@ -44,6 +44,13 @@ export type RpcRequest =
   | {
       type: 'generate_mnemonic'
     }
+  | {
+      type: 'set_mnemonic'
+      words: string[]
+    }
+  | {
+      type: 'get_mnemonic'
+    }
 
 export type RpcResponseFull = {
   request_id: number
@@ -84,8 +91,4 @@ export interface ParsedBolt11Invoice extends Record<string, JSONValue> {
   amount: number // in satoshis
   expiry: number
   memo: string
-}
-
-export interface Mnemonic extends Record<string, JSONValue> {
-  mnemonic: string
 }

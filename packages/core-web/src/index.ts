@@ -5,7 +5,6 @@ import {
   ParsedBolt11Invoice,
   ParsedInviteCode,
   PreviewFederation,
-  Mnemonic,
 } from './types'
 import { type LogLevel } from './utils/logger'
 import { TransportFactory } from './rpc'
@@ -238,10 +237,34 @@ const parseBolt11Invoice = (invoice: string): Promise<ParsedBolt11Invoice> =>
  * @throws {Error} If the WorkerClient encounters an issue during the mnemonic generation process.
  *  * @example
  * const mnemonic = await wallet.generateMnemonic();
- * console.log(mnemonic.mnemonic);
+ * console.log(mnemonic);
  */
-const generateMnemonic = (): Promise<Mnemonic> =>
+const generateMnemonic = (): Promise<String[]> =>
   getDirector().generateMnemonic()
+
+/**
+ * Sets a mnemonic phrase for the wallet.
+ * This method sends a request to the WorkerClient to set a mnemonic.
+ * @param {string[]} words - The mnemonic words to set.
+ * @returns {Promise<boolean>} A promise that resolves to true if the mnemonic was set successfully.
+ * @throws {Error} If the WorkerClient encounters an issue during the mnemonic setting process.
+ * @example
+ * const success = await setMnemonic(['word1', 'word2', ...]);
+ * console.log(success);
+ */
+const setMnemonic = (words: string[]): Promise<boolean> =>
+  getDirector().setMnemonic(words)
+
+/**
+ * Gets the current mnemonic phrase from the wallet.
+ * This method sends a request to the WorkerClient to retrieve the mnemonic.
+ * @returns {Promise<string[]>} A promise that resolves to the mnemonic words array.
+ * @throws {Error} If the WorkerClient encounters an issue during the mnemonic retrieval process.
+ * @example
+ * const mnemonic = await getMnemonic();
+ * console.log(mnemonic);
+ */
+const getMnemonic = (): Promise<string[]> => getDirector().getMnemonic()
 
 export type * from './types'
 
@@ -256,6 +279,8 @@ export {
   getActiveWallets,
   getWalletsByFederation,
   generateMnemonic,
+  setMnemonic,
+  getMnemonic,
 
   // Wallet management functions
   listClients,

@@ -8,7 +8,6 @@ import type {
   ParsedInviteCode,
   PreviewFederation,
   ParsedBolt11Invoice,
-  Mnemonic,
 } from './types'
 import { logger } from './utils/logger'
 import { SubscriptionManager } from './rpc/SubscriptionManager'
@@ -226,8 +225,21 @@ export class RpcClient {
   }
 
   async generateMnemonic() {
-    return this.internalRpcSingle<Mnemonic>({
+    return this.internalRpcSingle<{ mnemonic: string[] }>({
       type: 'generate_mnemonic',
+    })
+  }
+
+  async setMnemonic(words: string[]) {
+    return this.internalRpcSingle<{ success: boolean }>({
+      type: 'set_mnemonic',
+      words: words,
+    })
+  }
+
+  async getMnemonic() {
+    return this.internalRpcSingle<{ mnemonic: string[] }>({
+      type: 'get_mnemonic',
     })
   }
 

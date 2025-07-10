@@ -86,9 +86,32 @@ class WalletDirector {
   async generateMnemonic() {
     await this.initialize()
     try {
-      return await this._client!.generateMnemonic()
+      const res = await this._client!.generateMnemonic()
+      return res.mnemonic
     } catch (error) {
       logger.error('Error generating mnemonic:', error)
+      throw error
+    }
+  }
+
+  async setMnemonic(words: string[]) {
+    await this.initialize()
+    try {
+      const res = await this._client!.setMnemonic(words)
+      return res.success
+    } catch (error) {
+      logger.error('Error setting mnemonic:', error)
+      throw error
+    }
+  }
+
+  async getMnemonic() {
+    await this.initialize()
+    try {
+      const res = await this._client!.getMnemonic()
+      return res.mnemonic
+    } catch (error) {
+      logger.error('Error getting mnemonic:', error)
       throw error
     }
   }
