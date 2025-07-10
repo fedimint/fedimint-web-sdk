@@ -266,6 +266,18 @@ const setMnemonic = (words: string[]): Promise<boolean> =>
  */
 const getMnemonic = (): Promise<string[]> => getDirector().getMnemonic()
 
+/**
+ * Clears all wallet data and resets the storage.
+ * This method sends a request to the WorkerClient to nuke all data.
+ * Use this to clear existing wallet data before generating a new mnemonic.
+ * @returns {Promise<boolean>} A promise that resolves to true if the data was cleared successfully.
+ * @throws {Error} If the WorkerClient encounters an issue during the data clearing process.
+ * @example
+ * const success = await nukeData();
+ * console.log(success);
+ */
+const nukeData = (): Promise<boolean> => getDirector().nukeData()
+
 export type * from './types'
 
 // Export all functions and the class
@@ -281,6 +293,7 @@ export {
   generateMnemonic,
   setMnemonic,
   getMnemonic,
+  nukeData,
 
   // Wallet management functions
   listClients,

@@ -247,6 +247,12 @@ export class RpcClient {
     })
   }
 
+  async nukeData() {
+    return this.internalRpcSingle<{ success: boolean }>({
+      type: 'nuke_data',
+    })
+  }
+
   async cleanup() {
     this.subscriptionManager.cancelAll()
     this.subscriptionManager.clear()

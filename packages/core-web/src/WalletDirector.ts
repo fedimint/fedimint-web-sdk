@@ -116,6 +116,17 @@ class WalletDirector {
     }
   }
 
+  async nukeData() {
+    await this.initialize()
+    try {
+      const res = await this._client!.nukeData()
+      return res.success
+    } catch (error) {
+      logger.error('Error nuking data:', error)
+      throw error
+    }
+  }
+
   async joinFederation(inviteCode: string, walletId?: string): Promise<Wallet> {
     await this.initialize()
     // check if walletid exists in storage

@@ -51,6 +51,9 @@ export type RpcRequest =
   | {
       type: 'get_mnemonic'
     }
+  | {
+      type: 'nuke_data'
+    }
 
 export type RpcResponseFull = {
   request_id: number
