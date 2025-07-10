@@ -11,6 +11,8 @@ import {
   parseBolt11Invoice,
   initialize,
   generateMnemonic,
+  getMnemonic,
+  setMnemonic,
 } from '@fedimint/core-web'
 
 const TESTNET_FEDERATION_CODE =
@@ -22,6 +24,12 @@ initialize()
 // for testing , to be removed
 if (typeof globalThis !== 'undefined') {
   ;(globalThis as any).generateMnemonic = generateMnemonic
+}
+if (typeof globalThis !== 'undefined') {
+  ;(globalThis as any).getMnemonic = getMnemonic
+}
+if (typeof globalThis !== 'undefined') {
+  ;(globalThis as any).setMnemonic = setMnemonic
 }
 
 // Custom hooks
@@ -401,7 +409,11 @@ const WalletStatus = ({
       </div>
       <div className="row">
         <strong>Federation ID:</strong>
-        <div>{wallet.federationId ? wallet.federationId : 'Not joined'}</div>
+        <div>
+          {wallet.federationId
+            ? `${wallet.federationId.slice(0, 8)}...`
+            : 'Not joined'}
+        </div>
       </div>
     </div>
   )
@@ -523,15 +535,6 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
 
-  // Debug: Log wallet changes
-  useEffect(() => {
-    console.log('GenerateLightningInvoice received wallet:', {
-      id: wallet.id,
-      federationId: wallet.federationId,
-      federationIdValid: !!wallet.federationId,
-    })
-  }, [wallet.id, wallet.federationId])
-
   // Reset component state when wallet changes
   useEffect(() => {
     setAmount('')
@@ -550,10 +553,7 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
     console.log('Generating invoice for wallet:', {
       id: wallet.id,
       federationId: wallet.federationId,
-      clientName: wallet.clientName,
     })
-
-    console.log('Wallet object:', wallet)
 
     try {
       const response = await wallet.lightning.createInvoice(

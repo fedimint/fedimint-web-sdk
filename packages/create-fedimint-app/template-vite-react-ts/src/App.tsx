@@ -409,7 +409,11 @@ const WalletStatus = ({
       </div>
       <div className="row">
         <strong>Federation ID:</strong>
-        <div>{wallet.federationId ? wallet.federationId : 'Not joined'}</div>
+        <div>
+          {wallet.federationId
+            ? `${wallet.federationId.slice(0, 16)}...`
+            : 'Not joined'}
+        </div>
       </div>
     </div>
   )
@@ -560,8 +564,6 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
       federationId: wallet.federationId,
       clientName: wallet.clientName,
     })
-
-    console.log('Wallet object:', wallet)
 
     try {
       const response = await wallet.lightning.createInvoice(

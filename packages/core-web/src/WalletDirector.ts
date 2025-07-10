@@ -155,6 +155,16 @@ class WalletDirector {
    */
   async openWallet(walletId: string): Promise<Wallet> {
     await this.initialize()
+
+    // Check if wallet is already open in memory
+    const existingWallet = this.getWallet(walletId)
+    if (existingWallet) {
+      logger.info(
+        `Wallet ${walletId} is already open, returning existing instance`,
+      )
+      return existingWallet
+    }
+
     const pointer = this.getWalletInfo(walletId)
     if (!pointer) {
       throw new Error(`Wallet ${walletId} not found`)

@@ -168,7 +168,9 @@ export class RpcClient {
       method,
     )
     if (effectiveClientName === undefined) {
-      throw new Error('Wallet is not open')
+      throw new Error(
+        `Wallet is not open - no clientName provided for ${module}.${method}. Make sure to call openWallet() or joinFederation() first.`,
+      )
     }
     return this.internalRpcStream(
       {
@@ -192,7 +194,9 @@ export class RpcClient {
   ): Promise<T> {
     const effectiveClientName = clientName
     if (effectiveClientName === undefined) {
-      throw new Error('Wallet is not open')
+      throw new Error(
+        `Wallet is not open - no clientName provided for ${module}.${method}. Make sure to call openWallet() or joinFederation() first.`,
+      )
     }
     return this.internalRpcSingle<T>({
       type: 'client_rpc',
