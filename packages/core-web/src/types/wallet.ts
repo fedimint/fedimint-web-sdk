@@ -105,6 +105,23 @@ type TxOutputSummary = {
   amount: number
 }
 
+type BtcOutPoint = {
+  txid: string
+  vout: number
+}
+
+type WalletDepositState =
+  | 'WaitingForTransaction'
+  | {
+      WaitingForConfirmation: {
+        btc_deposited: number
+        btc_out_point: BtcOutPoint
+      }
+    }
+  | { Confirmed: { btc_deposited: number; btc_out_point: BtcOutPoint } }
+  | { Claimed: { btc_deposited: number; btc_out_point: BtcOutPoint } }
+  | { Failed: string }
+
 type WalletSummary = {
   spendable_utxos: TxOutputSummary[]
   unsigned_peg_out_txos: TxOutputSummary[]
@@ -112,6 +129,120 @@ type WalletSummary = {
   unconfirmed_peg_out_txos: TxOutputSummary[]
   unconfirmed_change_utxos: TxOutputSummary[]
 }
+
+type LnVariant = {
+  pay?: {
+    gateway_id: string
+    invoice: string
+    fee: number
+    is_internal_payment: boolean
+    out_point: {
+      out_idx: number
+      txid: string
+    }
+  }
+  receive?: {
+    gateway_id: string
+    invoice: string
+    out_point: {
+      out_idx: number
+      txid: string
+    }
+  }
+}
+
+type MintVariant = {
+  spend_o_o_b?: {
+    requested_amount: number
+    oob_notes: string
+  }
+  reissuance?: {
+    txid: string
+  }
+}
+
+type WalletVariant = {
+  deposit?: {
+    address: string
+    tweak_idx: number
+  }
+  withdraw?: {
+    address: string
+    amountMsats: number
+    fee: {
+      fee_rate: {
+        sats_per_kvb: number
+      }
+      total_weight: number
+    }
+  }
+}
+
+type OperationKey = {
+  creation_time: { nanos_since_epoch: number; secs_since_epoch: number }
+  operation_id: string
+}
+type OperationMeta = {
+  amount: number
+  extra_meta: JSONObject
+  variant: LnVariant | MintVariant | WalletVariant
+}
+
+type OperationLog = {
+  meta: OperationMeta
+  operation_module_kind: string
+  outcome: {
+    outcome: LnPayState | LnReceiveState | SpendNotesState | WalletDepositState
+  }
+}
+
+type BaseTransactions = {
+  timestamp: number
+  operationId: string
+  kind: 'ln' | 'mint' | 'wallet'
+}
+
+type LightningTransaction = BaseTransactions & {
+  type: 'send' | 'receive'
+  invoice: string
+  outcome:
+    | 'created'
+    | 'canceled'
+    | 'claimed'
+    | 'pending'
+    | 'success'
+    | 'funded'
+    | 'awaiting_funds'
+    | 'unexpected_error'
+  gateway: string
+  fee?: number
+  internalPay?: boolean
+  preimage?: string
+  txId: string
+}
+
+type EcashTransaction = BaseTransactions & {
+  type: 'spend_oob' | 'reissue'
+  amountMsats: number
+  outcome?: SpendNotesState | ReissueExternalNotesState
+  notes?: string
+  txId?: string
+}
+
+type WalletTransaction = BaseTransactions & {
+  type: 'withdraw' | 'deposit'
+  onchainAddress: string
+  amountMsats: number
+  fee: number
+  outcome?:
+    | 'WaitingForTransaction'
+    | 'WaitingForConfirmation'
+    | 'Confirmed'
+    | 'Claimed'
+    | 'Failed'
+}
+
+type Transactions = LightningTransaction | EcashTransaction | WalletTransaction
 
 /** Keys are powers of 2 */
 type NoteCountByDenomination = Record<number, number>
@@ -138,4 +269,13 @@ export {
   WalletSummary,
   TxOutputSummary,
   NoteCountByDenomination,
+  OperationKey,
+  OperationLog,
+  LnVariant,
+  MintVariant,
+  WalletVariant,
+  LightningTransaction,
+  EcashTransaction,
+  WalletTransaction,
+  Transactions,
 }
