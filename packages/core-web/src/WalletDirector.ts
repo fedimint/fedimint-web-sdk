@@ -10,12 +10,13 @@ import type {
   WalletInfo,
   WalletStorageData,
 } from './types'
-class WalletDirector {
+
+export class WalletDirector {
   // Lazy singleton instance - not created until first access
   private static instance: WalletDirector | undefined
 
   // RPC Client
-  private _client: RpcClient | undefined
+  private _client: RpcClient
   private _initialized: boolean = false
   private _initPromise?: Promise<void>
 
@@ -63,9 +64,7 @@ class WalletDirector {
 
   private async _initializeInner(): Promise<void> {
     logger.info('Initializing global RpcClient')
-    if (!this._client) {
-      throw new Error('RpcClient is not initialized')
-    }
+
     await this._client.initialize()
 
     // Initialize storage if it doesn't exist
@@ -85,8 +84,10 @@ class WalletDirector {
 
   async generateMnemonic() {
     await this.initialize()
+    if (!this._client) throw new Error('RpcClient is not initialized.')
+
     try {
-      const res = await this._client!.generateMnemonic()
+      const res = await this._client.generateMnemonic()
       return res.mnemonic
     } catch (error) {
       logger.error('Error generating mnemonic:', error)
@@ -97,7 +98,7 @@ class WalletDirector {
   async setMnemonic(words: string[]) {
     await this.initialize()
     try {
-      const res = await this._client!.setMnemonic(words)
+      const res = await this._client.setMnemonic(words)
       return res.success
     } catch (error) {
       logger.error('Error setting mnemonic:', error)
@@ -107,8 +108,9 @@ class WalletDirector {
 
   async getMnemonic() {
     await this.initialize()
+
     try {
-      const res = await this._client!.getMnemonic()
+      const res = await this._client.getMnemonic()
       return res.mnemonic
     } catch (error) {
       logger.error('Error getting mnemonic:', error)
@@ -118,7 +120,13 @@ class WalletDirector {
 
   async joinFederation(inviteCode: string, walletId?: string): Promise<Wallet> {
     await this.initialize()
-    // check if walletid exists in storage
+
+    // TODO: Hash the walletId to remove this restriction
+    if (walletId && walletId.length !== 36) {
+      throw new Error('Wallet ID must be exactly 36 characters long')
+    }
+
+    // check if walletId exists in storage
     if (walletId && this.hasWallet(walletId)) {
       throw new Error(`Wallet with ID ${walletId} already exists`)
     }
@@ -127,12 +135,12 @@ class WalletDirector {
       logger.debug('Joining federation with invite code:', inviteCode)
 
       // Parse the invite code to get federation ID
-      const parsedInvite = await this._client!.parseInviteCode(inviteCode)
+      const parsedInvite = await this._client.parseInviteCode(inviteCode)
       const federationId = parsedInvite.federation_id
 
       const clientName = walletId || generateUUID()
 
-      await this._client!.joinFederation(inviteCode, clientName)
+      await this._client.joinFederation(inviteCode, clientName)
 
       const wallet = new Wallet(this._client!, federationId, clientName)
 
@@ -173,9 +181,9 @@ class WalletDirector {
       const clientName = walletId
 
       // Ensure the RPC client is initialized
-      await this._client!.initialize()
+      await this._client.initialize()
 
-      await this._client!.openClient(clientName)
+      await this._client.openClient(clientName)
 
       const wallet = new Wallet(this._client!, pointer.federationId, walletId)
 
@@ -259,7 +267,6 @@ class WalletDirector {
     if (this._client) {
       await this._client.cleanup()
     }
-    this._client = undefined
     this._initialized = false
     this._initPromise = undefined
     logger.info('WalletDirector cleanup completed')
@@ -287,7 +294,7 @@ class WalletDirector {
   async parseInviteCode(inviteCode: string): Promise<ParsedInviteCode> {
     await this.initialize()
 
-    const data = await this._client!.parseInviteCode(inviteCode)
+    const data = await this._client.parseInviteCode(inviteCode)
     logger.info(`Parsed invite code: ${inviteCode}`, data)
     return data
   }
@@ -295,7 +302,7 @@ class WalletDirector {
   async previewFederation(inviteCode: string): Promise<PreviewFederation> {
     await this.initialize()
 
-    const data = await this._client!.previewFederation(inviteCode)
+    const data = await this._client.previewFederation(inviteCode)
     logger.info(`Previewed federation for invite code: ${inviteCode}`, data)
     return data
   }
@@ -303,7 +310,7 @@ class WalletDirector {
   async parseBolt11Invoice(invoice: string): Promise<ParsedBolt11Invoice> {
     await this.initialize()
 
-    const data = await this._client!.parseBolt11Invoice(invoice)
+    const data = await this._client.parseBolt11Invoice(invoice)
     logger.info(`Parsed Bolt11 invoice: ${invoice}`, data)
     return data
   }

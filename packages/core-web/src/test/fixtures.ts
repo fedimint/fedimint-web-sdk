@@ -1,46 +1,67 @@
-import { expect, test } from 'vitest'
-import { TestFedimintWallet } from './TestFedimintWallet'
+import { expect, onTestFinished, test } from 'vitest'
 import { RpcClient } from '../rpc'
 import { createWebWorkerTransport } from '../worker/WorkerTransport'
+import {
+  generateMnemonic,
+  getMnemonic,
+  initialize,
+  joinFederation,
+  nukeData,
+  removeWallet,
+  setLogLevel,
+  Wallet,
+} from '..'
+import { fundWallet, getInviteCode, getRandomTestingId } from './testUtils'
+
+setLogLevel('debug')
+
+// Initialize the global instance
+initialize()
+const existingMnemonic = await getMnemonic()
+if (!existingMnemonic || !existingMnemonic.length) {
+  const mnemonic = await generateMnemonic()
+  expect(mnemonic).toBeDefined()
+}
+
+const inviteCode = await getInviteCode()
+expect(inviteCode).toBeDefined()
 
 /**
  * Adds Fixtures for setting up and tearing down a test FedimintWallet instance
  */
 export const walletTest = test.extend<{
-  wallet: TestFedimintWallet
-  fundedWallet: TestFedimintWallet
-  unopenedWallet: TestFedimintWallet
+  wallet: Wallet
+  fundedWallet: Wallet
+  unopenedWallet: Wallet
 }>({
   wallet: async ({}, use) => {
-    const randomTestingId = Math.random().toString(36).substring(2, 15)
-    const wallet = new TestFedimintWallet()
-    expect(wallet).toBeDefined()
-    const inviteCode = await wallet.testing.getInviteCode()
-    await expect(
-      wallet.joinFederation(inviteCode, randomTestingId),
-    ).resolves.toBe(true)
+    const randomTestingId = getRandomTestingId()
+    console.error('joining federation', randomTestingId, randomTestingId.length)
+    const wallet = await joinFederation(inviteCode, randomTestingId)
+    await expect(wallet).toBeDefined()
+
+    onTestFinished(async () => {
+      // clear up browser resources
+      await removeWallet(wallet.id)
+    })
 
     await use(wallet)
 
-    // clear up browser resources
-    await wallet.cleanup()
-
-    // remove the wallet db
-    await new Promise((resolve) => {
-      const request = indexedDB.deleteDatabase(randomTestingId)
-      request.onsuccess = resolve
-      request.onerror = resolve
-      request.onblocked = resolve
-    })
+    // // remove the wallet db
+    // await new Promise((resolve) => {
+    //   const request = indexedDB.deleteDatabase(randomTestingId)
+    //   request.onsuccess = resolve
+    //   request.onerror = resolve
+    //   request.onblocked = resolve
+    // })
   },
 
   fundedWallet: async ({ wallet }, use) => {
-    await wallet.fundWallet(10_000)
+    await fundWallet(wallet)
     await use(wallet)
   },
   unopenedWallet: async ({}, use) => {
-    const wallet = new TestFedimintWallet()
-    await wallet.initialize()
+    const wallet = await joinFederation(inviteCode)
     await use(wallet)
   },
 })
@@ -61,7 +82,7 @@ export const workerTest = test.extend<{
     worker.terminate()
   },
   clientName: async ({}, use) => {
-    const randomTestingId = Math.random().toString(36).substring(2, 15)
+    const randomTestingId = getRandomTestingId()
     await use(randomTestingId)
   },
   workerClient: async ({}, use) => {

@@ -2,7 +2,7 @@
 
 // HACK: Fixes vitest browser runner
 // TODO: remove once https://github.com/vitest-dev/vitest/pull/6569 lands in a release
-globalThis.__vitest_browser_runner__ = { wrapDynamicImport: (foo) => foo() }
+// globalThis.__vitest_browser_runner__ = { wrapDynamicImport: (foo) => foo() }
 
 let rpcHandler = null
 

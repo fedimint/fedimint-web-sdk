@@ -124,8 +124,8 @@ importers:
   examples/vite-core:
     dependencies:
       '@fedimint/core-web':
-        specifier: latest
-        version: 0.0.11
+        specifier: workspace:*
+        version: link:../../packages/core-web
       react:
         specifier: '>=19.1.0'
         version: 19.1.0
@@ -6455,7 +6455,7 @@ snapshots:
 
   '@babel/helper-annotate-as-pure@7.25.9':
     dependencies:
-      '@babel/types': 7.27.0
+      '@babel/types': 7.27.1
 
   '@babel/helper-annotate-as-pure@7.27.1':
     dependencies:
@@ -7885,7 +7885,7 @@ snapshots:
       estree-walker: 2.0.2
       glob: 8.1.0
       is-reference: 1.2.1
-      magic-string: 0.30.11
+      magic-string: 0.30.17
     optionalDependencies:
       rollup: 3.29.5
 
@@ -7908,7 +7908,7 @@ snapshots:
   '@rollup/plugin-replace@5.0.7(rollup@3.29.5)':
     dependencies:
       '@rollup/pluginutils': 5.1.0(rollup@3.29.5)
-      magic-string: 0.30.11
+      magic-string: 0.30.17
     optionalDependencies:
       rollup: 3.29.5
 
@@ -8637,7 +8637,7 @@ snapshots:
 
   '@vue/compiler-core@3.5.10':
     dependencies:
-      '@babel/parser': 7.25.4
+      '@babel/parser': 7.27.2
       '@vue/shared': 3.5.10
       entities: 4.5.0
       estree-walker: 2.0.2

@@ -27,7 +27,7 @@ const initialize = (createTransport?: TransportFactory): Promise<void> =>
  * If the wallet ID already exists, it throws an error.
  *
  * @param {string} inviteCode - The invite code to join the federation.
- * @param {string} [walletId] - Optional wallet ID to identify the wallet.
+ * @param {string} [walletId] - Optional wallet ID to identify the wallet. Must be exactly 36 characters long.
  * @returns {Promise<Wallet>} A promise that resolves to the created Wallet instance.
  * @throws {Error} If the wallet ID already exists in the storage.
  */
@@ -150,6 +150,7 @@ const cleanup = (): Promise<void> => getDirector().cleanup()
  * @returns {Promise<void>} A promise that resolves when all wallets are cleared.
  */
 const clearAllWallets = (): Promise<void> => getDirector().clearAllWallets()
+const nukeData = clearAllWallets
 
 /**
  * Sets the global log level.
@@ -258,13 +259,13 @@ const setMnemonic = (words: string[]): Promise<boolean> =>
 /**
  * Gets the current mnemonic phrase from the wallet.
  * This method sends a request to the WorkerClient to retrieve the mnemonic.
- * @returns {Promise<string[]>} A promise that resolves to the mnemonic words array.
+ * @returns {Promise<string[] | null>} A promise that resolves to the mnemonic words array. If no mnemonic is set, it returns null.
  * @throws {Error} If the WorkerClient encounters an issue during the mnemonic retrieval process.
  * @example
  * const mnemonic = await getMnemonic();
  * console.log(mnemonic);
  */
-const getMnemonic = (): Promise<string[]> => getDirector().getMnemonic()
+const getMnemonic = (): Promise<string[] | null> => getDirector().getMnemonic()
 
 export type * from './types'
 
@@ -291,6 +292,7 @@ export {
   // Utility functions
   cleanup,
   clearAllWallets,
+  nukeData,
   setLogLevel,
   isInitialized,
 
