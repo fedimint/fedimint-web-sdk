@@ -4,10 +4,6 @@
 // TODO: remove once https://github.com/vitest-dev/vitest/pull/6569 lands in a release
 // globalThis.__vitest_browser_runner__ = { wrapDynamicImport: (foo) => foo() }
 
-/**
- * @typedef {import('@fedimint/fedimint-client-wasm-bundler').RpcHandler} RpcHandler
- * @type {RpcHandler | null}
- */
 let rpcHandler = null
 
 console.log('Worker - init')
@@ -52,10 +48,9 @@ self.onmessage = async (event) => {
       // Get the OPFS root directory
       const opfsRoot = await navigator.storage.getDirectory()
 
-      const filename = event.data.payload?.filename ?? 'fedimint-client.db'
 
       // Create or get the database file
-      const fileHandle = await opfsRoot.getFileHandle(filename, {
+      const fileHandle = await opfsRoot.getFileHandle('fedimint.db', {
         create: true,
       })
 
@@ -138,12 +133,5 @@ self.onmessage = async (event) => {
       error: `Worker - unimplemented message type: ${event.data.type}`,
       request_id: event.data.request_id,
     })
-  }
-}
-
-self.onclose = async () => {
-  console.log('Worker: onclose')
-  if (rpcHandler) {
-    rpcHandler.close()
   }
 }

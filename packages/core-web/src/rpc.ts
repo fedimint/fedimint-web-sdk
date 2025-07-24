@@ -23,15 +23,14 @@ export type TransportFactory = (
 
 // Handles communication with the wasm worker
 export class RpcClient {
-  private transport?: Promise<RpcTransport>
-  // private createTransport: TransportFactory
+  private transport?: RpcTransport
+  private createTransport: TransportFactory
   private requestCounter = 0
   private subscriptionManager: SubscriptionManager
-  // private transport?: Promise<void>
+  private initPromise?: Promise<void>
 
-  // constructor(createTransport: TransportFactory) {
-  constructor() {
-    // this.createTransport = createTransport
+  constructor(createTransport: TransportFactory) {
+    this.createTransport = createTransport
     this.subscriptionManager = new SubscriptionManager(
       this.sendCancelRequest.bind(this),
     )
@@ -43,23 +42,22 @@ export class RpcClient {
       type: 'cancel_rpc',
       cancel_request_id: requestId,
     }
-    this.transport?.then((transport) => transport.sendRequest(cancelRequest))
+    this.transport?.sendRequest(cancelRequest)
   }
 
-  // private async initializeInner(): Promise<void> {
-  //   this.transport = await this.createTransport(
-  //     this.handleWorkerMessage.bind(this),
-  //   )
-  // }
+  private async initializeInner(): Promise<void> {
+    this.transport = await this.createTransport(
+      this.handleWorkerMessage.bind(this),
+    )
+  }
 
-  async initialize(createTransport: TransportFactory) {
-    if (this.transport) {
-      return this.transport
+  async initialize() {
+    if (this.initPromise) {
+      return this.initPromise
     }
 
-    // this.initPromise = this.initializeInner()
-    this.transport = createTransport(this.handleWorkerMessage.bind(this))
-    return this.transport
+    this.initPromise = this.initializeInner()
+    return this.initPromise
   }
 
   private handleWorkerMessage = (response: RpcResponseFull) => {
@@ -132,7 +130,7 @@ export class RpcClient {
       onEnd,
     )
 
-    this.transport?.then((transport) => transport.sendRequest(requestFull))
+    this.transport?.sendRequest(requestFull)
     return cancelFn
   }
 
@@ -160,12 +158,24 @@ export class RpcClient {
     onData: (data: Response) => void,
     onError: (error: string) => void,
     onEnd: () => void = () => {},
-    clientName: string,
+    clientName?: string, // Add optional clientName parameter
   ): CancelFunction {
+    const effectiveClientName = clientName
+    console.debug(
+      'RpcClient.rpcStream: using clientName',
+      effectiveClientName,
+      'for method',
+      method,
+    )
+    if (effectiveClientName === undefined) {
+      throw new Error(
+        `Wallet is not open - no clientName provided for ${module}.${method}. Make sure to call openWallet() or joinFederation() first.`,
+      )
+    }
     return this.internalRpcStream(
       {
         type: 'client_rpc',
-        client_name: clientName,
+        client_name: effectiveClientName,
         module,
         method,
         payload: body,
@@ -240,9 +250,9 @@ export class RpcClient {
   async cleanup() {
     this.subscriptionManager.cancelAll()
     this.subscriptionManager.clear()
-    this.transport?.then((transport) => transport.destroy())
+    this.transport?.destroy()
     this.requestCounter = 0
-    this.transport = undefined
+    this.initPromise = undefined
   }
 
   // For Testing

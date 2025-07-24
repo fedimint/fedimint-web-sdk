@@ -1,43 +1,30 @@
-import { afterAll, beforeAll, expect, onTestFinished, test } from 'vitest'
+import { expect, onTestFinished, test } from 'vitest'
 import { RpcClient } from '../rpc'
 import { createWebWorkerTransport } from '../worker/WorkerTransport'
 import {
-  cleanup,
   generateMnemonic,
   getMnemonic,
   initialize,
   joinFederation,
-  listClients,
   nukeData,
   removeWallet,
   setLogLevel,
   Wallet,
 } from '..'
-import { fundWallet, TESTING_INVITE, getRandomTestingId } from './testUtils'
+import { fundWallet, getInviteCode, getRandomTestingId } from './testUtils'
 
 setLogLevel('debug')
 
 // Initialize the global instance
-beforeAll(async () => {
-  const randomTestingId = getRandomTestingId()
-  initialize((foo) => createWebWorkerTransport(foo, randomTestingId))
-  const existingMnemonic = await getMnemonic()
-  if (!existingMnemonic || !existingMnemonic.length) {
-    const mnemonic = await generateMnemonic()
-    expect(mnemonic).toBeDefined()
-  }
+initialize()
+const existingMnemonic = await getMnemonic()
+if (!existingMnemonic || !existingMnemonic.length) {
+  const mnemonic = await generateMnemonic()
+  expect(mnemonic).toBeDefined()
+}
 
-  expect(TESTING_INVITE).toBeDefined()
-
-  return async () => {
-    // const wallets = listClients()
-    // console.warn('----------wallets', wallets)
-    // await nukeData()
-    // const mnemonic = await getMnemonic()
-    // console.warn('----------mnemonic', mnemonic)
-    // expect(mnemonic).toBeNull()
-  }
-})
+const inviteCode = await getInviteCode()
+expect(inviteCode).toBeDefined()
 
 /**
  * Adds Fixtures for setting up and tearing down a test FedimintWallet instance
@@ -46,10 +33,14 @@ export const walletTest = test.extend<{
   wallet: Wallet
   fundedWallet: Wallet
   unopenedWallet: Wallet
+  wallet: Wallet
+  fundedWallet: Wallet
+  unopenedWallet: Wallet
 }>({
   wallet: async ({}, use) => {
     const randomTestingId = getRandomTestingId()
-    const wallet = await joinFederation(TESTING_INVITE, randomTestingId)
+    console.error('joining federation', randomTestingId, randomTestingId.length)
+    const wallet = await joinFederation(inviteCode, randomTestingId)
     await expect(wallet).toBeDefined()
 
     onTestFinished(async () => {
@@ -66,14 +57,22 @@ export const walletTest = test.extend<{
     //   request.onerror = resolve
     //   request.onblocked = resolve
     // })
+    // // remove the wallet db
+    // await new Promise((resolve) => {
+    //   const request = indexedDB.deleteDatabase(randomTestingId)
+    //   request.onsuccess = resolve
+    //   request.onerror = resolve
+    //   request.onblocked = resolve
+    // })
   },
 
   fundedWallet: async ({ wallet }, use) => {
     await fundWallet(wallet)
+    await fundWallet(wallet)
     await use(wallet)
   },
   unopenedWallet: async ({}, use) => {
-    const wallet = await joinFederation(TESTING_INVITE)
+    const wallet = await joinFederation(inviteCode)
     await use(wallet)
   },
 })
@@ -85,6 +84,7 @@ export const workerTest = test.extend<{
   worker: Worker
   clientName: string
   workerClient: RpcClient
+  workerClient: RpcClient
 }>({
   worker: async ({}, use) => {
     const worker = new Worker(new URL('../worker/worker.js', import.meta.url), {
@@ -95,10 +95,11 @@ export const workerTest = test.extend<{
   },
   clientName: async ({}, use) => {
     const randomTestingId = getRandomTestingId()
+    const randomTestingId = getRandomTestingId()
     await use(randomTestingId)
   },
   workerClient: async ({}, use) => {
-    const workerClient = new RpcClient()
+    const workerClient = new RpcClient(createWebWorkerTransport)
     await use(workerClient)
   },
 })

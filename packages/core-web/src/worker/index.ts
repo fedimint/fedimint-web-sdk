@@ -1,1 +1,1 @@
-export { createWebWorkerTransport } from './WorkerTransport'
+export { createWebWorkerTransport } from '../transport'

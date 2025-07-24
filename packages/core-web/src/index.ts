@@ -15,9 +15,12 @@ import { TransportFactory } from './rpc'
  * This method sets up the global RpcClient and prepares the wallet for use.
  *
  * @param {TransportFactory} [createTransport] - Optional factory function to create the transport.
+ * @param {TransportFactory} [createTransport] - Optional factory function to create the transport.
  * @returns {Promise<void>} A promise that resolves when the initialization is complete.
  */
 const initialize = (createTransport: TransportFactory): Promise<void> =>
+  getDirector().initialize(createTransport)
+const initialize = (createTransport?: TransportFactory): Promise<void> =>
   getDirector().initialize(createTransport)
 
 /**
@@ -150,6 +153,8 @@ const cleanup = (): Promise<void> => getDirector().cleanup()
  * @returns {Promise<void>} A promise that resolves when all wallets are cleared.
  */
 const nukeData = (): Promise<void> => getDirector().nukeData()
+const clearAllWallets = (): Promise<void> => getDirector().clearAllWallets()
+const nukeData = clearAllWallets
 
 /**
  * Sets the global log level.
@@ -266,6 +271,94 @@ const setMnemonic = (words: string[]): Promise<boolean> =>
  */
 const getMnemonic = (): Promise<string[] | null> => getDirector().getMnemonic()
 
+/**
+ * Checks if a mnemonic is currently set in the wallet.
+ *
+ * @returns {Promise<boolean>} A promise that resolves to true if a mnemonic is set, false otherwise.
+ */
+const hasMnemonic = (): Promise<boolean> => getDirector().hasMnemonic()
+
+/**
+ * Creates and initializes the WalletDirector with an optional mnemonic.
+ * 
+ * This function initializes the WalletDirector and either sets the provided mnemonic 
+ * or generates a new one if none is provided.
+ * 
+ * @param {TransportFactory} transport - The transport factory to use for communication
+ * @param {string[]} [mnemonic] - Optional mnemonic words to set. If not provided, a new mnemonic will be generated.
+ * @returns {Promise<string[]>} A promise that resolves to the mnemonic words that were set
+ * @throws {Error} If there's an issue initializing the director or setting the mnemonic
+ */
+const createWalletDirector = async (
+  transport: TransportFactory,
+  mnemonic?: string[]
+): Promise<void> => {
+  try {
+    await initializeDirector(transport)
+    
+    if(!mnemonic || mnemonic.length === 0) {
+    await getDirector().generateMnemonic()
+    }else{
+      await getDirector().setMnemonic(mnemonic)
+    }
+    logger.info('WalletDirector created and initialized with mnemonic')
+  } catch (error) {
+    logger.error('Error in createWalletDirector:', error)
+    throw error
+  }
+}
+
+/**
+ * Loads the WalletDirector by checking if a mnemonic is set and opening all available wallets.
+ * 
+ * This function first checks if a mnemonic is set. If it is, it opens all wallets
+ * stored in the WalletDirector.
+ * 
+ * @returns {Promise<boolean>} A promise that resolves to:
+ *   - true if a mnemonic is set and all wallets were successfully loaded
+ *   - false if no mnemonic is set or if there was an issue loading wallets
+ */
+const loadWalletDirector = async (transport: TransportFactory): Promise<boolean> => {
+  try {
+    await initializeDirector(transport) 
+    const hasMnemonicSet = await getDirector().hasMnemonic()
+    
+    if (!hasMnemonicSet) {
+      logger.info('No mnemonic set, skipping wallet loading')
+      return false
+    }
+    
+    // Get all wallet infos
+    const walletInfos = getDirector().listClients()
+    
+    if (walletInfos.length === 0) {
+      logger.info('No wallets found to load')
+      return true 
+    }
+    
+    // Open all wallets
+    const openPromises = walletInfos.map(info => 
+      getDirector().openWallet(info.id)
+        .catch(error => {
+          logger.error(`Failed to open wallet ${info.id}:`, error)
+          return null
+        })
+    )
+    
+    const results = await Promise.all(openPromises)
+    const successCount = results.filter(wallet => wallet !== null).length
+    
+    logger.info(`Successfully opened ${successCount} of ${walletInfos.length} wallets`)
+    return true
+    
+  } catch (error) {
+    logger.error('Error in loadWalletDirector:', error)
+    return false
+  }
+}
+
+
+
 export type * from './types'
 
 // Export all functions and the class
@@ -281,6 +374,7 @@ export {
   generateMnemonic,
   setMnemonic,
   getMnemonic,
+  hasMnemonic,
 
   // Wallet management functions
   listClients,
@@ -291,8 +385,12 @@ export {
   // Utility functions
   cleanup,
   nukeData,
+  clearAllWallets,
+  nukeData,
   setLogLevel,
   isInitialized,
+  loadWalletDirector,
+  createWalletDirector,
 
   // Parse functions
   parseInviteCode,

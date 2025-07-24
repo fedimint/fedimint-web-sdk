@@ -1,11 +1,12 @@
 import type { CancelFunction, RpcResponse, JSONValue } from '../types'
 import { logger } from '../utils/logger'
 
-export type Subscription = {
+export type Subscription<T extends JSONValue = JSONValue> = {
   id: number
-  onData: (data: any) => void
+  onData: (data: T) => void
   onError: (error: string) => void
   onEnd: () => void
+  cancelFn: CancelFunction
 }
 
 export class SubscriptionManager {
@@ -22,24 +23,21 @@ export class SubscriptionManager {
     onError: (error: string) => void,
     onEnd: () => void = () => {},
   ): CancelFunction {
-    // const abortController = new AbortController()
-    // abortController.signal.addEventListener('abort', () => {
-    //   this.cancelSubscription(id)
-    // })
-    // const cancelFn = () => {
-    //   this.cancelSubscription(id)
-    // }
 
-    const subscription = {
+    const cancelFn = () => {
+      this.cancelSubscription(id)
+    }
+
+    const subscription: Subscription<T> = {
       id,
       onData,
       onError,
       onEnd,
+      cancelFn,
     }
 
-    this.subscriptions.set(id, subscription)
-
-    return () => this.cancelSubscription(id)
+    this.subscriptions.set(id, subscription as Subscription)
+    return cancelFn
   }
 
   handleResponse(requestId: number, response: RpcResponse) {

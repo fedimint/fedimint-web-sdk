@@ -82,6 +82,103 @@ const useBalance = (wallet, checkIsOpen) => {
   return balance
 }
 
+// Loading Screen Component
+const LoadingScreen = () => {
+  return (
+    <div className="loading-overlay">
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Loading your wallet...</p>
+      </div>
+    </div>
+  )
+}
+
+// Onboarding Popup Component
+const OnboardingPopup = ({ onCreateWallet, onRecoverWallet }) => {
+  return (
+    <div className="onboarding-overlay">
+      <div className="onboarding-container">
+        <h2>Welcome to Fedimint Wallet</h2>
+        <p>Let's get you set up with a wallet to start using Fedimint.</p>
+        
+        <div className="onboarding-buttons">
+          <button className="primary-button" onClick={onCreateWallet}>
+            Create New Wallet
+          </button>
+          <button className="secondary-button" onClick={onRecoverWallet}>
+            Recover Existing Wallet
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Recovery Form Component
+const RecoveryForm = ({ onCancel, onWalletCreated }) => {
+  const [recoveryInput, setRecoveryInput] = useState('')
+  const [isRecovering, setIsRecovering] = useState(false)
+  const [recoveryError, setRecoveryError] = useState('')
+
+  const handleRecovery = async (e) => {
+    e.preventDefault()
+    setIsRecovering(true)
+    setRecoveryError('')
+
+    try {
+      // Here you would implement the actual recovery logic
+      // This is a placeholder - you'll need to implement the appropriate recovery method
+      console.log('Recovering wallet with input:', recoveryInput)
+      
+      // For demo purposes, we'll just join a federation with the recovery code
+      // assuming it's an invite code
+      const wallet = await joinFederation(recoveryInput)
+      
+      onWalletCreated(wallet)
+    } catch (error) {
+      console.error('Error recovering wallet:', error)
+      setRecoveryError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setIsRecovering(false)
+    }
+  }
+
+  return (
+    <div className="onboarding-overlay">
+      <div className="onboarding-container">
+        <h2>Recover Your Wallet</h2>
+        <p>Enter your recovery information below:</p>
+        
+        <form onSubmit={handleRecovery}>
+          <textarea
+            placeholder="Enter your recovery code or seed phrase..."
+            value={recoveryInput}
+            onChange={(e) => setRecoveryInput(e.target.value)}
+            rows={5}
+            required
+          />
+          
+          {recoveryError && <div className="error">{recoveryError}</div>}
+          
+          <div className="onboarding-buttons">
+            <button type="button" className="secondary-button" onClick={onCancel}>
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="primary-button"
+              disabled={isRecovering || !recoveryInput.trim()}
+            >
+              {isRecovering ? 'Recovering...' : 'Recover Wallet'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 const App = () => {
   const [wallets, setWallets] = useState([])
   const [WalletInfo, setWalletInfo] = useState([])
@@ -206,6 +303,8 @@ const App = () => {
     })
     setActiveWallet(wallet)
     setFederationJoined(true)
+    setShowOnboarding(false)
+    setRecoveryMode(false)
     // Refresh wallet pointers after creating
     setWalletInfo(listClients())
   }, [])
@@ -216,7 +315,7 @@ const App = () => {
       try {
         const existingWallets = getActiveWallets()
         setWallets(existingWallets)
-
+        
         // Check if we have any existing wallets
         if (existingWallets.length > 0 && !activeWallet) {
           setActiveWallet(existingWallets[0])
@@ -277,90 +376,71 @@ const App = () => {
           )}
           
           {!showOnboarding && !recoveryMode && (
-            <header>
-              <h1>Fedimint Typescript Library Demo</h1>
+            <>
+              <header>
+                <h1>Fedimint Typescript Library Demo</h1>
 
-              <div className="steps">
-                <strong>Steps to get started:</strong>
-                <ol>
-                  <li>
-                    Join a Federation (creates wallet and persists across sessions)
-                  </li>
-                  <li>Generate an Invoice</li>
-                  <li>
-                    Pay the Invoice using the{' '}
-                    <a href="https://faucet.mutinynet.com/" target="_blank">
-                      mutinynet faucet
-                    </a>
-                  </li>
-                  <li>
-                    Investigate the Browser Tools
-                    <ul>
-                      <li>Browser Console for logs</li>
-                      <li>Network Tab (websocket) for guardian requests</li>
-                      <li>Application Tab for state</li>
-                    </ul>
-                  </li>
-                </ol>
-              </div>
-            </header>
-            <main>
-        <JoinFederation onWalletCreated={handleWalletCreated} />
-        <WalletManagement
-          wallets={wallets}
-          WalletInfo={WalletInfo}
-          activeWallet={activeWallet}
-          walletId={walletId}
-          opening={opening}
-          onSelectWallet={selectWallet}
-          onOpenWallet={handleOpenWallet}
-          onWalletIdChange={setWalletId}
-        />
+                <div className="steps">
+                  <strong>Steps to get started:</strong>
+                  <ol>
+                    <li>
+                      Join a Federation (creates wallet and persists across sessions)
+                    </li>
+                    <li>Generate an Invoice</li>
+                    <li>
+                      Pay the Invoice using the{' '}
+                      <a href="https://faucet.mutinynet.com/" target="_blank">
+                        mutinynet faucet
+                      </a>
+                    </li>
+                    <li>
+                      Investigate the Browser Tools
+                      <ul>
+                        <li>Browser Console for logs</li>
+                        <li>Network Tab (websocket) for guardian requests</li>
+                        <li>Application Tab for state</li>
+                      </ul>
+                    </li>
+                  </ol>
+                </div>
+              </header>
+              <main>
+                <JoinFederation onWalletCreated={handleWalletCreated} />
+                <WalletManagement
+                  wallets={wallets}
+                  WalletInfo={WalletInfo}
+                  activeWallet={activeWallet}
+                  walletId={walletId}
+                  opening={opening}
+                  onSelectWallet={selectWallet}
+                  onOpenWallet={handleOpenWallet}
+                  onWalletIdChange={setWalletId}
+                />
 
-        {activeWallet && (
-          <>
-            <WalletStatus
-              wallet={activeWallet}
-              open={open}
-              checkIsOpen={checkIsOpen}
-              balance={balance}
-            />
+                {activeWallet && (
+                  <>
+                    <WalletStatus
+                      wallet={activeWallet}
+                      open={open}
+                      checkIsOpen={checkIsOpen}
+                      balance={balance}
+                    />
 
-            {/* Only show these components if wallet has joined a federation */}
-            {federationJoined && (
-              <>
-                <GenerateLightningInvoice wallet={activeWallet} />
-                <RedeemEcash wallet={activeWallet} />
-                <SendLightning wallet={activeWallet} />
-              </>
-            )}
-          </>
-        )}
+                    {/* Only show these components if wallet has joined a federation */}
+                    {federationJoined && (
+                      <>
+                        <GenerateLightningInvoice wallet={activeWallet} />
+                        <RedeemEcash wallet={activeWallet} />
+                        <SendLightning wallet={activeWallet} />
+                      </>
+                    )}
+                  </>
+                )}
 
-        <ParseInviteCode />
-        <ParseBolt11Invoice />
+                <ParseInviteCode />
+                <ParseBolt11Invoice />
 
-        {error && <div className="error">{error}</div>}
-
-        {showOnboarding && (
-          <OnboardingPopup
-            onCreateWallet={() => {
-              setShowOnboarding(false)
-              setRecoveryMode(false)
-            }}
-            onRecoverWallet={() => {
-              setShowOnboarding(false)
-              setRecoveryMode(true)
-            }}
-          />
-        )}
-
-        {recoveryMode && (
-          <RecoveryForm
-            onCancel={() => setRecoveryMode(false)}
-            onWalletCreated={handleWalletCreated}
-          />
-        )}
+                {error && <div className="error">{error}</div>}
               </main>
             </>
           )}
@@ -905,100 +985,6 @@ const ParseBolt11Invoice = () => {
         </div>
       )}
       {error && <div className="error">{error}</div>}
-    </div>
-  )
-}
-
-const LoadingScreen = () => {
-  return (
-    <div className="loading-overlay">
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading your wallet...</p>
-      </div>
-    </div>
-  )
-}
-
-const OnboardingPopup = ({ onCreateWallet, onRecoverWallet }) => {
-  return (
-    <div className="onboarding-overlay">
-      <div className="onboarding-container">
-        <h2>Welcome to Fedimint Wallet</h2>
-        <p>Let's get you set up with a wallet to start using Fedimint.</p>
-
-        <div className="onboarding-buttons">
-          <button className="primary-button" onClick={onCreateWallet}>
-            Create New Wallet
-          </button>
-          <button className="secondary-button" onClick={onRecoverWallet}>
-            Recover Existing Wallet
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const RecoveryForm = ({ onCancel, onWalletCreated }) => {
-  const [recoveryInput, setRecoveryInput] = useState('')
-  const [isRecovering, setIsRecovering] = useState(false)
-  const [recoveryError, setRecoveryError] = useState('')
-
-  const handleRecovery = async (e) => {
-    e.preventDefault()
-    setIsRecovering(true)
-    setRecoveryError('')
-
-    try {
-      // Here you would implement the actual recovery logic
-      // This is a placeholder - you'll need to implement the appropriate recovery method
-      console.log('Recovering wallet with input:', recoveryInput)
-
-      // For demo purposes, we'll just join a federation with the recovery code
-      // assuming it's an invite code
-      const wallet = await joinFederation(recoveryInput)
-
-      onWalletCreated(wallet)
-    } catch (error) {
-      console.error('Error recovering wallet:', error)
-      setRecoveryError(error instanceof Error ? error.message : String(error))
-    } finally {
-      setIsRecovering(false)
-    }
-  }
-
-  return (
-    <div className="onboarding-overlay">
-      <div className="onboarding-container">
-        <h2>Recover Your Wallet</h2>
-        <p>Enter your recovery information below:</p>
-
-        <form onSubmit={handleRecovery}>
-          <textarea
-            placeholder="Enter your recovery code or seed phrase..."
-            value={recoveryInput}
-            onChange={(e) => setRecoveryInput(e.target.value)}
-            rows={5}
-            required
-          />
-
-          {recoveryError && <div className="error">{recoveryError}</div>}
-
-          <div className="onboarding-buttons">
-            <button type="button" className="secondary-button" onClick={onCancel}>
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="primary-button"
-              disabled={isRecovering || !recoveryInput.trim()}
-            >
-              {isRecovering ? 'Recovering...' : 'Recover Wallet'}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   )
 }
