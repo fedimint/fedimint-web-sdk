@@ -14,7 +14,8 @@ export const useSendLightning = () => {
 
   const payInvoice = useCallback(
     async (bolt11: string) => {
-      if (walletStatus !== 'open') throw new Error('Wallet is not open')
+      if (walletStatus !== 'open' || !wallet)
+        throw new Error('Wallet is not open')
       const response = await wallet.lightning.payInvoice(bolt11)
       setPayment(response)
       return response
@@ -23,14 +24,14 @@ export const useSendLightning = () => {
   )
 
   useEffect(() => {
-    if (walletStatus !== 'open' || !payment) return
+    if (walletStatus !== 'open' || !payment || !wallet) return
     const unsubscribe = wallet.lightning.subscribeLnPay(
       // @ts-ignore
       payment.payment_type.lightning,
-      (state) => {
+      (state: LnPayState) => {
         setPaymentState(state)
       },
-      (error) => {
+      (error: string) => {
         setError(error)
       },
     )
@@ -38,7 +39,7 @@ export const useSendLightning = () => {
     return () => {
       unsubscribe()
     }
-  }, [walletStatus, payment])
+  }, [walletStatus, payment, wallet])
 
   return {
     payInvoice,

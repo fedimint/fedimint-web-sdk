@@ -6,10 +6,10 @@ Redeem a set of ecash notes.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+await initialize()
+const wallet = await joinFederation('fed11qgq...')
 
 try {
   await wallet.mint.redeemEcash('01...') // [!code focus]

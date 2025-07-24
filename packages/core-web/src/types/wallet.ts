@@ -247,6 +247,19 @@ type Transactions = LightningTransaction | EcashTransaction | WalletTransaction
 /** Keys are powers of 2 */
 type NoteCountByDenomination = Record<number, number>
 
+type WalletInfo = {
+  id: string
+  clientName: string
+  federationId: string
+  createdAt: number
+  lastAccessedAt: number
+}
+
+type WalletStorageData = {
+  version: number
+  wallets: WalletInfo[]
+}
+
 export {
   LightningGateway,
   FederationConfig,
@@ -278,4 +291,6 @@ export {
   EcashTransaction,
   WalletTransaction,
   Transactions,
+  WalletInfo,
+  WalletStorageData,
 }

@@ -1,4 +1,4 @@
-import { WorkerClient } from '../worker'
+import { RpcClient } from '../rpc'
 import type {
   CreateBolt11Response,
   GatewayInfo,
@@ -10,7 +10,10 @@ import type {
 } from '../types'
 
 export class LightningService {
-  constructor(private client: WorkerClient) {}
+  constructor(
+    private client: RpcClient,
+    private clientName: string,
+  ) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
   async createInvoice(
@@ -20,6 +23,12 @@ export class LightningService {
     gatewayInfo?: GatewayInfo,
     extraMeta?: JSONObject,
   ) {
+    if (!this.clientName) {
+      throw new Error(
+        'LightningService: clientName is not set. Wallet may not be properly initialized.',
+      )
+    }
+
     const gateway = gatewayInfo ?? (await this._getDefaultGatewayInfo())
     return await this.client.rpcSingle<CreateBolt11Response>(
       'ln',
@@ -31,6 +40,7 @@ export class LightningService {
         extra_meta: extraMeta ?? {},
         gateway,
       },
+      this.clientName,
     )
   }
 
@@ -56,6 +66,7 @@ export class LightningService {
         extra_meta: extraMeta ?? {},
         gateway,
       },
+      this.clientName,
     )
   }
 
@@ -73,6 +84,7 @@ export class LightningService {
         indices,
         extra_meta: extraMeta ?? {},
       },
+      this.clientName,
     )
   }
 
@@ -97,6 +109,7 @@ export class LightningService {
         invoice,
         extra_meta: extraMeta ?? {},
       },
+      this.clientName,
     )
   }
 
@@ -153,6 +166,8 @@ export class LightningService {
       { operation_id: operationId },
       onSuccess,
       onError,
+      () => {},
+      this.clientName,
     )
   }
 
@@ -170,6 +185,8 @@ export class LightningService {
       { operation_id: operationId },
       onSuccess,
       onError,
+      () => {},
+      this.clientName,
     )
   }
 
@@ -217,6 +234,8 @@ export class LightningService {
       { operation_id: operationId },
       onSuccess,
       onError,
+      () => {},
+      this.clientName,
     )
   }
 
@@ -257,6 +276,7 @@ export class LightningService {
         gateway_id: gatewayId,
         force_internal: forceInternal,
       },
+      this.clientName,
     )
   }
 
@@ -265,10 +285,16 @@ export class LightningService {
       'ln',
       'list_gateways',
       {},
+      this.clientName,
     )
   }
 
   async updateGatewayCache() {
-    return await this.client.rpcSingle('ln', 'update_gateway_cache', {})
+    return await this.client.rpcSingle(
+      'ln',
+      'update_gateway_cache',
+      {},
+      this.clientName,
+    )
   }
 }

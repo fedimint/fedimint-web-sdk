@@ -5,11 +5,10 @@
 Attempts to pay an invoice. Returns a `Promise` that resolves when the payment succeeds or fails / times out.
 
 ```ts twoslash
-// @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+await initialize()
+const wallet = await joinFederation('fed11qgq...')
 
 const result = await wallet.lightning.payInvoiceSync( // [!code focus]
   'lnbc...', // bolt11 invoice // [!code focus]
@@ -28,12 +27,11 @@ Attempts to pay a lightning invoice. Returns an `OutgoingLightningPayment` objec
 You can use `subscribeLnPay` to track the payment status. `waitForPay` returns a `Promise` that resolves when the payment succeeds or fails / times out.
 
 ```ts twoslash
-// @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { initialize, joinFederation } from '@fedimint/core-web'
 import type { LnPayState } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+await initialize()
+const wallet = await joinFederation('fed11qgq...')
 
 const { fee, payment_type } = await wallet.lightning.payInvoice( // [!code focus]
   'lnbc...', // bolt11 invoice // [!code focus]

@@ -1,16 +1,3 @@
-const WorkerMessageTypes = [
-  'init',
-  'initialized',
-  'rpc',
-  'log',
-  'open',
-  'join',
-  'error',
-  'unsubscribe',
-  'cleanup',
-  'parseInviteCode',
-  'parseBolt11Invoice',
-  'previewFederation',
-] as const
+const WorkerMessageTypes = ['init', 'initialized', 'client_rpc'] as const
 
 export type WorkerMessageType = (typeof WorkerMessageTypes)[number]
