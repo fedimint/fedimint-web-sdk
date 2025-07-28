@@ -42,4 +42,13 @@ export class RecoveryService {
       this.clientName,
     )
   }
+
+  async backupToFederation(metadata: JSONValue) {
+    return await this.client.rpcSingle(
+      '',
+      'backup_to_federation',
+      { metadata },
+      this.clientName,
+    )
+  }
 }

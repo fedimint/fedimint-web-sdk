@@ -118,7 +118,11 @@ export class WalletDirector {
     }
   }
 
-  async joinFederation(inviteCode: string, walletId?: string): Promise<Wallet> {
+  async joinFederation(
+    inviteCode: string,
+    walletId?: string,
+    recover?: boolean,
+  ): Promise<Wallet> {
     await this.initialize()
 
     // TODO: Hash the walletId to remove this restriction
@@ -131,6 +135,7 @@ export class WalletDirector {
       throw new Error(`Wallet with ID ${walletId} already exists`)
     }
 
+    recover = recover ?? false
     try {
       logger.debug('Joining federation with invite code:', inviteCode)
 
@@ -140,12 +145,15 @@ export class WalletDirector {
 
       const clientName = walletId || generateUUID()
 
-      await this._client.joinFederation(inviteCode, clientName)
+      await this._client.joinFederation(inviteCode, clientName, recover)
 
       const wallet = new Wallet(this._client!, federationId, clientName)
 
       this.addWallet(wallet)
       logger.info(`Joined federation and created wallet with ID: ${wallet.id}`)
+      if (recover) {
+        logger.info(`Recovering wallet ${clientName} with ${federationId}`)
+      }
       return wallet
     } catch (error) {
       logger.error(`Error joining federation:`, error)

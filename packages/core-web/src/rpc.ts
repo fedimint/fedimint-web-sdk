@@ -64,9 +64,14 @@ export class RpcClient {
     this.subscriptionManager.handleResponse(response.request_id, response)
   }
 
-  async joinFederation(inviteCode: string, clientName: string) {
+  async joinFederation(
+    inviteCode: string,
+    clientName: string,
+    recover?: boolean,
+  ) {
     console.debug('RpcClient.joinFederation: Setting clientName to', clientName)
     // Set clientName immediately before the call to ensure it's available
+    const recoverFlag = recover || false
     try {
       console.log('RpcClient.joinFederation: Making RPC call')
       console.info('info: RpcClient.joinFederation: Making RPC call')
@@ -74,6 +79,7 @@ export class RpcClient {
         type: 'join_federation',
         invite_code: inviteCode,
         client_name: clientName,
+        recover: recoverFlag,
       })
       console.debug(
         'RpcClient.joinFederation: RPC call successful, clientName is',
