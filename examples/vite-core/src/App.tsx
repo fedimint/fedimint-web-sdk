@@ -306,6 +306,7 @@ const App = () => {
             <GenerateLightningInvoice wallet={activeWallet} />
             <RedeemEcash wallet={activeWallet} />
             <SendLightning wallet={activeWallet} />
+            <BackupToFederation wallet={activeWallet} />
           </>
         )}
 
@@ -482,7 +483,7 @@ const JoinFederation = ({
   const [joining, setJoining] = useState(false)
   const [recover, setRecover] = useState(false)
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRecover(e.target.checked)
   }
 
@@ -771,6 +772,80 @@ const SendLightning = ({ wallet }: { wallet: Wallet }) => {
       </form>
       {lightningResult && <div className="success">{lightningResult}</div>}
       {lightningError && <div className="error">{lightningError}</div>}
+    </div>
+  )
+}
+
+const BackupToFederation = ({ wallet }: { wallet: Wallet }) => {
+  const [metadata, setMetadata] = useState('')
+  const [backupResult, setBackupResult] = useState('')
+  const [backupError, setBackupError] = useState('')
+  const [isBackingUp, setIsBackingUp] = useState(false)
+
+  // Reset state when wallet changes
+  useEffect(() => {
+    setMetadata('')
+    setBackupResult('')
+    setBackupError('')
+  }, [wallet.id])
+
+  const handleBackup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsBackingUp(true)
+    setBackupError('')
+    setBackupResult('')
+
+    try {
+      let metadataObj: any = {}
+
+      // Try to parse metadata as JSON if provided, otherwise use as string
+      if (metadata.trim()) {
+        try {
+          metadataObj = JSON.parse(metadata)
+        } catch {
+          // If JSON parsing fails, use as a string value
+          metadataObj = { description: metadata }
+        }
+      }
+
+      await wallet.recovery.backupToFederation(metadataObj)
+      setBackupResult('Backup completed successfully!')
+      console.log('Backup to federation successful')
+    } catch (error) {
+      console.error('Error backing up to federation:', error)
+      setBackupError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setIsBackingUp(false)
+    }
+  }
+
+  return (
+    <div className="section">
+      <h3>Backup to Federation</h3>
+      <form onSubmit={handleBackup}>
+        <div className="input-group">
+          <textarea
+            placeholder="Optional metadata (JSON object or plain text)"
+            value={metadata}
+            onChange={(e) => setMetadata(e.target.value)}
+            rows={3}
+            style={{ resize: 'vertical' }}
+          />
+          <small style={{ color: '#666', fontSize: '0.9em' }}>
+            You can provide metadata as JSON (e.g.,{' '}
+            {JSON.stringify({
+              description: 'My backup',
+              timestamp: Date.now(),
+            })}
+            ) or plain text
+          </small>
+        </div>
+        <button type="submit" disabled={isBackingUp}>
+          {isBackingUp ? 'Backing up...' : 'Backup to Federation'}
+        </button>
+      </form>
+      {backupResult && <div className="success">{backupResult}</div>}
+      {backupError && <div className="error">{backupError}</div>}
     </div>
   )
 }
