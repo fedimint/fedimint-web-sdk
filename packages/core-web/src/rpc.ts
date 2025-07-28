@@ -79,7 +79,7 @@ export class RpcClient {
         type: 'join_federation',
         invite_code: inviteCode,
         client_name: clientName,
-        recover: recoverFlag,
+        force_recover: recoverFlag,
       })
       console.debug(
         'RpcClient.joinFederation: RPC call successful, clientName is',

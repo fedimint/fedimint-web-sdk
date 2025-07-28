@@ -9,7 +9,7 @@ export type RpcRequest =
       type: 'join_federation'
       invite_code: string
       client_name: string
-      recover: boolean
+      force_recover: boolean
     }
   | {
       type: 'open_client'
