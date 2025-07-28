@@ -42,7 +42,7 @@ export const useOpenWallet = () => {
 
       setWalletStatus('opening')
       try {
-        const newWallet = await joinFederationCore(invite, walletId)
+        const newWallet = await joinFederationCore(invite, false, walletId)
         setWallet(newWallet)
         setWalletStatus('open')
         return true

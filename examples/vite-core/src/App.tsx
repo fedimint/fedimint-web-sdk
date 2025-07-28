@@ -13,7 +13,6 @@ import {
   generateMnemonic,
   getMnemonic,
   setMnemonic,
-  nukeData,
 } from '@fedimint/core-web'
 
 const TESTNET_FEDERATION_CODE =
@@ -22,25 +21,14 @@ const TESTNET_FEDERATION_CODE =
 // Initialize the global instance
 initialize()
 
-// for testing , to be removed
-if (typeof globalThis !== 'undefined') {
-  ;(globalThis as any).generateMnemonic = generateMnemonic
-}
-if (typeof globalThis !== 'undefined') {
-  ;(globalThis as any).getMnemonic = getMnemonic
-}
-if (typeof globalThis !== 'undefined') {
-  ;(globalThis as any).setMnemonic = setMnemonic
-}
-
 // Custom hooks
-const useBalance = (wallet: Wallet | undefined) => {
+const useBalance = (wallet: Wallet | undefined, isRecovering: boolean) => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
     setBalance(0)
 
-    if (!wallet?.federationId) {
+    if (!wallet?.federationId || isRecovering) {
       return
     }
 
@@ -71,7 +59,7 @@ const useBalance = (wallet: Wallet | undefined) => {
     return () => {
       unsubscribe()
     }
-  }, [wallet, wallet?.federationId])
+  }, [wallet, wallet?.federationId, isRecovering])
 
   return balance
 }
@@ -93,8 +81,16 @@ const App = () => {
   const [walletId, setWalletId] = useState('')
   const [opening, setOpening] = useState(false)
   const [error, setError] = useState('')
+  const [recoveryProgress, setRecoveryProgress] = useState<
+    Array<{
+      module_id: number
+      progress: any
+      timestamp: number
+    }>
+  >([])
+  const [isRecovering, setIsRecovering] = useState(false)
 
-  const balance = useBalance(activeWallet)
+  const balance = useBalance(activeWallet, isRecovering)
 
   // Load wallet pointers on mount and refresh periodically
   useEffect(() => {
@@ -209,6 +205,52 @@ const App = () => {
     }
   }, [activeWallet])
 
+  // Handle recovery progress subscription for active wallet
+  useEffect(() => {
+    if (!activeWallet) {
+      setRecoveryProgress([])
+      setIsRecovering(false)
+      return
+    }
+
+    // Check if there are pending recoveries
+    const checkRecovery = async () => {
+      try {
+        const hasPending = await activeWallet.recovery.hasPendingRecoveries()
+        setIsRecovering(hasPending)
+      } catch (error) {
+        console.error('Error checking pending recoveries:', error)
+      }
+    }
+
+    checkRecovery()
+
+    // Subscribe to recovery progress for the active wallet
+    const unsubscribe = activeWallet.recovery.subscribeToRecoveryProgress(
+      (progress) => {
+        console.log('Recovery progress:', progress)
+        setRecoveryProgress((prev) => [
+          ...prev,
+          {
+            module_id: progress.module_id,
+            progress: progress.progress,
+            timestamp: Date.now(),
+          },
+        ])
+      },
+      (error) => {
+        console.error('Recovery progress error:', error)
+        setIsRecovering(false)
+      },
+    )
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe()
+      }
+    }
+  }, [activeWallet])
+
   return (
     <>
       <header>
@@ -239,6 +281,11 @@ const App = () => {
         </div>
       </header>
       <main>
+        <RecoveryProgress
+          recoveryProgress={recoveryProgress}
+          isRecovering={isRecovering}
+          onClearProgress={() => setRecoveryProgress([])}
+        />
         <MnemonicManager />
 
         <JoinFederation onWalletCreated={handleWalletCreated} />
@@ -433,6 +480,11 @@ const JoinFederation = ({
   const [joinResult, setJoinResult] = useState<string | null>(null)
   const [joinError, setJoinError] = useState('')
   const [joining, setJoining] = useState(false)
+  const [recover, setRecover] = useState(false)
+
+  const handleChange = (e) => {
+    setRecover(e.target.checked)
+  }
 
   const previewFederationHandler = async () => {
     if (!inviteCode.trim()) return
@@ -462,7 +514,7 @@ const JoinFederation = ({
       setJoinError('')
 
       // Call the new joinFederation method that creates and opens wallet automatically
-      const wallet = await joinFederation(inviteCode)
+      const wallet = await joinFederation(inviteCode, recover)
 
       console.log('Join federation successful, with wallet id:', wallet.id)
       setJoinResult(
@@ -493,6 +545,10 @@ const JoinFederation = ({
             setPreviewData(null)
           }}
         />
+        <div>
+          <input type="checkbox" checked={recover} onChange={handleChange} />
+          Recover
+        </div>
         <div className="button-group">
           <button
             type="button"
@@ -767,10 +823,6 @@ const ParseInviteCode = () => {
           <div>
             <strong>URL:</strong> {parsedInviteData.url}
           </div>
-          <details>
-            <summary>Full Details</summary>
-            <pre>{JSON.stringify(parsedInviteData, null, 2)}</pre>
-          </details>
         </div>
       )}
       {error && <div className="error">{error}</div>}
@@ -832,6 +884,198 @@ const ParseBolt11Invoice = () => {
   )
 }
 
+const RecoveryProgress = ({
+  recoveryProgress,
+  isRecovering,
+  onClearProgress,
+}: {
+  recoveryProgress: Array<{
+    module_id: number
+    progress: any
+    timestamp: number
+  }>
+  isRecovering: boolean
+  onClearProgress: () => void
+}) => {
+  const formatTime = (timestamp: number) => {
+    return new Date(timestamp).toLocaleTimeString()
+  }
+
+  const formatProgress = (progress: any) => {
+    if (typeof progress === 'object' && progress !== null) {
+      // Check if it's a progress object with complete/total
+      if (
+        typeof progress.complete === 'number' &&
+        typeof progress.total === 'number'
+      ) {
+        const percentage =
+          progress.total > 0
+            ? ((progress.complete / progress.total) * 100).toFixed(1)
+            : '0.0'
+        return `Progress: ${progress.complete.toLocaleString()} / ${progress.total.toLocaleString()} (${percentage}%)`
+      }
+      return JSON.stringify(progress, null, 2)
+    }
+    return String(progress)
+  }
+
+  const getProgressPercentage = (progress: any): number => {
+    if (
+      typeof progress === 'object' &&
+      progress !== null &&
+      typeof progress.complete === 'number' &&
+      typeof progress.total === 'number'
+    ) {
+      return progress.total > 0 ? (progress.complete / progress.total) * 100 : 0
+    }
+    return 0
+  }
+
+  const getLatestModuleProgress = () => {
+    const moduleMap = new Map<
+      number,
+      { complete: number; total: number; percentage: number }
+    >()
+
+    // Get the latest progress for each module
+    recoveryProgress.forEach((event) => {
+      if (
+        typeof event.progress === 'object' &&
+        event.progress !== null &&
+        typeof event.progress.complete === 'number' &&
+        typeof event.progress.total === 'number'
+      ) {
+        const existing = moduleMap.get(event.module_id)
+        if (!existing || event.timestamp > (existing as any).timestamp) {
+          const percentage =
+            event.progress.total > 0
+              ? (event.progress.complete / event.progress.total) * 100
+              : 0
+          moduleMap.set(event.module_id, {
+            complete: event.progress.complete,
+            total: event.progress.total,
+            percentage,
+            timestamp: event.timestamp,
+          } as any)
+        }
+      }
+    })
+
+    return Array.from(moduleMap.entries()).sort((a, b) => a[0] - b[0])
+  }
+
+  const getModuleStats = () => {
+    const moduleMap = new Map<number, number>()
+    recoveryProgress.forEach((event) => {
+      moduleMap.set(event.module_id, (moduleMap.get(event.module_id) || 0) + 1)
+    })
+    return Array.from(moduleMap.entries()).sort((a, b) => a[0] - b[0])
+  }
+
+  if (!isRecovering && recoveryProgress.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="section">
+      <h3>🔄 Recovery Progress</h3>
+
+      {isRecovering && (
+        <div className="recovery-status">
+          <span className="recovery-spinner">🔄</span>
+          <span className="recovery-status-text">Recovery in progress...</span>
+        </div>
+      )}
+
+      {recoveryProgress.length > 0 && (
+        <>
+          {/* Module Progress Overview */}
+          {getLatestModuleProgress().length > 0 && (
+            <div
+              style={{
+                marginBottom: '20px',
+                padding: '16px',
+                background: 'linear-gradient(135deg, #1a2f1a 0%, #2a4a2a 100%)',
+                border: '2px solid #4caf50',
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.2)',
+              }}
+            >
+              <h4
+                style={{
+                  margin: '0 0 16px 0',
+                  fontSize: '16px',
+                  color: '#87ceeb',
+                  fontWeight: '600',
+                }}
+              >
+                📊 Module Recovery Progress
+              </h4>
+
+              {getLatestModuleProgress().map(([moduleId, progress]) => (
+                <div key={moduleId} style={{ marginBottom: '12px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        color: '#4caf50',
+                      }}
+                    >
+                      Module {moduleId}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '13px',
+                        color: '#aaa',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {progress.complete.toLocaleString()} /{' '}
+                      {progress.total.toLocaleString()} (
+                      {progress.percentage.toFixed(1)}%)
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '8px',
+                      background: '#333',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                      border: '1px solid #444',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${Math.min(progress.percentage, 100)}%`,
+                        height: '100%',
+                        background:
+                          progress.percentage >= 100
+                            ? 'linear-gradient(90deg, #4caf50 0%, #66bb6a 100%)'
+                            : 'linear-gradient(90deg, #2196f3 0%, #42a5f5 100%)',
+                        borderRadius: '3px',
+                        transition: 'width 0.3s ease',
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 const MnemonicManager = () => {
   const [mnemonicState, setMnemonicState] = useState<string>('')
   const [inputMnemonic, setInputMnemonic] = useState<string>('')
@@ -864,40 +1108,6 @@ const MnemonicManager = () => {
     }
 
     return errorMsg
-  }
-
-  // Check if error suggests clearing data
-  const shouldShowClearData = (errorMsg: string): boolean => {
-    return (
-      errorMsg.toLowerCase().includes('already exists') ||
-      errorMsg.toLowerCase().includes('nuke_data')
-    )
-  }
-
-  const handleClearData = async () => {
-    if (
-      window.confirm(
-        'This will clear all wallet data including mnemonics. Are you sure?',
-      )
-    ) {
-      setIsLoading(true)
-      try {
-        await nukeData()
-        setMessage({
-          text: 'Data cleared successfully! You can now generate a new mnemonic.',
-          type: 'success',
-        })
-        setMnemonicState('')
-        setShowMnemonic(false)
-        setActiveAction(null)
-      } catch (error) {
-        console.error('Error clearing data:', error)
-        const errorMsg = extractErrorMessage(error)
-        setMessage({ text: `Failed to clear data: ${errorMsg}`, type: 'error' })
-      } finally {
-        setIsLoading(false)
-      }
-    }
   }
 
   const handleAction = async (action: 'get' | 'set' | 'generate') => {
@@ -1056,27 +1266,7 @@ const MnemonicManager = () => {
       )}
 
       {message && (
-        <div className={`message ${message.type}`}>
-          {message.text}
-          {message.type === 'error' && shouldShowClearData(message.text) && (
-            <div className="clear-data-section">
-              <button
-                onClick={handleClearData}
-                className="btn btn-danger btn-small"
-                disabled={isLoading}
-                style={{ marginTop: '0.5rem' }}
-              >
-                {isLoading ? 'Clearing...' : 'Clear All Data'}
-              </button>
-              <small
-                style={{ display: 'block', marginTop: '0.25rem', opacity: 0.8 }}
-              >
-                This will remove all wallet data and allow generating a new
-                mnemonic
-              </small>
-            </div>
-          )}
-        </div>
+        <div className={`message ${message.type}`}>{message.text}</div>
       )}
     </div>
   )

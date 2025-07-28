@@ -9,6 +9,7 @@ export type RpcRequest =
       type: 'join_federation'
       invite_code: string
       client_name: string
+      recover: boolean
     }
   | {
       type: 'open_client'
@@ -50,6 +51,10 @@ export type RpcRequest =
     }
   | {
       type: 'get_mnemonic'
+    }
+  | {
+      type: 'backup_to_federation'
+      metadata: JSONValue
     }
 
 export type RpcResponseFull = {

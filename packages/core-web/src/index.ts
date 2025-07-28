@@ -30,14 +30,17 @@ const initialize = (createTransport?: TransportFactory): Promise<void> =>
  * If the wallet ID already exists, it throws an error.
  *
  * @param {string} inviteCode - The invite code to join the federation.
+ * @param {boolean} [recover] - Optional flag to indicate if this is a recovery operation.
  * @param {string} [walletId] - Optional wallet ID to identify the wallet. Must be exactly 36 characters long.
  * @returns {Promise<Wallet>} A promise that resolves to the created Wallet instance.
  * @throws {Error} If the wallet ID already exists in the storage.
  */
 const joinFederation = (
   inviteCode: string,
+  recover?: boolean,
   walletId?: string,
-): Promise<Wallet> => getDirector().joinFederation(inviteCode, walletId)
+): Promise<Wallet> =>
+  getDirector().joinFederation(inviteCode, walletId, recover)
 
 /**
  * Opens an existing wallet by its ID.
@@ -154,7 +157,6 @@ const cleanup = (): Promise<void> => getDirector().cleanup()
  */
 const nukeData = (): Promise<void> => getDirector().nukeData()
 const clearAllWallets = (): Promise<void> => getDirector().clearAllWallets()
-const nukeData = clearAllWallets
 
 /**
  * Sets the global log level.
@@ -386,7 +388,6 @@ export {
   cleanup,
   nukeData,
   clearAllWallets,
-  nukeData,
   setLogLevel,
   isInitialized,
   loadWalletDirector,
