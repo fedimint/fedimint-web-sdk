@@ -247,6 +247,11 @@ type Transactions = LightningTransaction | EcashTransaction | WalletTransaction
 /** Keys are powers of 2 */
 type NoteCountByDenomination = Record<number, number>
 
+type GenerateAddressResponse = {
+  deposit_address: string
+  operation_id: string
+}
+
 export {
   LightningGateway,
   FederationConfig,
@@ -269,6 +274,7 @@ export {
   WalletSummary,
   TxOutputSummary,
   NoteCountByDenomination,
+  GenerateAddressResponse,
   OperationKey,
   OperationLog,
   LnVariant,
