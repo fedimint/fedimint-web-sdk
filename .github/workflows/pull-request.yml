@@ -14,8 +14,8 @@ jobs:
 
   size:
     name: Size
-    runs-on: [self-hosted, linux]
-    timeout-minutes: 5
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 10
 
     steps:
       - name: Clone repository
