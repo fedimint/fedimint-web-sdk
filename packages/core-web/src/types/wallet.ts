@@ -54,6 +54,14 @@ type LnReceiveState =
   | 'awaiting_funds'
   | 'claimed'
 
+type LnInternalPayState =
+  | 'funding'
+  | { preimage: string }
+  | { refund_success: { out_points: BtcOutPoint[]; error: string } }
+  | { refund_error: { error_message: string; error: string } }
+  | { funding_failed: { error: string } }
+  | { unexpected_error: string }
+
 type CreateBolt11Response = {
   operation_id: string
   invoice: string
@@ -103,6 +111,11 @@ type TxOutputSummary = {
     vout: number
   }
   amount: number
+}
+
+type GenerateAddressResponse = {
+  deposit_address: string
+  operation_id: string
 }
 
 type BtcOutPoint = {
@@ -277,15 +290,18 @@ export {
   ModuleKind,
   CancelFunction,
   ReissueExternalNotesState,
+  GenerateAddressResponse,
   MintSpendNotesResponse,
   SpendNotesState,
   WalletSummary,
   TxOutputSummary,
   NoteCountByDenomination,
+  LnInternalPayState,
   OperationKey,
   OperationLog,
   LnVariant,
   MintVariant,
+  WalletDepositState,
   WalletVariant,
   LightningTransaction,
   EcashTransaction,
