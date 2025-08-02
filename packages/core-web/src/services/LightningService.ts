@@ -6,6 +6,7 @@ import type {
   LightningGateway,
   LnPayState,
   LnReceiveState,
+  LnInternalPayState,
   OutgoingLightningPayment,
 } from '../types'
 
@@ -168,6 +169,20 @@ export class LightningService {
       onError,
       () => {},
       this.clientName,
+    )
+  }
+
+  subscribeInternalPayment(
+    operation_id: string,
+    onSuccess: (state: LnInternalPayState) => void = () => {},
+    onError: (error: string) => void = () => {},
+  ) {
+    return this.client.rpcStream(
+      'ln',
+      'subscribe_internal_pay',
+      { operation_id: operation_id },
+      onSuccess,
+      onError,
     )
   }
 
