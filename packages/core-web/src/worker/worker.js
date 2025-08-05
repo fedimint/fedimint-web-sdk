@@ -1,12 +1,26 @@
-// Web Worker for fedimint-client-wasm to run in the browser
+// Web Worker to run in Tauri environments
 
-// HACK: Fixes vitest browser runner
-// TODO: remove once https://github.com/vitest-dev/vitest/pull/6569 lands in a release
-// globalThis.__vitest_browser_runner__ = { wrapDynamicImport: (foo) => foo() }
-
+let tauriInvoke
+let tauriEvent
 let rpcHandler = null
 
 console.log('Worker - init')
+
+async function importTauriApis() {
+  try {
+    const tauriApiCore = await import('@tauri-apps/api/core')
+    const tauriApiEvent = await import('@tauri-apps/api/event')
+
+    tauriInvoke = tauriApiCore.invoke
+    tauriEvent = tauriApiEvent
+
+    console.log('Worker: Tauri APIs imported successfully')
+    return true
+  } catch (err) {
+    console.error('Worker: Failed to import Tauri APIs:', err)
+    return false
+  }
+}
 
 /**
  * Type definitions for the worker messages
@@ -22,29 +36,24 @@ console.log('Worker - init')
 self.onmessage = async (event) => {
   if (event.data.type === 'init') {
     try {
-      // Check if OPFS is supported
-      if (!('storage' in navigator) || !('getDirectory' in navigator.storage)) {
-        throw new Error('Origin Private File System is not supported')
+      console.log('Worker: Initializing with Tauri APIs')
+
+      // Import Tauri APIs
+      const tauriApisLoaded = await importTauriApis()
+      if (!tauriApisLoaded) {
+        throw new Error('Failed to load Tauri APIs')
       }
 
-      // Get the OPFS root directory
-      const opfsRoot = await navigator.storage.getDirectory()
-
-      // Create or get the database file
-      const fileHandle = await opfsRoot.getFileHandle('fedimint-client.db', {
-        create: true,
-      })
-
-      // Create a sync access handle
-      const dbSyncHandle = await fileHandle.createSyncAccessHandle()
-
-      // Import the WASM module
-      const { RpcHandler } = await import(
-        '@fedimint/fedimint-client-wasm-bundler'
-      )
-
-      // Initialize the RPC handler
-      rpcHandler = new RpcHandler(dbSyncHandle)
+      // Initialize the RPC handler in the Tauri backend
+      try {
+        const result = await tauriInvoke('initialize_rpc_handler')
+        console.log('Worker: Tauri RPC handler initialized', result)
+      } catch (e) {
+        console.warn(
+          'Worker: Failed to initialize Tauri RPC handler, will try to continue anyway',
+          e,
+        )
+      }
 
       console.log('Worker: WASM module loaded successfully')
       self.postMessage({
@@ -72,47 +81,53 @@ self.onmessage = async (event) => {
     event.data.type === 'generate_mnemonic' ||
     event.data.type === 'get_mnemonic'
   ) {
-    // Check if rpcHandler is initialized before calling rpc
-    if (!rpcHandler) {
-      console.error('Worker: rpcHandler not initialized')
-      self.postMessage({
-        type: 'error',
-        request_id: event.data.request_id,
-        error: 'Worker not initialized. Call init first.',
-      })
-      return
-    }
-
     try {
       console.log(
         'Worker: Processing RPC request:',
         event.data.type,
         event.data.client_name || 'no client_name',
       )
-      rpcHandler.rpc(JSON.stringify(event.data), (response) => {
-        const parsedResponse = JSON.parse(response)
-        console.log(
-          'Worker: RPC response for',
-          event.data.type,
-          ':',
-          parsedResponse.kind?.type || parsedResponse.type,
-        )
-        console.log('Worker: RPC response data:', parsedResponse || 'no data')
-        self.postMessage(parsedResponse)
+
+      const requestJson = JSON.stringify(event.data)
+      console.log('Worker: Sending request to Tauri backend', requestJson)
+
+      // Forward the request to the Tauri backend
+      await tauriInvoke('handle_rpc_request', {
+        request: requestJson,
+      })
+
+      // Listener
+      const eventName = `fedimint-response-${event.data.request_id}`
+
+      const unlisten = await tauriEvent.listen(eventName, (eventResponse) => {
+        console.log('Worker: Received Tauri event response', eventResponse)
+
+        // Forward the response back to the JavaScript client
+        self.postMessage(eventResponse.payload)
+
+        // Clean up the listener after receiving the response
+        if (
+          eventResponse.payload.kind?.type === 'end' ||
+          eventResponse.payload.kind?.type === 'error' ||
+          eventResponse.payload.kind?.type === 'aborted'
+        ) {
+          unlisten()
+        }
       })
     } catch (err) {
-      console.error('Worker RPC error:', err)
+      console.error('Worker: RPC call failed:', err)
       self.postMessage({
         type: 'error',
-        error: err.toString(),
         request_id: event.data.request_id,
+        error: err.toString(),
       })
     }
   } else {
+    console.error('Worker: Unknown message type:', event.data.type)
     self.postMessage({
       type: 'error',
-      error: `Worker - unimplemented message type: ${event.data.type}`,
-      request_id: event.data.request_id,
+      request_id: event.data.request_id || 0,
+      error: `Unknown message type: ${event.data.type}`,
     })
   }
 }
