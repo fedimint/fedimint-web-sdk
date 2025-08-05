@@ -149,8 +149,7 @@ const cleanup = (): Promise<void> => getDirector().cleanup()
  * cleans up their resources, and clears the local storage where wallet data is stored.
  * @returns {Promise<void>} A promise that resolves when all wallets are cleared.
  */
-const clearAllWallets = (): Promise<void> => getDirector().clearAllWallets()
-const nukeData = clearAllWallets
+const nukeData = (): Promise<void> => getDirector().nukeData()
 
 /**
  * Sets the global log level.

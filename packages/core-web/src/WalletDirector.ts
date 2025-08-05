@@ -272,7 +272,7 @@ export class WalletDirector {
     logger.info('WalletDirector cleanup completed')
   }
 
-  async clearAllWallets(): Promise<void> {
+  async nukeData(): Promise<void> {
     await this.cleanup()
     try {
       localStorage.removeItem(this.STORAGE_KEY)
@@ -376,6 +376,7 @@ export class WalletDirector {
         return this.getDefaultStorageData()
       }
 
+      // TODO: Fix type safety. Remove this cast/implicit any.
       const parsed: WalletStorageData = JSON.parse(stored)
       return parsed
     } catch (error) {

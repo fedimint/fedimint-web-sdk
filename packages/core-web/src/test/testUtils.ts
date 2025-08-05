@@ -1,7 +1,5 @@
 import { Wallet } from '..'
-
-export const TESTING_INVITE =
-  'fed11qgqrsdnhwden5te0v9cxjtt4dekxzamxw4kz6mmjvvkhydted9ukg6r9xfsnx7th0fhn26tf093juamwv4u8gtnpwpcz7qqpyz0e327ua8geceutfrcaezwt22mk6s2rdy09kg72jrcmncng2gn0kp2m5sk'
+import { logger } from '../utils/logger'
 
 export const getRandomTestingId = () =>
   Array.from(crypto.getRandomValues(new Uint8Array(36)), (byte) =>
@@ -14,12 +12,17 @@ export const fundWallet = async (wallet: Wallet) => {
   const info = await getFaucetGatewayInfo(wallet)
   const invoice = await wallet.lightning.createInvoice(10_000, '', 1000, info)
   await Promise.all([
-    payFaucetInvoice(invoice.invoice),
-    wallet.lightning.waitForReceive(invoice.operation_id),
+    payFaucetInvoice(invoice.invoice).then((result) => {
+      logger.info('paid faucet invoice', result)
+    }),
+    wallet.lightning.waitForReceive(invoice.operation_id).then((res) => {
+      logger.info('received', invoice.operation_id, res)
+    }),
   ])
+  logger.info('funded wallet', invoice.operation_id)
 }
 
-export const getInviteCode = async () => {
+const getInviteCode = async () => {
   const res = await fetch(`${import.meta.env.FAUCET}/connect-string`)
   if (res.ok) {
     return await res.text()
@@ -27,6 +30,8 @@ export const getInviteCode = async () => {
     throw new Error(`Failed to get invite code: ${await res.text()}`)
   }
 }
+
+export const TESTING_INVITE = await getInviteCode()
 
 export const getFaucetGatewayApi = async (wallet: Wallet) => {
   const res = await fetch(`${import.meta.env.FAUCET}/gateway-api`)
@@ -42,7 +47,6 @@ export const getFaucetGatewayInfo = async (wallet: Wallet) => {
   const gateways = await wallet.lightning.listGateways()
   const api = await getFaucetGatewayApi(wallet)
   const gateway = gateways.find((g) => g.info.api === api)
-  console.error('gateways', gateways)
   if (!gateway) {
     throw new Error(`Gateway not found: ${api}`)
   }
@@ -50,6 +54,7 @@ export const getFaucetGatewayInfo = async (wallet: Wallet) => {
 }
 
 export const payFaucetInvoice = async (invoice: string) => {
+  logger.info('paying faucet invoice', invoice)
   const res = await fetch(`${import.meta.env.FAUCET}/pay`, {
     method: 'POST',
     body: invoice,
@@ -57,7 +62,9 @@ export const payFaucetInvoice = async (invoice: string) => {
   if (res.ok) {
     return await res.text()
   } else {
-    throw new Error(`Failed to pay faucet invoice: ${await res.text()}`)
+    const result = await res.text()
+    logger.info('failed to pay faucet invoice', result)
+    throw new Error(`Failed to pay faucet invoice: ${result}`)
   }
 }
 

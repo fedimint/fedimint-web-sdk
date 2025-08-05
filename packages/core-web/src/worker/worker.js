@@ -4,9 +4,31 @@
 // TODO: remove once https://github.com/vitest-dev/vitest/pull/6569 lands in a release
 // globalThis.__vitest_browser_runner__ = { wrapDynamicImport: (foo) => foo() }
 
+/**
+ * @typedef {import('@fedimint/fedimint-client-wasm-bundler').RpcHandler} RpcHandler
+ * @type {RpcHandler | null}
+ */
 let rpcHandler = null
 
 console.log('Worker - init')
+
+/**
+ * @type {import('../types/worker').WorkerMessageType[]}
+ */
+const MessageTypes = [
+  'init',
+  'client_rpc',
+  'open_client',
+  'close_client',
+  'join_federation',
+  'cancel_rpc',
+  'parse_invite_code',
+  'preview_federation',
+  'parse_bolt11_invoice',
+  'set_mnemonic',
+  'generate_mnemonic',
+  'get_mnemonic',
+]
 
 /**
  * Type definitions for the worker messages
@@ -114,5 +136,12 @@ self.onmessage = async (event) => {
       error: `Worker - unimplemented message type: ${event.data.type}`,
       request_id: event.data.request_id,
     })
+  }
+}
+
+self.onclose = async () => {
+  console.log('Worker: onclose')
+  if (rpcHandler) {
+    rpcHandler.close()
   }
 }

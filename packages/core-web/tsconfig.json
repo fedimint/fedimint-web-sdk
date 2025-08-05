@@ -7,9 +7,11 @@
     "declarationMap": true,
     "declarationDir": "./dist/dts",
     "sourceMap": true,
-    "lib": ["ES2020", "DOM"],
-    "types": ["node"]
+    "lib": ["ES2022", "DOM", "ESNext"],
+    "types": ["node"],
+    "allowJs": true,
+    "checkJs": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/worker/worker.js"],
   "exclude": ["node_modules", "src/**/*.test.ts", "src/test"]
 }

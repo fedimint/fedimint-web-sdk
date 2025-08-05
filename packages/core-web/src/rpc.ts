@@ -158,24 +158,12 @@ export class RpcClient {
     onData: (data: Response) => void,
     onError: (error: string) => void,
     onEnd: () => void = () => {},
-    clientName?: string, // Add optional clientName parameter
+    clientName: string,
   ): CancelFunction {
-    const effectiveClientName = clientName
-    console.debug(
-      'RpcClient.rpcStream: using clientName',
-      effectiveClientName,
-      'for method',
-      method,
-    )
-    if (effectiveClientName === undefined) {
-      throw new Error(
-        `Wallet is not open - no clientName provided for ${module}.${method}. Make sure to call openWallet() or joinFederation() first.`,
-      )
-    }
     return this.internalRpcStream(
       {
         type: 'client_rpc',
-        client_name: effectiveClientName,
+        client_name: clientName,
         module,
         method,
         payload: body,

@@ -1,30 +1,42 @@
-import { expect, onTestFinished, test } from 'vitest'
+import { afterAll, beforeAll, expect, onTestFinished, test } from 'vitest'
 import { RpcClient } from '../rpc'
 import { createWebWorkerTransport } from '../worker/WorkerTransport'
 import {
+  cleanup,
   generateMnemonic,
   getMnemonic,
   initialize,
   joinFederation,
+  listClients,
   nukeData,
   removeWallet,
   setLogLevel,
   Wallet,
 } from '..'
-import { fundWallet, getInviteCode, getRandomTestingId } from './testUtils'
+import { fundWallet, TESTING_INVITE, getRandomTestingId } from './testUtils'
 
 setLogLevel('debug')
 
 // Initialize the global instance
-initialize()
-const existingMnemonic = await getMnemonic()
-if (!existingMnemonic || !existingMnemonic.length) {
-  const mnemonic = await generateMnemonic()
-  expect(mnemonic).toBeDefined()
-}
+beforeAll(async () => {
+  const existingMnemonic = await getMnemonic()
+  if (!existingMnemonic || !existingMnemonic.length) {
+    // initialize()
+    const mnemonic = await generateMnemonic()
+    expect(mnemonic).toBeDefined()
+  }
 
-const inviteCode = await getInviteCode()
-expect(inviteCode).toBeDefined()
+  expect(TESTING_INVITE).toBeDefined()
+
+  return async () => {
+    // const wallets = listClients()
+    // console.warn('----------wallets', wallets)
+    // await nukeData()
+    // const mnemonic = await getMnemonic()
+    // console.warn('----------mnemonic', mnemonic)
+    // expect(mnemonic).toBeNull()
+  }
+})
 
 /**
  * Adds Fixtures for setting up and tearing down a test FedimintWallet instance
@@ -36,8 +48,7 @@ export const walletTest = test.extend<{
 }>({
   wallet: async ({}, use) => {
     const randomTestingId = getRandomTestingId()
-    console.error('joining federation', randomTestingId, randomTestingId.length)
-    const wallet = await joinFederation(inviteCode, randomTestingId)
+    const wallet = await joinFederation(TESTING_INVITE, randomTestingId)
     await expect(wallet).toBeDefined()
 
     onTestFinished(async () => {
@@ -61,7 +72,7 @@ export const walletTest = test.extend<{
     await use(wallet)
   },
   unopenedWallet: async ({}, use) => {
-    const wallet = await joinFederation(inviteCode)
+    const wallet = await joinFederation(TESTING_INVITE)
     await use(wallet)
   },
 })

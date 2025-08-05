@@ -250,10 +250,15 @@ export class LightningService {
       unsubscribe = this.subscribeLnReceive(
         operationId,
         (res) => {
+          console.warn('----------waitForReceive', res)
           if (res === 'claimed') {
             clearTimeout(timeoutId)
             unsubscribe()
             resolve(res)
+          } else if (typeof res === 'object' && 'canceled' in res) {
+            clearTimeout(timeoutId)
+            unsubscribe()
+            reject(new Error(res.canceled.reason))
           }
         },
         (error) => {

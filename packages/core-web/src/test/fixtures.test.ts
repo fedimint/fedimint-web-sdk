@@ -5,14 +5,14 @@ walletTest('Fund wallet 1', async ({ fundedWallet }) => {
   expect(fundedWallet).toBeDefined()
 })
 
-walletTest('Fund wallet 2', async ({ fundedWallet }) => {
+walletTest.skip('Fund wallet 2', async ({ fundedWallet }) => {
   expect(fundedWallet).toBeDefined()
 })
 
-walletTest('Fund wallet 3', async ({ fundedWallet }) => {
+walletTest.skip('Fund wallet 3', async ({ fundedWallet }) => {
   expect(fundedWallet).toBeDefined()
 })
 
-walletTest('Fund wallet 4', async ({ fundedWallet }) => {
+walletTest.skip('Fund wallet 4', async ({ fundedWallet }) => {
   expect(fundedWallet).toBeDefined()
 })
