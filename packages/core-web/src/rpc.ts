@@ -23,14 +23,15 @@ export type TransportFactory = (
 
 // Handles communication with the wasm worker
 export class RpcClient {
-  private transport?: RpcTransport
-  private createTransport: TransportFactory
+  private transport?: Promise<RpcTransport>
+  // private createTransport: TransportFactory
   private requestCounter = 0
   private subscriptionManager: SubscriptionManager
-  private initPromise?: Promise<void>
+  // private transport?: Promise<void>
 
-  constructor(createTransport: TransportFactory) {
-    this.createTransport = createTransport
+  // constructor(createTransport: TransportFactory) {
+  constructor() {
+    // this.createTransport = createTransport
     this.subscriptionManager = new SubscriptionManager(
       this.sendCancelRequest.bind(this),
     )
@@ -42,22 +43,23 @@ export class RpcClient {
       type: 'cancel_rpc',
       cancel_request_id: requestId,
     }
-    this.transport?.sendRequest(cancelRequest)
+    this.transport?.then((transport) => transport.sendRequest(cancelRequest))
   }
 
-  private async initializeInner(): Promise<void> {
-    this.transport = await this.createTransport(
-      this.handleWorkerMessage.bind(this),
-    )
-  }
+  // private async initializeInner(): Promise<void> {
+  //   this.transport = await this.createTransport(
+  //     this.handleWorkerMessage.bind(this),
+  //   )
+  // }
 
-  async initialize() {
-    if (this.initPromise) {
-      return this.initPromise
+  async initialize(createTransport: TransportFactory) {
+    if (this.transport) {
+      return this.transport
     }
 
-    this.initPromise = this.initializeInner()
-    return this.initPromise
+    // this.initPromise = this.initializeInner()
+    this.transport = createTransport(this.handleWorkerMessage.bind(this))
+    return this.transport
   }
 
   private handleWorkerMessage = (response: RpcResponseFull) => {
@@ -130,7 +132,7 @@ export class RpcClient {
       onEnd,
     )
 
-    this.transport?.sendRequest(requestFull)
+    this.transport?.then((transport) => transport.sendRequest(requestFull))
     return cancelFn
   }
 
@@ -238,9 +240,9 @@ export class RpcClient {
   async cleanup() {
     this.subscriptionManager.cancelAll()
     this.subscriptionManager.clear()
-    this.transport?.destroy()
+    this.transport?.then((transport) => transport.destroy())
     this.requestCounter = 0
-    this.initPromise = undefined
+    this.transport = undefined
   }
 
   // For Testing

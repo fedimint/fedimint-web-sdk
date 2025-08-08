@@ -1,5 +1,4 @@
 import { RpcClient, TransportFactory } from './rpc'
-import { createWebWorkerTransport } from './worker/WorkerTransport'
 import { logger, type LogLevel } from './utils/logger'
 import { generateUUID } from './utils/uuid'
 import { Wallet } from './Wallet'
@@ -12,7 +11,7 @@ import type {
 } from './types'
 
 export class WalletDirector {
-  // Lazy singleton instance - not created until first access
+  // // Lazy singleton instance - not created until first access
   private static instance: WalletDirector | undefined
 
   // RPC Client
@@ -29,16 +28,15 @@ export class WalletDirector {
     wallets: [],
   } as const satisfies WalletStorageData
 
-  private constructor(
-    createTransport: TransportFactory = createWebWorkerTransport,
-  ) {
-    this._client = new RpcClient(createTransport)
+  private constructor() {
+    // createTransport: TransportFactory = createWebWorkerTransport,
+    this._client = new RpcClient()
     logger.info('WalletDirector global instance created')
   }
 
-  static getInstance(createTransport?: TransportFactory): WalletDirector {
+  static getInstance(): WalletDirector {
     if (!WalletDirector.instance) {
-      WalletDirector.instance = new WalletDirector(createTransport)
+      WalletDirector.instance = new WalletDirector()
     }
 
     return WalletDirector.instance
@@ -53,19 +51,22 @@ export class WalletDirector {
    * @param {TransportFactory} [createTransport] - Optional factory function to create the transport.
    * @returns {Promise<void>} A promise that resolves when the initialization is complete.
    */
-  async initialize(createTransport?: TransportFactory): Promise<void> {
+  async initialize(createTransport: TransportFactory): Promise<void> {
     if (this._initPromise) {
       return this._initPromise
     }
 
-    this._initPromise = this._initializeInner()
+    if (!WalletDirector.instance) {
+      WalletDirector.instance = new WalletDirector()
+    }
+
+    await this._client.initialize(createTransport)
+    // this._initPromise = this._initializeInner()
     return this._initPromise
   }
 
   private async _initializeInner(): Promise<void> {
     logger.info('Initializing global RpcClient')
-
-    await this._client.initialize()
 
     // Initialize storage if it doesn't exist
     try {
@@ -83,7 +84,6 @@ export class WalletDirector {
   }
 
   async generateMnemonic() {
-    await this.initialize()
     if (!this._client) throw new Error('RpcClient is not initialized.')
 
     try {
@@ -96,7 +96,6 @@ export class WalletDirector {
   }
 
   async setMnemonic(words: string[]) {
-    await this.initialize()
     try {
       const res = await this._client.setMnemonic(words)
       return res.success
@@ -107,8 +106,6 @@ export class WalletDirector {
   }
 
   async getMnemonic() {
-    await this.initialize()
-
     try {
       const res = await this._client.getMnemonic()
       return res.mnemonic
@@ -119,8 +116,6 @@ export class WalletDirector {
   }
 
   async joinFederation(inviteCode: string, walletId?: string): Promise<Wallet> {
-    await this.initialize()
-
     // TODO: Hash the walletId to remove this restriction
     if (walletId && walletId.length !== 36) {
       throw new Error('Wallet ID must be exactly 36 characters long')
@@ -161,8 +156,6 @@ export class WalletDirector {
    * @throws {Error} If the wallet with the specified ID does not exist.
    */
   async openWallet(walletId: string): Promise<Wallet> {
-    await this.initialize()
-
     // Check if wallet is already open in memory
     const existingWallet = this.getWallet(walletId)
     if (existingWallet) {
@@ -181,7 +174,7 @@ export class WalletDirector {
       const clientName = walletId
 
       // Ensure the RPC client is initialized
-      await this._client.initialize()
+      // await this._client.initialize()
 
       await this._client.openClient(clientName)
 
@@ -292,24 +285,18 @@ export class WalletDirector {
   }
 
   async parseInviteCode(inviteCode: string): Promise<ParsedInviteCode> {
-    await this.initialize()
-
     const data = await this._client.parseInviteCode(inviteCode)
     logger.info(`Parsed invite code: ${inviteCode}`, data)
     return data
   }
 
   async previewFederation(inviteCode: string): Promise<PreviewFederation> {
-    await this.initialize()
-
     const data = await this._client.previewFederation(inviteCode)
     logger.info(`Previewed federation for invite code: ${inviteCode}`, data)
     return data
   }
 
   async parseBolt11Invoice(invoice: string): Promise<ParsedBolt11Invoice> {
-    await this.initialize()
-
     const data = await this._client.parseBolt11Invoice(invoice)
     logger.info(`Parsed Bolt11 invoice: ${invoice}`, data)
     return data
@@ -410,6 +397,6 @@ export class WalletDirector {
 // Export Wallet director instance to use in index.ts
 export function getDirector(): WalletDirector {
   const res = WalletDirector.getInstance()
-  res.initialize()
+  // res.initialize()
   return res
 }

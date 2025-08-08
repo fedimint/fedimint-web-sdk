@@ -52,8 +52,10 @@ self.onmessage = async (event) => {
       // Get the OPFS root directory
       const opfsRoot = await navigator.storage.getDirectory()
 
+      const filename = event.data.payload?.filename ?? 'fedimint-client.db'
+
       // Create or get the database file
-      const fileHandle = await opfsRoot.getFileHandle('fedimint-client.db', {
+      const fileHandle = await opfsRoot.getFileHandle(filename, {
         create: true,
       })
 

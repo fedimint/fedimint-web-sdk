@@ -17,7 +17,7 @@ import { TransportFactory } from './rpc'
  * @param {TransportFactory} [createTransport] - Optional factory function to create the transport.
  * @returns {Promise<void>} A promise that resolves when the initialization is complete.
  */
-const initialize = (createTransport?: TransportFactory): Promise<void> =>
+const initialize = (createTransport: TransportFactory): Promise<void> =>
   getDirector().initialize(createTransport)
 
 /**
@@ -290,7 +290,6 @@ export {
 
   // Utility functions
   cleanup,
-  clearAllWallets,
   nukeData,
   setLogLevel,
   isInitialized,

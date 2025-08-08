@@ -16,6 +16,7 @@ class WebWorkerTransport implements RpcTransport {
 
 export const createWebWorkerTransport = async (
   onRpcResponse: (response: RpcResponseFull) => void,
+  filename?: string,
 ): Promise<WebWorkerTransport> => {
   const worker = new Worker(new URL('./worker.js', import.meta.url), {
     type: 'module',
@@ -33,9 +34,11 @@ export const createWebWorkerTransport = async (
     }
 
     worker.onmessage = handleInit
+    const payload = filename ? { filename } : undefined
     worker.postMessage({
       type: 'init',
       request_id: 0,
+      payload,
     })
   })
 

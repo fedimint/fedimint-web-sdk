@@ -19,9 +19,10 @@ setLogLevel('debug')
 
 // Initialize the global instance
 beforeAll(async () => {
+  const randomTestingId = getRandomTestingId()
+  initialize((foo) => createWebWorkerTransport(foo, randomTestingId))
   const existingMnemonic = await getMnemonic()
   if (!existingMnemonic || !existingMnemonic.length) {
-    // initialize()
     const mnemonic = await generateMnemonic()
     expect(mnemonic).toBeDefined()
   }
@@ -97,7 +98,7 @@ export const workerTest = test.extend<{
     await use(randomTestingId)
   },
   workerClient: async ({}, use) => {
-    const workerClient = new RpcClient(createWebWorkerTransport)
+    const workerClient = new RpcClient()
     await use(workerClient)
   },
 })
