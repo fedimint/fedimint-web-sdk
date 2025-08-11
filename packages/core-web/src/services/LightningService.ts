@@ -183,6 +183,8 @@ export class LightningService {
       { operation_id: operation_id },
       onSuccess,
       onError,
+      () => {},
+      this.clientName,
     )
   }
 

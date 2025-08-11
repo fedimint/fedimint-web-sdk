@@ -13,7 +13,12 @@ export class WalletService {
   ) {}
 
   async getWalletSummary(): Promise<WalletSummary> {
-    return await this.client.rpcSingle('wallet', 'get_wallet_summary', {})
+    return await this.client.rpcSingle(
+      'wallet',
+      'get_wallet_summary',
+      {},
+      this.clientName,
+    )
   }
 
   async generateAddress(extraMeta: JSONValue = {}) {
@@ -23,6 +28,7 @@ export class WalletService {
       {
         extra_meta: extraMeta,
       },
+      this.clientName,
     )
   }
 
@@ -31,11 +37,16 @@ export class WalletService {
     address: string,
     extraMeta: JSONValue = {},
   ): Promise<{ operation_id: string }> {
-    return await this.client.rpcSingle('wallet', 'peg_out', {
-      amount_sat: amountSat,
-      destination_address: address,
-      extra_meta: extraMeta,
-    })
+    return await this.client.rpcSingle(
+      'wallet',
+      'peg_out',
+      {
+        amount_sat: amountSat,
+        destination_address: address,
+        extra_meta: extraMeta,
+      },
+      this.clientName,
+    )
   }
 
   subscribeDeposit(
@@ -44,11 +55,13 @@ export class WalletService {
     onError: (error: string) => void = () => {},
   ) {
     return this.client.rpcStream(
-      'ln',
+      'wallet',
       'subscribe_deposit',
       { operation_id: operation_id },
       onSuccess,
       onError,
+      () => {},
+      this.clientName,
     )
   }
 }

@@ -181,7 +181,7 @@ type WalletVariant = {
   }
   withdraw?: {
     address: string
-    amountMsats: number
+    amount: number
     fee: {
       fee_rate: {
         sats_per_kvb: number

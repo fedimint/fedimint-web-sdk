@@ -52,6 +52,7 @@ export class FederationService {
         limit: limit ?? null,
         last_seen: last_seen ?? null,
       },
+      this.clientName,
     )
   }
 
@@ -60,6 +61,7 @@ export class FederationService {
       '',
       'get_operation',
       { operation_id: operationId },
+      this.clientName,
     )
   }
 
@@ -205,10 +207,12 @@ export class FederationService {
             (variant as WalletVariant).deposit?.address ||
             (variant as WalletVariant).withdraw?.address ||
             ''
-          const feeRate = (variant as WalletVariant).withdraw?.fee.fee_rate
-            .sats_per_kvb
-          const amountMsats =
-            (variant as WalletVariant).withdraw?.amountMsats || 0
+          const feeRate =
+            (((variant as WalletVariant).withdraw?.fee?.total_weight ?? 0) /
+              1000) *
+            ((variant as WalletVariant).withdraw?.fee?.fee_rate?.sats_per_kvb ??
+              0)
+          const amountMsats = (variant as WalletVariant).withdraw?.amount || 0
 
           return {
             timestamp,
