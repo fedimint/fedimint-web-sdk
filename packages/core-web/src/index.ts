@@ -1,4 +1,4 @@
-import { getDirector } from './WalletDirector'
+import { getDirector, initializeDirector } from './WalletDirector'
 import { Wallet } from './Wallet'
 import {
   WalletInfo,
@@ -7,21 +7,22 @@ import {
   PreviewFederation,
 } from './types'
 import { type LogLevel } from './utils/logger'
-import { TransportFactory } from './rpc'
-
+import {
+  createTauriTransport,
+  createWebWorkerTransport,
+  type TransportFactory,
+} from './transport'
 /**
  * Initializes the WalletDirector instance.
  *
  * This method sets up the global RpcClient and prepares the wallet for use.
  *
- * @param {TransportFactory} [createTransport] - Optional factory function to create the transport.
- * @param {TransportFactory} [createTransport] - Optional factory function to create the transport.
+
+ * @param {TransportFactory} [createTransport] - Factory function to create the transport.
  * @returns {Promise<void>} A promise that resolves when the initialization is complete.
  */
 const initialize = (createTransport: TransportFactory): Promise<void> =>
-  getDirector().initialize(createTransport)
-const initialize = (createTransport?: TransportFactory): Promise<void> =>
-  getDirector().initialize(createTransport)
+  initializeDirector(createTransport)
 
 /**
  * Creates a new wallet and joins a federation using the provided invite code.
@@ -148,15 +149,6 @@ const getClientName = (walletId: string): string | undefined =>
  * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
  */
 const cleanup = (): Promise<void> => getDirector().cleanup()
-
-/**
- * Clears all wallets and their associated data.
- * This method removes all wallets from the WalletDirector's registry,
- * cleans up their resources, and clears the local storage where wallet data is stored.
- * @returns {Promise<void>} A promise that resolves when all wallets are cleared.
- */
-const nukeData = (): Promise<void> => getDirector().nukeData()
-const clearAllWallets = (): Promise<void> => getDirector().clearAllWallets()
 
 /**
  * Sets the global log level.
@@ -386,8 +378,6 @@ export {
 
   // Utility functions
   cleanup,
-  nukeData,
-  clearAllWallets,
   setLogLevel,
   isInitialized,
   loadWalletDirector,
@@ -400,4 +390,8 @@ export {
 
   // Classes
   Wallet,
+
+  // Transport creation functions
+  createTauriTransport,
+  createWebWorkerTransport,
 }

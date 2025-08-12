@@ -15,7 +15,7 @@ export default [
       sourcemap: true,
     },
     plugins: [typescript(), terser()],
-    external: ['@fedimint/fedimint-client-wasm-bundler'],
+    external: ['@fedimint/fedimint-client-wasm-bundler', 'uuid'],
   },
   {
     input: './dist/dts/index.d.ts',

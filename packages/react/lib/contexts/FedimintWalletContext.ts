@@ -2,6 +2,7 @@ import {
   Wallet,
   initialize,
   setLogLevel,
+  createWebWorkerTransport,
   type WalletInfo,
 } from '@fedimint/core-web'
 import {
@@ -26,7 +27,7 @@ export const setupFedimintWallet = async (
   config: FedimintWalletConfig = {},
 ) => {
   if (!isInitialized) {
-    await initialize()
+    await initialize(createWebWorkerTransport)
     isInitialized = true
   }
 

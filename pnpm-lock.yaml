@@ -121,6 +121,19 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  examples/tauri-ts:
+    dependencies:
+      '@fedimint/core-web':
+        specifier: workspace:*
+        version: link:../../packages/core-web
+      '@tauri-apps/api':
+        specifier: ^2.0.0
+        version: 2.7.0
+    devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.8.3
+
   examples/vite-core:
     dependencies:
       '@fedimint/core-web':
@@ -204,6 +217,9 @@ importers:
       '@rollup/plugin-typescript':
         specifier: ^11.1.6
         version: 11.1.6(rollup@4.41.0)(tslib@2.8.1)(typescript@5.8.3)
+      '@tauri-apps/api':
+        specifier: ^2.0.0
+        version: 2.7.0
       '@types/node':
         specifier: ^20.17.49
         version: 20.17.49
@@ -2167,6 +2183,9 @@ packages:
 
   '@tailwindcss/postcss@4.1.7':
     resolution: {integrity: sha512-88g3qmNZn7jDgrrcp3ZXEQfp9CVox7xjP1HN2TFKI03CltPVd/c61ydn5qJJL8FYunn0OqBaW5HNUga0kmPVvw==}
+
+  '@tauri-apps/api@2.7.0':
+    resolution: {integrity: sha512-v7fVE8jqBl8xJFOcBafDzXFc8FnicoH3j8o8DNNs0tHuEBmXUDqrCOAzMRX0UkfpwqZLqvrvK0GNQ45DfnoVDg==}
 
   '@testing-library/dom@10.4.0':
     resolution: {integrity: sha512-pemlzrSESWbdAloYml3bAJMEfNh1Z7EduzqPKprCH5S341frlpYnUEW0H72dLxa6IsYr+mPno20GiSm+h9dEdQ==}
@@ -8185,6 +8204,8 @@ snapshots:
       '@tailwindcss/oxide': 4.1.7
       postcss: 8.5.1
       tailwindcss: 4.1.7
+
+  '@tauri-apps/api@2.7.0': {}
 
   '@testing-library/dom@10.4.0':
     dependencies:

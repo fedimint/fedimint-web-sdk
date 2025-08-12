@@ -29,9 +29,18 @@
     "@fedimint/fedimint-client-wasm-bundler": "workspace:*",
     "uuid": "^11.1.0"
   },
+  "peerDependencies": {
+    "@tauri-apps/api": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@tauri-apps/api": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
+    "@tauri-apps/api": "^2.0.0",
     "@types/node": "^20.17.49",
     "@types/secp256k1": "^4.0.6",
     "@types/uuid": "^10.0.0",
