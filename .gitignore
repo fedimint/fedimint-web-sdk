@@ -23,3 +23,6 @@ next-env.d.ts
 
 result
 tasks
+
+.conductor
+.claude

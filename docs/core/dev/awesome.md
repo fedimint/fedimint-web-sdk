@@ -4,8 +4,8 @@ A curated list of talks, awesome projects, resources, and tools built with the *
 
 ## Talks
 
-- [Fedimint web sdk deep dive - Bitcoin++ ecash edition (October 2024)](https://www.youtube.com/watch?v=KCZ6y2ufavw)
-- [Fedi Office Hours - tour of the fedimint web sdk (December 2024)](https://www.youtube.com/watch?v=fvB-LzI_BzI)
+- [How to build a Fedimint wallet in 20 minutes (without Rust)](https://www.youtube.com/watch?v=KCZ6y2ufavw) - Workshop to build a wallet app with the Fedimint Web Sdk @ Bitcoin++ ecash edition in Berlin, Germany (October 2024).
+- [Fedi Office Hours](https://www.youtube.com/watch?v=fvB-LzI_BzI) - livestreamed tour / walkthrough of the Fedimint Web Sdk (December 2024).
 
 ## Applications
 
