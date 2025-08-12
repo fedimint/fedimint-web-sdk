@@ -1,13 +1,19 @@
 # Awesome Projects
 
-A curated list of awesome projects, resources, and tools built with the **Fedimint Web SDK**.
+A curated list of talks, awesome projects, resources, and tools built with the **Fedimint Web SDK**.
+
+## Talks
+
+- [Fedimint web sdk deep dive - Bitcoin++ ecash edition (October 2024)](https://www.youtube.com/watch?v=KCZ6y2ufavw)
+- [Fedi Office Hours - tour of the fedimint web sdk (December 2024)](https://www.youtube.com/watch?v=fvB-LzI_BzI)
 
 ## Applications
 
 ### Community Apps
 
-- [Browsimint](https://github.com/IroncladDev/browsimint) - Browser extension lighting/ecash wallet. Beautiful UI. Supports joining multiple federations.
 - [Vipr Wallet](https://github.com/ngutech21/vipr-wallet) - Modern Progressive Web App. Supports joining multiple federations.
+- [Fedimint Web Wallet](https://github.com/Harshdev098/fedimint-web-wallet) - Web wallet built with the Fedimint Web SDK. Built by Summer of Bitcoin intern [@Harsh_dev098](https://x.com/Harsh_dev098).
+- [Browsimint](https://github.com/IroncladDev/browsimint) - Browser extension lighting/ecash wallet. Beautiful UI. Supports joining multiple federations.
 - [ATL Bitlab Wallet](https://github.com/ATLBitLab/wallet) - Wallet for the Atlanta Bitcoin Community.
 - [Bitsacco](https://bitsacco.com/) - Currently built using fedimint-clientd. Transitioning to use the Fedimint Web SDK.
 
