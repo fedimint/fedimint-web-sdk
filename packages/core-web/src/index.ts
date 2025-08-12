@@ -1,4 +1,4 @@
-import { getDirector } from './WalletDirector'
+import { getDirector, initializeDirector } from './WalletDirector'
 import { Wallet } from './Wallet'
 import {
   WalletInfo,
@@ -7,18 +7,21 @@ import {
   PreviewFederation,
 } from './types'
 import { type LogLevel } from './utils/logger'
-import { TransportFactory } from './rpc'
-
+import {
+  createTauriTransport,
+  createWebWorkerTransport,
+  type TransportFactory,
+} from './transport'
 /**
  * Initializes the WalletDirector instance.
  *
  * This method sets up the global RpcClient and prepares the wallet for use.
  *
- * @param {TransportFactory} [createTransport] - Optional factory function to create the transport.
+ * @param {TransportFactory} [createTransport] - Factory function to create the transport.
  * @returns {Promise<void>} A promise that resolves when the initialization is complete.
  */
-const initialize = (createTransport?: TransportFactory): Promise<void> =>
-  getDirector().initialize(createTransport)
+const initialize = (createTransport: TransportFactory): Promise<void> =>
+  initializeDirector(createTransport)
 
 /**
  * Creates a new wallet and joins a federation using the provided invite code.
@@ -304,4 +307,8 @@ export {
 
   // Classes
   Wallet,
+
+  // Transport creation functions
+  createTauriTransport,
+  createWebWorkerTransport,
 }
