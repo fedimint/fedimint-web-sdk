@@ -1,4 +1,4 @@
-import { getDirector } from './WalletDirector'
+import { getDirector, initializeDirector } from './WalletDirector'
 import { Wallet } from './Wallet'
 import {
   WalletInfo,
@@ -7,18 +7,21 @@ import {
   PreviewFederation,
 } from './types'
 import { type LogLevel } from './utils/logger'
-import { TransportFactory } from './rpc'
-
+import {
+  createTauriTransport,
+  createWebWorkerTransport,
+  type TransportFactory,
+} from './transport'
 /**
  * Initializes the WalletDirector instance.
  *
  * This method sets up the global RpcClient and prepares the wallet for use.
  *
- * @param {TransportFactory} [createTransport] - Optional factory function to create the transport.
+ * @param {TransportFactory} [createTransport] - Factory function to create the transport.
  * @returns {Promise<void>} A promise that resolves when the initialization is complete.
  */
-const initialize = (createTransport?: TransportFactory): Promise<void> =>
-  getDirector().initialize(createTransport)
+const initialize = (createTransport: TransportFactory): Promise<void> =>
+  initializeDirector(createTransport)
 
 /**
  * Creates a new wallet and joins a federation using the provided invite code.
@@ -27,14 +30,17 @@ const initialize = (createTransport?: TransportFactory): Promise<void> =>
  * If the wallet ID already exists, it throws an error.
  *
  * @param {string} inviteCode - The invite code to join the federation.
+ * @param {boolean} [recover] - Optional flag to indicate if this is a recovery operation.
  * @param {string} [walletId] - Optional wallet ID to identify the wallet. Must be exactly 36 characters long.
  * @returns {Promise<Wallet>} A promise that resolves to the created Wallet instance.
  * @throws {Error} If the wallet ID already exists in the storage.
  */
 const joinFederation = (
   inviteCode: string,
+  recover?: boolean,
   walletId?: string,
-): Promise<Wallet> => getDirector().joinFederation(inviteCode, walletId)
+): Promise<Wallet> =>
+  getDirector().joinFederation(inviteCode, walletId, recover)
 
 /**
  * Opens an existing wallet by its ID.
@@ -150,7 +156,6 @@ const cleanup = (): Promise<void> => getDirector().cleanup()
  * @returns {Promise<void>} A promise that resolves when all wallets are cleared.
  */
 const clearAllWallets = (): Promise<void> => getDirector().clearAllWallets()
-const nukeData = clearAllWallets
 
 /**
  * Sets the global log level.
@@ -292,7 +297,6 @@ export {
   // Utility functions
   cleanup,
   clearAllWallets,
-  nukeData,
   setLogLevel,
   isInitialized,
 
@@ -303,4 +307,8 @@ export {
 
   // Classes
   Wallet,
+
+  // Transport creation functions
+  createTauriTransport,
+  createWebWorkerTransport,
 }
