@@ -21,6 +21,15 @@ export class WalletService {
     )
   }
 
+  async getBlockCount() {
+    return await this.client.rpcSingle<number>(
+      'wallet',
+      'get_block_count_local',
+      {},
+      this.clientName,
+    )
+  }
+
   async generateAddress(extraMeta: JSONValue = {}) {
     return await this.client.rpcSingle<GenerateAddressResponse>(
       'wallet',

@@ -30,6 +30,15 @@ export class FederationService {
     )
   }
 
+  async getSessionCount() {
+    return await this.client.rpcSingle<number>(
+      '',
+      'session_count',
+      {},
+      this.clientName,
+    )
+  }
+
   async getInviteCode(peer: number = 0) {
     return await this.client.rpcSingle<string | null>(
       '',
