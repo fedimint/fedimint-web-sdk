@@ -253,6 +253,7 @@ type WalletInfo = {
   federationId: string
   createdAt: number
   lastAccessedAt: number
+  isRecovering?: boolean
 }
 
 type WalletStorageData = {

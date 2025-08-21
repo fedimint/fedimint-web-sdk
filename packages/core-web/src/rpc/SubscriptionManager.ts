@@ -23,7 +23,6 @@ export class SubscriptionManager {
     onError: (error: string) => void,
     onEnd: () => void = () => {},
   ): CancelFunction {
-
     const cancelFn = () => {
       this.cancelSubscription(id)
     }

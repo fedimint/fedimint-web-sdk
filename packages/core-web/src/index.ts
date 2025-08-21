@@ -6,12 +6,13 @@ import {
   ParsedInviteCode,
   PreviewFederation,
 } from './types'
-import { type LogLevel } from './utils/logger'
+import { logger, type LogLevel } from './utils/logger'
 import {
   createTauriTransport,
   createWebWorkerTransport,
   type TransportFactory,
 } from './transport'
+
 /**
  * Initializes the WalletDirector instance.
  *
@@ -38,36 +39,31 @@ const initialize = (createTransport: TransportFactory): Promise<void> =>
  */
 const joinFederation = (
   inviteCode: string,
-  recover?: boolean,
+  walletId?: string,
+): Promise<Wallet> => getDirector().joinFederation(inviteCode, walletId)
+
+const recoverFederationFromScratch = (
+  inviteCode: string,
   walletId?: string,
 ): Promise<Wallet> =>
-  getDirector().joinFederation(inviteCode, walletId, recover)
+  getDirector().recoverFederationFromScratch(inviteCode, walletId)
 
 /**
  * Opens an existing wallet by its ID.
  *
- * Opens the wallet with the specified ID. If the wallet is not found,
- * it throws an error.
+ * If the wallet does not exist, it throws an error.
+ * If the wallet is already open, it returns the existing instance.
  *
  * @param {string} walletId - The ID of the wallet to open.
  * @returns {Promise<Wallet>} A promise that resolves to the opened Wallet instance.
+ * @throws {Error} If the wallet with the specified ID does not exist.
  */
 const openWallet = (walletId: string): Promise<Wallet> =>
   getDirector().openWallet(walletId)
 
-/** Removes a wallet by its ID.
- * This method removes the wallet from the WalletDirector's registry
- * and cleans up any associated resources.
- * @param {string} walletId - The ID of the wallet to remove.
- * @returns {void}
- */
-const removeWallet = (walletId: string): void =>
-  getDirector().removeWallet(walletId)
-
 /**
- * Retrieves a wallet by its ID.
+ * Retrieves an existing wallet by its ID.
  *
- * This method returns the Wallet instance associated with the specified ID.
  * If the wallet is not found, it returns undefined.
  *
  * @param {string} walletId - The ID of the wallet to retrieve.
@@ -111,19 +107,20 @@ const getWalletsByFederation = (federationId: string): Wallet[] =>
 const listClients = (): WalletInfo[] => getDirector().listClients()
 
 /**
- * Retrieves information about a specific wallet.
- * This method returns an object containing the wallet's ID, client name,
- * federation ID (if any), creation time, and last accessed time.
- * @param {string} walletId - The ID of the wallet to retrieve information for.
+ * Retrieves wallet info by its ID.
+ *
+ * If the wallet with the specified ID does not exist, it returns undefined.
+ *
+ * @param {string} walletId - The ID of the wallet to retrieve info for.
  * @returns {WalletInfo | undefined} An object containing wallet information,
- *                                  or undefined if the wallet does not exist.
+ *                                   or undefined if the wallet does not exist.
  */
 const getWalletInfo = (walletId: string): WalletInfo | undefined =>
   getDirector().getWalletInfo(walletId)
 
 /**
  * Checks if a wallet with the specified ID exists.
- * This method returns true if the wallet exists, false otherwise.
+ *
  * @param {string} walletId - The ID of the wallet to check.
  * @returns {boolean} True if the wallet exists, false otherwise.
  */
@@ -131,55 +128,31 @@ const hasWallet = (walletId: string): boolean =>
   getDirector().hasWallet(walletId)
 
 /**
- * Retrieves the client name associated with a specific wallet ID.
+ * Removes a wallet by its ID.
  *
- * This method returns the client name for the specified wallet ID.
- * If the wallet does not exist, it returns undefined.
+ * This method cleans up the wallet resources and removes it from
+ * the registry.
  *
- * @param {string} walletId - The ID of the wallet to retrieve the client name for.
- * @returns {string | undefined} The client name or undefined if the wallet does not exist.
+ * @param {string} walletId - The ID of the wallet to remove.
+ * @returns {void}
  */
-const getClientName = (walletId: string): string | undefined =>
-  getDirector().getClientName(walletId)
-
-/**
- * Cleans up the WalletDirector instance.
- * This method cleans up all wallets, clears the RPC client, and resets the
- * internal state of the WalletDirector.
- * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
- */
-const cleanup = (): Promise<void> => getDirector().cleanup()
+const removeWallet = (walletId: string): void =>
+  getDirector().removeWallet(walletId)
 
 /**
  * Sets the global log level.
- * @param {LogLevel} level - The log level to set. Can be 'debug', 'info', 'warn', 'error'.
+ *
+ * @param {LogLevel} level - The log level to set.
+ * @returns {void}
  */
-const setLogLevel = (level: LogLevel) => getDirector().setLogLevel(level)
+const setLogLevel = (level: LogLevel): void => getDirector().setLogLevel(level)
 
 /**
- * Checks if the WalletDirector is initialized.
- * @returns {boolean} True if initialized, false otherwise.
- */
-const isInitialized = (): boolean => getDirector().isInitialized()
-
-/**
- * Parses a federation invite code and retrieves its details.
+ * Parses an invite code to extract federation details.
  *
- * This method sends the provided invite code to the WorkerClient for parsing.
- * The response includes the federation_id and url.
- *
- * @param {string} inviteCode - The invite code to be parsed.
- * @returns {Promise<{ federation_id: string, url: string}>}
- *          A promise that resolves to an object containing:
- *          - `federation_id`: The id of the feder.
- *          - `url`: One of the apipoints to connect to the federation
- *
- * @throws {Error} If the WorkerClient encounters an issue during the parsing process.
- *
- * @example
- * const inviteCode = "example-invite-code";
- * const parsedCode = await wallet.parseInviteCode(inviteCode);
- * console.log(parsedCode.federation_id, parsedCode.url);
+ * @param {string} inviteCode - The invite code to parse.
+ * @returns {Promise<ParsedInviteCode>} A promise that resolves to an object
+ *                                      containing the parsed invite code details.
  */
 const parseInviteCode = (inviteCode: string): Promise<ParsedInviteCode> =>
   getDirector().parseInviteCode(inviteCode)
@@ -228,7 +201,8 @@ const previewFederation = (inviteCode: string): Promise<PreviewFederation> =>
 const parseBolt11Invoice = (invoice: string): Promise<ParsedBolt11Invoice> =>
   getDirector().parseBolt11Invoice(invoice)
 
-/** * Generates a new mnemonic phrase for wallet creation.
+/**
+ * Generates a new mnemonic phrase for wallet creation.
  * This method sends a request to the WorkerClient to generate a mnemonic.
  * The mnemonic is used for creating a new wallet.
  * @returns {Promise<Mnemonic>} A promise that resolves to an object containing:
@@ -274,10 +248,10 @@ const hasMnemonic = (): Promise<boolean> => getDirector().hasMnemonic()
 
 /**
  * Creates and initializes the WalletDirector with an optional mnemonic.
- * 
- * This function initializes the WalletDirector and either sets the provided mnemonic 
+ *
+ * This function initializes the WalletDirector and either sets the provided mnemonic
  * or generates a new one if none is provided.
- * 
+ *
  * @param {TransportFactory} transport - The transport factory to use for communication
  * @param {string[]} [mnemonic] - Optional mnemonic words to set. If not provided, a new mnemonic will be generated.
  * @returns {Promise<string[]>} A promise that resolves to the mnemonic words that were set
@@ -285,14 +259,14 @@ const hasMnemonic = (): Promise<boolean> => getDirector().hasMnemonic()
  */
 const createWalletDirector = async (
   transport: TransportFactory,
-  mnemonic?: string[]
+  mnemonic?: string[],
 ): Promise<void> => {
   try {
     await initializeDirector(transport)
-    
-    if(!mnemonic || mnemonic.length === 0) {
-    await getDirector().generateMnemonic()
-    }else{
+
+    if (!mnemonic || mnemonic.length === 0) {
+      await getDirector().generateMnemonic()
+    } else {
       await getDirector().setMnemonic(mnemonic)
     }
     logger.info('WalletDirector created and initialized with mnemonic')
@@ -304,62 +278,77 @@ const createWalletDirector = async (
 
 /**
  * Loads the WalletDirector by checking if a mnemonic is set and opening all available wallets.
- * 
+ *
  * This function first checks if a mnemonic is set. If it is, it opens all wallets
  * stored in the WalletDirector.
- * 
+ *
  * @returns {Promise<boolean>} A promise that resolves to:
  *   - true if a mnemonic is set and all wallets were successfully loaded
  *   - false if no mnemonic is set or if there was an issue loading wallets
  */
-const loadWalletDirector = async (transport: TransportFactory): Promise<boolean> => {
+const loadWalletDirector = async (
+  transport: TransportFactory,
+): Promise<boolean> => {
   try {
-    await initializeDirector(transport) 
+    await initializeDirector(transport)
     const hasMnemonicSet = await getDirector().hasMnemonic()
-    
+
     if (!hasMnemonicSet) {
       logger.info('No mnemonic set, skipping wallet loading')
       return false
     }
-    
     // Get all wallet infos
     const walletInfos = getDirector().listClients()
-    
+
     if (walletInfos.length === 0) {
       logger.info('No wallets found to load')
-      return true 
+      return true
     }
-    
+
     // Open all wallets
-    const openPromises = walletInfos.map(info => 
-      getDirector().openWallet(info.id)
-        .catch(error => {
+    const openPromises = walletInfos.map((info) =>
+      getDirector()
+        .openWallet(info.id)
+        .catch((error) => {
           logger.error(`Failed to open wallet ${info.id}:`, error)
           return null
-        })
+        }),
     )
-    
+
     const results = await Promise.all(openPromises)
-    const successCount = results.filter(wallet => wallet !== null).length
-    
-    logger.info(`Successfully opened ${successCount} of ${walletInfos.length} wallets`)
+    const successCount = results.filter((wallet) => wallet !== null).length
+
+    logger.info(
+      `Successfully opened ${successCount} of ${walletInfos.length} wallets`,
+    )
     return true
-    
   } catch (error) {
     logger.error('Error in loadWalletDirector:', error)
     return false
   }
 }
 
-
-
 export type * from './types'
 
 // Export all functions and the class
+// Functions to check and modify wallet recovery state
+/**
+ * Checks if a wallet is currently in recovery mode
+ *
+ * When a wallet is in recovery mode, most operations will be disabled except for:
+ * - Recovery-related methods
+ * - Balance tracking methods
+ *
+ * @param {Wallet} wallet - The wallet to check
+ * @returns {boolean} True if the wallet is in recovery mode, false otherwise
+ */
+const isWalletRecovering = (wallet: Wallet): boolean => wallet.isRecovering
+
 export {
   // Core wallet functions
   initialize,
   joinFederation,
+  recoverFederationFromScratch,
   openWallet,
   removeWallet,
   getWallet,
@@ -369,17 +358,15 @@ export {
   setMnemonic,
   getMnemonic,
   hasMnemonic,
+  isWalletRecovering,
 
   // Wallet management functions
   listClients,
   getWalletInfo,
   hasWallet,
-  getClientName,
 
   // Utility functions
-  cleanup,
   setLogLevel,
-  isInitialized,
   loadWalletDirector,
   createWalletDirector,
 

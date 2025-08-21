@@ -14,7 +14,6 @@ export const fundWallet = async (wallet: Wallet) => {
   const info = await getFaucetGatewayInfo(wallet)
   const invoice = await wallet.lightning.createInvoice(10_000, '', 1000, info)
   await Promise.all([
-
     payFaucetInvoice(invoice.invoice),
     wallet.lightning.waitForReceive(invoice.operation_id),
   ])
@@ -28,7 +27,6 @@ export const getInviteCode = async () => {
     throw new Error(`Failed to get invite code: ${await res.text()}`)
   }
 }
-
 
 export const getFaucetGatewayApi = async (wallet: Wallet) => {
   const res = await fetch(`${import.meta.env.FAUCET}/gateway-api`)

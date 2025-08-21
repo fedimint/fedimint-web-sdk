@@ -30,14 +30,14 @@ export class WalletDirector {
     wallets: [],
   } as const satisfies WalletStorageData
 
-  private constructor(createTransport: TransportFactory = transport) {
-    this._client = new RpcClient(createTransport)
+  private constructor(transport: TransportFactory) {
+    this._client = new RpcClient(transport)
     logger.info('WalletDirector global instance created')
   }
 
-  static getInstance(createTransport: TransportFactory): WalletDirector {
+  static getInstance(transport: TransportFactory): WalletDirector {
     if (!WalletDirector.instance) {
-      WalletDirector.instance = new WalletDirector()
+      WalletDirector.instance = new WalletDirector(transport)
     }
 
     return WalletDirector.instance
@@ -53,17 +53,17 @@ export class WalletDirector {
    * @param {TransportFactory} [createTransport] - Factory function to create the transport.
    * @returns {Promise<void>} A promise that resolves when the initialization is complete.
    */
-  async initialize(createTransport: TransportFactory): Promise<void> {
+  async initialize(): Promise<void> {
     if (this._initPromise) {
       return this._initPromise
     }
-    this._initPromise = this._initializeInner(createTransport)
+    this._initPromise = this._initializeInner()
     return this._initPromise
   }
 
-  private async _initializeInner(transport: TransportFactory): Promise<void> {
+  private async _initializeInner(): Promise<void> {
     logger.info('Initializing global RpcClient')
-
+    await this._client.initialize()
     // Initialize storage if it doesn't exist
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY)
@@ -80,7 +80,6 @@ export class WalletDirector {
   }
 
   async generateMnemonic() {
-
     if (!this._client) throw new Error('RpcClient is not initialized.')
 
     try {
@@ -112,10 +111,57 @@ export class WalletDirector {
     }
   }
 
-  async joinFederation(
+  /**
+   * Checks if a mnemonic is currently set in the wallet.
+   *
+   * @returns {Promise<boolean>} A promise that resolves to true if a mnemonic is set, false otherwise.
+   */
+  async hasMnemonic(): Promise<boolean> {
+    try {
+      const mnemonic = await this.getMnemonic()
+      return Array.isArray(mnemonic) && mnemonic.length > 0
+    } catch (error) {
+      logger.error('Error checking mnemonic existence:', error)
+      return false
+    }
+  }
+
+  async joinFederation(inviteCode: string, walletId?: string): Promise<Wallet> {
+    // TODO: Hash the walletId to remove this restriction
+    if (walletId && walletId.length !== 36) {
+      throw new Error('Wallet ID must be exactly 36 characters long')
+    }
+
+    // check if walletId exists in storage
+    if (walletId && this.hasWallet(walletId)) {
+      throw new Error(`Wallet with ID ${walletId} already exists`)
+    }
+
+    try {
+      logger.debug('Joining federation with invite code:', inviteCode)
+
+      // Parse the invite code to get federation ID
+      const parsedInvite = await this._client.parseInviteCode(inviteCode)
+      const federationId = parsedInvite.federation_id
+
+      const clientName = walletId || generateUUID()
+
+      await this._client.joinFederation(inviteCode, clientName, false)
+
+      const wallet = new Wallet(this._client!, federationId, clientName, false)
+
+      this.addWallet(wallet)
+      logger.info(`Joined federation and created wallet with ID: ${wallet.id}`)
+      return wallet
+    } catch (error) {
+      logger.error(`Error joining federation:`, error)
+      throw error
+    }
+  }
+
+  async recoverFederationFromScratch(
     inviteCode: string,
     walletId?: string,
-    recover?: boolean,
   ): Promise<Wallet> {
     // TODO: Hash the walletId to remove this restriction
     if (walletId && walletId.length !== 36) {
@@ -127,7 +173,6 @@ export class WalletDirector {
       throw new Error(`Wallet with ID ${walletId} already exists`)
     }
 
-    recover = recover ?? false
     try {
       logger.debug('Joining federation with invite code:', inviteCode)
 
@@ -137,19 +182,17 @@ export class WalletDirector {
 
       const clientName = walletId || generateUUID()
 
-      await this._client.joinFederation(inviteCode, clientName, recover)
+      await this._client.joinFederation(inviteCode, clientName, true)
 
-
-      const wallet = new Wallet(this._client!, federationId, clientName)
+      const wallet = new Wallet(this._client!, federationId, clientName, true)
 
       this.addWallet(wallet)
       logger.info(`Joined federation and created wallet with ID: ${wallet.id}`)
-      if (recover) {
-        logger.info(`Recovering wallet ${clientName} with ${federationId}`)
-      }
+      logger.info(`Recovering wallet ${clientName} with ${federationId}`)
+
       return wallet
     } catch (error) {
-      logger.error(`Error joining federation:`, error)
+      logger.error(`Error recovering federation:`, error)
       throw error
     }
   }
@@ -184,11 +227,18 @@ export class WalletDirector {
 
       await this._client.openClient(clientName)
 
-      const wallet = new Wallet(this._client!, pointer.federationId, walletId)
+      // Check if this wallet was in recovery mode - this information should be stored with the wallet info
+      const isInRecovery = pointer.isRecovering || false
+      const wallet = new Wallet(
+        this._client!,
+        pointer.federationId,
+        walletId,
+        isInRecovery,
+      )
 
       this.addWallet(wallet)
       logger.info(
-        `Wallet ${walletId} opened successfully with federation ${pointer.federationId}`,
+        `Wallet ${walletId} opened successfully with federation ${pointer.federationId}${isInRecovery ? ' in recovery mode' : ''}`,
       )
       return wallet
     } catch (error) {
@@ -271,16 +321,6 @@ export class WalletDirector {
     logger.info('WalletDirector cleanup completed')
   }
 
-  async nukeData(): Promise<void> {
-    await this.cleanup()
-    try {
-      localStorage.removeItem(this.STORAGE_KEY)
-      logger.info('All wallet data cleared')
-    } catch (error) {
-      logger.error('Error clearing wallet storage:', error)
-    }
-  }
-
   setLogLevel(level: LogLevel): void {
     logger.setLevel(level)
     logger.info(`Global log level set to ${level}`)
@@ -322,6 +362,7 @@ export class WalletDirector {
             ? Date.now()
             : data.wallets[existingIndex].createdAt,
         lastAccessedAt: Date.now(),
+        isRecovering: wallet.isRecovering,
       }
 
       if (existingIndex === -1) {
@@ -369,7 +410,6 @@ export class WalletDirector {
         return this.getDefaultStorageData()
       }
 
-      // TODO: Fix type safety. Remove this cast/implicit any.
       const parsed: WalletStorageData = JSON.parse(stored)
       return parsed
     } catch (error) {
@@ -413,5 +453,6 @@ export function initializeDirector(
   createTransport: TransportFactory,
 ): Promise<void> {
   transport = createTransport
-  return WalletDirector.getInstance(transport).initialize(transport)
+
+  return WalletDirector.getInstance(transport).initialize()
 }

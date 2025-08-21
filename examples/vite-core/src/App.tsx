@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   Wallet,
   joinFederation,
@@ -9,18 +9,17 @@ import {
   previewFederation,
   parseInviteCode,
   parseBolt11Invoice,
-  initialize,
   generateMnemonic,
   getMnemonic,
   setMnemonic,
   createWebWorkerTransport,
+  recoverFederationFromScratch,
+  createWalletDirector,
+  loadWalletDirector,
 } from '@fedimint/core-web'
 
 const TESTNET_FEDERATION_CODE =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
-
-// Initialize the global instance
-initialize(createWebWorkerTransport)
 
 // Custom hooks
 const useBalance = (wallet: Wallet | undefined, isRecovering: boolean) => {
@@ -28,7 +27,6 @@ const useBalance = (wallet: Wallet | undefined, isRecovering: boolean) => {
 
   useEffect(() => {
     setBalance(0)
-
     if (!wallet?.federationId || isRecovering) {
       return
     }
@@ -89,9 +87,85 @@ const App = () => {
       timestamp: number
     }>
   >([])
+  const [recoveryPercentage, setRecoveryPercentage] = useState(0)
   const [isRecovering, setIsRecovering] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   const balance = useBalance(activeWallet, isRecovering)
+
+  // Initialize the wallet system on mount
+  useEffect(() => {
+    const initWallets = async () => {
+      try {
+        // Try to load existing wallets
+        const loaded = await loadWalletDirector(createWebWorkerTransport)
+
+        if (!loaded) {
+          // Show onboarding if no wallets were loaded
+          setShowOnboarding(true)
+        } else {
+          // Load active wallets if successful
+          const existingWallets = getActiveWallets()
+          setWallets(existingWallets)
+
+          if (existingWallets.length > 0) {
+            setActiveWallet(existingWallets[0])
+          }
+        }
+      } catch (err) {
+        console.error('Error initializing wallet system:', err)
+        setError(err instanceof Error ? err.message : String(err))
+      }
+    }
+
+    initWallets()
+  }, [])
+
+  // Handler for creating a new wallet from onboarding
+  const handleCreateNewWallet = async () => {
+    try {
+      await createWalletDirector(createWebWorkerTransport)
+      const mnemonic = await getMnemonic()
+
+      if (!mnemonic) {
+        throw new Error('Failed to get mnemonic')
+      }
+
+      const mnemonicStrings = mnemonic.map((word) => String(word))
+      setShowOnboarding(false)
+
+      alert(
+        'IMPORTANT: Please write down your recovery phrase and keep it safe:\n\n' +
+          mnemonicStrings.join(' '),
+      )
+    } catch (error) {
+      console.error('Error creating new wallet:', error)
+      setError(error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  // Handler for recovering an existing wallet from onboarding
+  const handleRecoverWallet = async () => {
+    try {
+      // Ask user for their recovery phrase
+      const mnemonicString = prompt(
+        'Enter your 12 or 24 word recovery phrase (words separated by spaces):',
+      )
+
+      if (!mnemonicString) {
+        return // User cancelled
+      }
+
+      // Convert to array and set the mnemonic
+      const mnemonic = mnemonicString.trim().split(/\s+/)
+      await createWalletDirector(createWebWorkerTransport, mnemonic)
+
+      setShowOnboarding(false)
+    } catch (error) {
+      console.error('Error recovering wallet:', error)
+      setError(error instanceof Error ? error.message : String(error))
+    }
+  }
 
   // Load wallet pointers on mount and refresh periodically
   useEffect(() => {
@@ -210,6 +284,7 @@ const App = () => {
   useEffect(() => {
     if (!activeWallet) {
       setRecoveryProgress([])
+      setRecoveryPercentage(0)
       setIsRecovering(false)
       return
     }
@@ -227,9 +302,16 @@ const App = () => {
     checkRecovery()
 
     // Subscribe to recovery progress for the active wallet
+    // Track both overall percentage and per-module details
+    let overallPercentage = 0
+    const moduleProgressMap = new Map<
+      number,
+      { complete: number; total: number; percentage: number }
+    >()
+
     const unsubscribe = activeWallet.recovery.subscribeToRecoveryProgress(
       (progress) => {
-        console.log('Recovery progress:', progress)
+        // Add to the progress events array for compatibility
         setRecoveryProgress((prev) => [
           ...prev,
           {
@@ -238,6 +320,45 @@ const App = () => {
             timestamp: Date.now(),
           },
         ])
+
+        // Calculate overall percentage based on module with lowest progress
+        try {
+          if (
+            typeof progress.progress === 'object' &&
+            progress.progress !== null &&
+            'complete' in progress.progress &&
+            'total' in progress.progress &&
+            typeof progress.progress.complete === 'number' &&
+            typeof progress.progress.total === 'number'
+          ) {
+            const moduleId = progress.module_id
+            const complete = progress.progress.complete
+            const total = progress.progress.total
+
+            // Handle the 0/0 case - treat as 0% complete
+            let percentage = 0
+            if (total > 0) {
+              percentage = Math.min(100, (complete / total) * 100)
+            }
+
+            // Update the progress for this module
+            moduleProgressMap.set(moduleId, { complete, total, percentage })
+
+            // Calculate the minimum percentage across all modules
+            let minPercentage = 100
+            moduleProgressMap.forEach((p) => {
+              minPercentage = Math.min(minPercentage, p.percentage)
+            })
+
+            // Only update state if percentage has changed
+            if (minPercentage !== overallPercentage) {
+              overallPercentage = minPercentage
+              setRecoveryPercentage(minPercentage)
+            }
+          }
+        } catch (err) {
+          console.error('Error calculating recovery percentage:', err)
+        }
       },
       (error) => {
         console.error('Recovery progress error:', error)
@@ -254,6 +375,12 @@ const App = () => {
 
   return (
     <>
+      <OnboardingModal
+        isVisible={showOnboarding}
+        onCreateNewWallet={handleCreateNewWallet}
+        onRecoverWallet={handleRecoverWallet}
+      />
+
       <header>
         <h1>Fedimint Typescript Library Demo</h1>
 
@@ -285,7 +412,7 @@ const App = () => {
         <RecoveryProgress
           recoveryProgress={recoveryProgress}
           isRecovering={isRecovering}
-          onClearProgress={() => setRecoveryProgress([])}
+          recoveryPercentage={recoveryPercentage}
         />
         <MnemonicManager />
 
@@ -514,17 +641,17 @@ const JoinFederation = ({
     try {
       setJoining(true)
       setJoinError('')
-
-      // Call the new joinFederation method that creates and opens wallet automatically
-      const wallet = await joinFederation(inviteCode, recover)
-
-      console.log('Join federation successful, with wallet id:', wallet.id)
-      setJoinResult(
-        'Successfully joined federation and with wallet id: ' + wallet.id,
-      )
-
-      // Notify parent component about the new wallet
-      onWalletCreated(wallet)
+      if (recover) {
+        const wallet = await recoverFederationFromScratch(inviteCode)
+        setJoinResult('Recovering Federation with Wallet: ' + wallet.id)
+        onWalletCreated(wallet)
+      } else {
+        const wallet = await joinFederation(inviteCode)
+        setJoinResult(
+          'Successfully joined Federation with Wallet ID : ' + wallet.id,
+        )
+        onWalletCreated(wallet)
+      }
     } catch (e: any) {
       console.log('Error joining federation and creating wallet', e)
       setJoinError(typeof e === 'object' ? e.toString() : (e as string))
@@ -596,15 +723,6 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
 
-  // Debug: Log wallet changes
-  useEffect(() => {
-    console.log('GenerateLightningInvoice received wallet:', {
-      id: wallet.id,
-      federationId: wallet.federationId,
-      federationIdValid: !!wallet.federationId,
-    })
-  }, [wallet.id, wallet.federationId])
-
   // Reset component state when wallet changes
   useEffect(() => {
     setAmount('')
@@ -619,12 +737,6 @@ const GenerateLightningInvoice = ({ wallet }: { wallet: Wallet }) => {
     setInvoice('')
     setError('')
     setGenerating(true)
-
-    console.log('Generating invoice for wallet:', {
-      id: wallet.id,
-      federationId: wallet.federationId,
-      clientName: wallet.clientName,
-    })
 
     try {
       const response = await wallet.lightning.createInvoice(
@@ -963,7 +1075,7 @@ const ParseBolt11Invoice = () => {
 const RecoveryProgress = ({
   recoveryProgress,
   isRecovering,
-  onClearProgress,
+  recoveryPercentage,
 }: {
   recoveryProgress: Array<{
     module_id: number
@@ -971,83 +1083,8 @@ const RecoveryProgress = ({
     timestamp: number
   }>
   isRecovering: boolean
-  onClearProgress: () => void
+  recoveryPercentage: number
 }) => {
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString()
-  }
-
-  const formatProgress = (progress: any) => {
-    if (typeof progress === 'object' && progress !== null) {
-      // Check if it's a progress object with complete/total
-      if (
-        typeof progress.complete === 'number' &&
-        typeof progress.total === 'number'
-      ) {
-        const percentage =
-          progress.total > 0
-            ? ((progress.complete / progress.total) * 100).toFixed(1)
-            : '0.0'
-        return `Progress: ${progress.complete.toLocaleString()} / ${progress.total.toLocaleString()} (${percentage}%)`
-      }
-      return JSON.stringify(progress, null, 2)
-    }
-    return String(progress)
-  }
-
-  const getProgressPercentage = (progress: any): number => {
-    if (
-      typeof progress === 'object' &&
-      progress !== null &&
-      typeof progress.complete === 'number' &&
-      typeof progress.total === 'number'
-    ) {
-      return progress.total > 0 ? (progress.complete / progress.total) * 100 : 0
-    }
-    return 0
-  }
-
-  const getLatestModuleProgress = () => {
-    const moduleMap = new Map<
-      number,
-      { complete: number; total: number; percentage: number }
-    >()
-
-    // Get the latest progress for each module
-    recoveryProgress.forEach((event) => {
-      if (
-        typeof event.progress === 'object' &&
-        event.progress !== null &&
-        typeof event.progress.complete === 'number' &&
-        typeof event.progress.total === 'number'
-      ) {
-        const existing = moduleMap.get(event.module_id)
-        if (!existing || event.timestamp > (existing as any).timestamp) {
-          const percentage =
-            event.progress.total > 0
-              ? (event.progress.complete / event.progress.total) * 100
-              : 0
-          moduleMap.set(event.module_id, {
-            complete: event.progress.complete,
-            total: event.progress.total,
-            percentage,
-            timestamp: event.timestamp,
-          } as any)
-        }
-      }
-    })
-
-    return Array.from(moduleMap.entries()).sort((a, b) => a[0] - b[0])
-  }
-
-  const getModuleStats = () => {
-    const moduleMap = new Map<number, number>()
-    recoveryProgress.forEach((event) => {
-      moduleMap.set(event.module_id, (moduleMap.get(event.module_id) || 0) + 1)
-    })
-    return Array.from(moduleMap.entries()).sort((a, b) => a[0] - b[0])
-  }
-
   if (!isRecovering && recoveryProgress.length === 0) {
     return null
   }
@@ -1057,95 +1094,46 @@ const RecoveryProgress = ({
       <h3>🔄 Recovery Progress</h3>
 
       {isRecovering && (
-        <div className="recovery-status">
-          <span className="recovery-spinner">🔄</span>
-          <span className="recovery-status-text">Recovery in progress...</span>
-        </div>
-      )}
-
-      {recoveryProgress.length > 0 && (
         <>
-          {/* Module Progress Overview */}
-          {getLatestModuleProgress().length > 0 && (
-            <div
-              style={{
-                marginBottom: '20px',
-                padding: '16px',
-                background: 'linear-gradient(135deg, #1a2f1a 0%, #2a4a2a 100%)',
-                border: '2px solid #4caf50',
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.2)',
-              }}
-            >
-              <h4
-                style={{
-                  margin: '0 0 16px 0',
-                  fontSize: '16px',
-                  color: '#87ceeb',
-                  fontWeight: '600',
-                }}
-              >
-                📊 Module Recovery Progress
-              </h4>
+          {/* Overall Recovery Progress Bar */}
+          <div className="recovery-progress">
+            <h4>📊 Overall Recovery Progress</h4>
 
-              {getLatestModuleProgress().map(([moduleId, progress]) => (
-                <div key={moduleId} style={{ marginBottom: '12px' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '6px',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        color: '#4caf50',
-                      }}
-                    >
-                      Module {moduleId}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '13px',
-                        color: '#aaa',
-                        fontFamily: 'monospace',
-                      }}
-                    >
-                      {progress.complete.toLocaleString()} /{' '}
-                      {progress.total.toLocaleString()} (
-                      {progress.percentage.toFixed(1)}%)
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '8px',
-                      background: '#333',
-                      borderRadius: '4px',
-                      overflow: 'hidden',
-                      border: '1px solid #444',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${Math.min(progress.percentage, 100)}%`,
-                        height: '100%',
-                        background:
-                          progress.percentage >= 100
-                            ? 'linear-gradient(90deg, #4caf50 0%, #66bb6a 100%)'
-                            : 'linear-gradient(90deg, #2196f3 0%, #42a5f5 100%)',
-                        borderRadius: '3px',
-                        transition: 'width 0.3s ease',
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
+            <div className="recovery-progress-status">
+              <span
+                className={
+                  recoveryPercentage === 0
+                    ? 'initializing'
+                    : recoveryPercentage >= 100
+                      ? 'complete'
+                      : ''
+                }
+              >
+                {recoveryPercentage === 0 ? (
+                  <>
+                    Initializing
+                    <span className="dot-animation">...</span>
+                  </>
+                ) : (
+                  `${recoveryPercentage.toFixed(1)}%`
+                )}
+              </span>
             </div>
-          )}
+
+            <div className="recovery-progress-bar">
+              <div
+                className={`recovery-progress-fill ${recoveryPercentage === 0 ? 'progress-pulse' : ''} ${recoveryPercentage >= 100 ? 'complete' : ''}`}
+                style={{
+                  width:
+                    recoveryPercentage === 0
+                      ? '5%'
+                      : `${Math.min(recoveryPercentage, 100)}%`,
+                  transition:
+                    recoveryPercentage === 0 ? 'none' : 'width 0.5s ease',
+                }}
+              />
+            </div>
+          </div>
         </>
       )}
     </div>
@@ -1344,6 +1332,36 @@ const MnemonicManager = () => {
       {message && (
         <div className={`message ${message.type}`}>{message.text}</div>
       )}
+    </div>
+  )
+}
+
+// Custom Onboarding Modal component
+const OnboardingModal = ({
+  isVisible,
+  onCreateNewWallet,
+  onRecoverWallet,
+}: {
+  isVisible: boolean
+  onCreateNewWallet: () => Promise<void>
+  onRecoverWallet: () => Promise<void>
+}) => {
+  if (!isVisible) return null
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <h2>Welcome to Fedimint Wallet</h2>
+        <p>No wallets found. Please choose an option:</p>
+        <div className="modal-buttons">
+          <button className="button primary" onClick={onCreateNewWallet}>
+            Create New Wallet
+          </button>
+          <button className="button secondary" onClick={onRecoverWallet}>
+            Recover Existing Wallet
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   Wallet,
   joinFederation,
@@ -9,42 +9,24 @@ import {
   previewFederation,
   parseInviteCode,
   parseBolt11Invoice,
-  initialize,
+  generateMnemonic,
+  getMnemonic,
+  setMnemonic,
+  createWebWorkerTransport,
+  createWalletDirector,
+  loadWalletDirector,
 } from '@fedimint/core-web'
 
 const TESTNET_FEDERATION_CODE =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
 
-// Initialize the global instance
-initialize()
-
 // Custom hooks
-const useIsOpen = (wallet) => {
-  const [open, setIsOpen] = useState(false)
-
-  const checkIsOpen = useCallback(() => {
-    if (wallet) {
-      const isOpen = wallet.isOpen()
-      if (open !== isOpen) {
-        setIsOpen(isOpen)
-      }
-    }
-  }, [open, wallet])
-
-  useEffect(() => {
-    checkIsOpen()
-  }, [checkIsOpen, wallet])
-
-  return { open, checkIsOpen }
-}
-
-const useBalance = (wallet, checkIsOpen) => {
+const useBalance = (wallet, isRecovering) => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
     setBalance(0)
-
-    if (!wallet?.federationId) {
+    if (!wallet?.federationId || isRecovering) {
       return
     }
 
@@ -53,7 +35,6 @@ const useBalance = (wallet, checkIsOpen) => {
       try {
         const currentBalance = await wallet.balance.getBalance()
         setBalance(currentBalance)
-        checkIsOpen()
       } catch (error) {
         console.error('Error fetching balance:', error)
         setBalance(0)
@@ -65,7 +46,6 @@ const useBalance = (wallet, checkIsOpen) => {
     // Subscribe to balance changes
     const unsubscribe = wallet.balance.subscribeBalance(
       (balance) => {
-        checkIsOpen()
         setBalance(balance)
       },
       (error) => {
@@ -77,7 +57,7 @@ const useBalance = (wallet, checkIsOpen) => {
     return () => {
       unsubscribe()
     }
-  }, [wallet, wallet?.federationId, checkIsOpen])
+  }, [wallet, wallet?.federationId, isRecovering])
 
   return balance
 }
@@ -89,20 +69,86 @@ const App = () => {
   const [walletId, setWalletId] = useState('')
   const [opening, setOpening] = useState(false)
   const [error, setError] = useState('')
-  const [federationJoined, setFederationJoined] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [recoveryProgress, setRecoveryProgress] = useState([])
+  const [recoveryPercentage, setRecoveryPercentage] = useState(0)
+  const [isRecovering, setIsRecovering] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [recoveryMode, setRecoveryMode] = useState(false)
 
-  const { open, checkIsOpen } = useIsOpen(activeWallet)
-  const balance = useBalance(activeWallet, checkIsOpen)
+  const balance = useBalance(activeWallet, isRecovering)
 
-  // Add effect to watch for federation changes
+  // Initialize the wallet system on mount
   useEffect(() => {
-    if (activeWallet) {
-      setFederationJoined(!!activeWallet.federationId)
+    const initWallets = async () => {
+      try {
+        // Try to load existing wallets
+        const loaded = await loadWalletDirector(createWebWorkerTransport)
+
+        if (!loaded) {
+          // Show onboarding if no wallets were loaded
+          setShowOnboarding(true)
+        } else {
+          // Load active wallets if successful
+          const existingWallets = getActiveWallets()
+          setWallets(existingWallets)
+
+          if (existingWallets.length > 0) {
+            setActiveWallet(existingWallets[0])
+          }
+        }
+      } catch (err) {
+        console.error('Error initializing wallet system:', err)
+        setError(err instanceof Error ? err.message : String(err))
+      }
     }
-  }, [activeWallet, activeWallet?.federationId])
+
+    initWallets()
+  }, [])
+
+  // Handler for creating a new wallet from onboarding
+  const handleCreateNewWallet = async () => {
+    try {
+      await createWalletDirector(createWebWorkerTransport)
+      const mnemonic = await getMnemonic()
+
+      if (!mnemonic) {
+        throw new Error('Failed to get mnemonic')
+      }
+
+      const mnemonicStrings = mnemonic.map((word) => String(word))
+      setShowOnboarding(false)
+
+      alert(
+        'IMPORTANT: Please write down your recovery phrase and keep it safe:\n\n' +
+          mnemonicStrings.join(' '),
+      )
+    } catch (error) {
+      console.error('Error creating new wallet:', error)
+      setError(error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  // Handler for recovering an existing wallet from onboarding
+  const handleRecoverWallet = async () => {
+    try {
+      // Ask user for their recovery phrase
+      const mnemonicString = prompt(
+        'Enter your 12 or 24 word recovery phrase (words separated by spaces):',
+      )
+
+      if (!mnemonicString) {
+        return // User cancelled
+      }
+
+      // Convert to array and set the mnemonic
+      const mnemonic = mnemonicString.trim().split(/\s+/)
+      await createWalletDirector(createWebWorkerTransport, mnemonic)
+
+      setShowOnboarding(false)
+    } catch (error) {
+      console.error('Error recovering wallet:', error)
+      setError(error instanceof Error ? error.message : String(error))
+    }
+  }
 
   // Load wallet pointers on mount and refresh periodically
   useEffect(() => {
@@ -130,7 +176,6 @@ const App = () => {
         setActiveWallet(wallet)
         setWalletId('')
         setError('')
-        setFederationJoined(!!wallet.federationId)
         // Refresh wallet pointers after opening
         setWalletInfo(listClients())
         return wallet
@@ -156,14 +201,16 @@ const App = () => {
         wallet = await openWallet(walletId)
 
         // Add to wallets array if not already there
-        setWallets((prev) => {
-          const existingWallet = prev.find((w) => w.id === walletId)
-          if (!existingWallet) {
-            console.log(`Adding wallet ${walletId} to wallets array`)
-            return [...prev, wallet]
-          }
-          return prev
-        })
+        if (wallet) {
+          setWallets((prev) => {
+            const existingWallet = prev.find((w) => w.id === walletId)
+            if (!existingWallet) {
+              console.log(`Adding wallet ${walletId} to wallets array`)
+              return [...prev, wallet]
+            }
+            return prev
+          })
+        }
       }
 
       // Update active wallet
@@ -171,7 +218,6 @@ const App = () => {
         `Setting active wallet to ${wallet.id} with federation ${wallet.federationId}`,
       )
       setActiveWallet(wallet)
-      setFederationJoined(!!wallet.federationId)
 
       // Refresh wallet pointers after selecting
       setWalletInfo(listClients())
@@ -205,106 +251,151 @@ const App = () => {
       return prev
     })
     setActiveWallet(wallet)
-    setFederationJoined(true)
     // Refresh wallet pointers after creating
     setWalletInfo(listClients())
   }, [])
 
   useEffect(() => {
-    const loadWalletDirector = async () => {
-      setIsLoading(true)
-      try {
-        const existingWallets = getActiveWallets()
-        setWallets(existingWallets)
+    const existingWallets = getActiveWallets()
+    setWallets(existingWallets)
+    if (existingWallets.length > 0 && !activeWallet) {
+      setActiveWallet(existingWallets[0])
+    }
+  }, [activeWallet])
 
-        // Check if we have any existing wallets
-        if (existingWallets.length > 0 && !activeWallet) {
-          setActiveWallet(existingWallets[0])
-          setShowOnboarding(false)
-        } else if (existingWallets.length === 0) {
-          // No wallets found, show onboarding
-          setShowOnboarding(true)
-        }
+  // Handle recovery progress subscription for active wallet
+  useEffect(() => {
+    if (!activeWallet) {
+      setRecoveryProgress([])
+      setRecoveryPercentage(0)
+      setIsRecovering(false)
+      return
+    }
+
+    // Check if there are pending recoveries
+    const checkRecovery = async () => {
+      try {
+        const hasPending = await activeWallet.recovery.hasPendingRecoveries()
+        setIsRecovering(hasPending)
       } catch (error) {
-        console.error('Error loading wallets:', error)
-        setError(error instanceof Error ? error.message : String(error))
-        setShowOnboarding(true)
-      } finally {
-        setIsLoading(false)
+        console.error('Error checking pending recoveries:', error)
       }
     }
 
-    loadWalletDirector()
+    checkRecovery()
+
+    // Subscribe to recovery progress for the active wallet
+    // Track both overall percentage and per-module details
+    let overallPercentage = 0
+    const moduleProgressMap = new Map()
+
+    const unsubscribe = activeWallet.recovery.subscribeToRecoveryProgress(
+      (progress) => {
+        // Add to the progress events array for compatibility
+        setRecoveryProgress((prev) => [
+          ...prev,
+          {
+            module_id: progress.module_id,
+            progress: progress.progress,
+            timestamp: Date.now(),
+          },
+        ])
+
+        // Calculate overall percentage based on module with lowest progress
+        try {
+          if (
+            typeof progress.progress === 'object' &&
+            progress.progress !== null &&
+            'complete' in progress.progress &&
+            'total' in progress.progress &&
+            typeof progress.progress.complete === 'number' &&
+            typeof progress.progress.total === 'number'
+          ) {
+            const moduleId = progress.module_id
+            const complete = progress.progress.complete
+            const total = progress.progress.total
+
+            // Handle the 0/0 case - treat as 0% complete
+            let percentage = 0
+            if (total > 0) {
+              percentage = Math.min(100, (complete / total) * 100)
+            }
+
+            // Update the progress for this module
+            moduleProgressMap.set(moduleId, { complete, total, percentage })
+
+            // Calculate the minimum percentage across all modules
+            let minPercentage = 100
+            moduleProgressMap.forEach((p) => {
+              minPercentage = Math.min(minPercentage, p.percentage)
+            })
+
+            // Only update state if percentage has changed
+            if (minPercentage !== overallPercentage) {
+              overallPercentage = minPercentage
+              setRecoveryPercentage(minPercentage)
+            }
+          }
+        } catch (err) {
+          console.error('Error calculating recovery percentage:', err)
+        }
+      },
+      (error) => {
+        console.error('Recovery progress error:', error)
+        setIsRecovering(false)
+      },
+    )
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe()
+      }
+    }
   }, [activeWallet])
-
-  // Onboarding handlers
-  const handleCreateWallet = () => {
-    // When user chooses to create a new wallet, we just show the existing JoinFederation component
-    setShowOnboarding(false)
-    setRecoveryMode(false)
-  }
-
-  const handleRecoverWallet = () => {
-    // When user chooses to recover a wallet, show the recovery form
-    setShowOnboarding(false)
-    setRecoveryMode(true)
-  }
-
-  const handleCancelRecovery = () => {
-    // Go back to the onboarding screen
-    setShowOnboarding(true)
-    setRecoveryMode(false)
-  }
 
   return (
     <>
-      {isLoading ? (
-        <LoadingScreen />
-      ) : (
-        <>
-          {showOnboarding && (
-            <OnboardingPopup 
-              onCreateWallet={handleCreateWallet} 
-              onRecoverWallet={handleRecoverWallet} 
-            />
-          )}
-          
-          {recoveryMode && (
-            <RecoveryForm 
-              onCancel={handleCancelRecovery}
-              onWalletCreated={handleWalletCreated}
-            />
-          )}
-          
-          {!showOnboarding && !recoveryMode && (
-            <header>
-              <h1>Fedimint Typescript Library Demo</h1>
+      <OnboardingModal
+        isVisible={showOnboarding}
+        onCreateNewWallet={handleCreateNewWallet}
+        onRecoverWallet={handleRecoverWallet}
+      />
 
-              <div className="steps">
-                <strong>Steps to get started:</strong>
-                <ol>
-                  <li>
-                    Join a Federation (creates wallet and persists across sessions)
-                  </li>
-                  <li>Generate an Invoice</li>
-                  <li>
-                    Pay the Invoice using the{' '}
-                    <a href="https://faucet.mutinynet.com/" target="_blank">
-                      mutinynet faucet
-                    </a>
-                  </li>
-                  <li>
-                    Investigate the Browser Tools
-                    <ul>
-                      <li>Browser Console for logs</li>
-                      <li>Network Tab (websocket) for guardian requests</li>
-                      <li>Application Tab for state</li>
-                    </ul>
-                  </li>
-                </ol>
-              </div>
-            </header>
-            <main>
+      <header>
+        <h1>Fedimint Typescript Library Demo</h1>
+
+        <div className="steps">
+          <strong>Steps to get started:</strong>
+          <ol>
+            <li>
+              Join a Federation (creates wallet and persists across sessions)
+            </li>
+            <li>Generate an Invoice</li>
+            <li>
+              Pay the Invoice using the{' '}
+              <a href="https://faucet.mutinynet.com/" target="_blank">
+                mutinynet faucet
+              </a>
+            </li>
+            <li>
+              Investigate the Browser Tools
+              <ul>
+                <li>Browser Console for logs</li>
+                <li>Network Tab (websocket) for guardian requests</li>
+                <li>Application Tab for state</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+      </header>
+      <main>
+        <RecoveryProgress
+          recoveryProgress={recoveryProgress}
+          isRecovering={isRecovering}
+          recoveryPercentage={recoveryPercentage}
+        />
+        <MnemonicManager />
+
         <JoinFederation onWalletCreated={handleWalletCreated} />
         <WalletManagement
           wallets={wallets}
@@ -319,21 +410,11 @@ const App = () => {
 
         {activeWallet && (
           <>
-            <WalletStatus
-              wallet={activeWallet}
-              open={open}
-              checkIsOpen={checkIsOpen}
-              balance={balance}
-            />
-
-            {/* Only show these components if wallet has joined a federation */}
-            {federationJoined && (
-              <>
-                <GenerateLightningInvoice wallet={activeWallet} />
-                <RedeemEcash wallet={activeWallet} />
-                <SendLightning wallet={activeWallet} />
-              </>
-            )}
+            <WalletStatus wallet={activeWallet} balance={balance} />
+            <GenerateLightningInvoice wallet={activeWallet} />
+            <RedeemEcash wallet={activeWallet} />
+            <SendLightning wallet={activeWallet} />
+            <BackupToFederation wallet={activeWallet} />
           </>
         )}
 
@@ -341,31 +422,7 @@ const App = () => {
         <ParseBolt11Invoice />
 
         {error && <div className="error">{error}</div>}
-
-        {showOnboarding && (
-          <OnboardingPopup
-            onCreateWallet={() => {
-              setShowOnboarding(false)
-              setRecoveryMode(false)
-            }}
-            onRecoverWallet={() => {
-              setShowOnboarding(false)
-              setRecoveryMode(true)
-            }}
-          />
-        )}
-
-        {recoveryMode && (
-          <RecoveryForm
-            onCancel={() => setRecoveryMode(false)}
-            onWalletCreated={handleWalletCreated}
-          />
-        )}
-              </main>
-            </>
-          )}
-        </>
-      )}
+      </main>
     </>
   )
 }
@@ -466,7 +523,6 @@ const WalletManagement = ({
               <div key={wallet.id} className="wallet-item">
                 <span>{formatWalletId(wallet.id)}</span>
                 <span>{wallet.federationId ? 'Joined' : 'No Fed'}</span>
-                <span>{wallet.isOpen() ? 'Open' : 'Closed'}</span>
               </div>
             ))}
           </div>
@@ -476,7 +532,7 @@ const WalletManagement = ({
   )
 }
 
-const WalletStatus = ({ wallet, open, checkIsOpen, balance }) => {
+const WalletStatus = ({ wallet, balance }) => {
   return (
     <div className="section">
       <h3>Wallet Status</h3>
@@ -491,7 +547,11 @@ const WalletStatus = ({ wallet, open, checkIsOpen, balance }) => {
       </div>
       <div className="row">
         <strong>Federation ID:</strong>
-        <div>{wallet.federationId ? wallet.federationId : 'Not joined'}</div>
+        <div>
+          {wallet.federationId
+            ? `${wallet.federationId.slice(0, 16)}...`
+            : 'Not joined'}
+        </div>
       </div>
     </div>
   )
@@ -504,6 +564,11 @@ const JoinFederation = ({ onWalletCreated }) => {
   const [joinResult, setJoinResult] = useState(null)
   const [joinError, setJoinError] = useState('')
   const [joining, setJoining] = useState(false)
+  const [recover, setRecover] = useState(false)
+
+  const handleChange = (e) => {
+    setRecover(e.target.checked)
+  }
 
   const previewFederationHandler = async () => {
     if (!inviteCode.trim()) return
@@ -533,15 +598,18 @@ const JoinFederation = ({ onWalletCreated }) => {
       setJoinError('')
 
       // Call the new joinFederation method that creates and opens wallet automatically
-      const wallet = await joinFederation(inviteCode)
 
-      console.log('Join federation successful, with wallet id:', wallet.id)
-      setJoinResult(
-        'Successfully joined federation and with wallet id: ' + wallet.id,
-      )
-
-      // Notify parent component about the new wallet
-      onWalletCreated(wallet)
+      if (recover) {
+        const wallet = await recoverFederationFromScratch(inviteCode)
+        setJoinResult('Recovering Federation with Wallet: ' + wallet.id)
+        onWalletCreated(wallet)
+      } else {
+        const wallet = await joinFederation(inviteCode)
+        setJoinResult(
+          'Successfully joined Federation with Wallet ID : ' + wallet.id,
+        )
+        onWalletCreated(wallet)
+      }
     } catch (e) {
       console.log('Error joining federation and creating wallet', e)
       setJoinError(typeof e === 'object' ? e.toString() : e)
@@ -564,6 +632,10 @@ const JoinFederation = ({ onWalletCreated }) => {
             setPreviewData(null)
           }}
         />
+        <div>
+          <input type="checkbox" checked={recover} onChange={handleChange} />
+          Recover
+        </div>
         <div className="button-group">
           <button
             type="button"
@@ -609,15 +681,6 @@ const GenerateLightningInvoice = ({ wallet }) => {
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
 
-  // Debug: Log wallet changes
-  useEffect(() => {
-    console.log('GenerateLightningInvoice received wallet:', {
-      id: wallet.id,
-      federationId: wallet.federationId,
-      isOpen: wallet.isOpen(),
-    })
-  }, [wallet.id, wallet.federationId])
-
   // Reset component state when wallet changes
   useEffect(() => {
     setAmount('')
@@ -633,19 +696,7 @@ const GenerateLightningInvoice = ({ wallet }) => {
     setError('')
     setGenerating(true)
 
-    console.log('Generating invoice for wallet:', {
-      id: wallet.id,
-      federationId: wallet.federationId,
-      isOpen: wallet.isOpen(),
-    })
-
     try {
-      if (!wallet.federationId) {
-        throw new Error(
-          'Wallet must be joined to a federation before creating invoices',
-        )
-      }
-
       const response = await wallet.lightning.createInvoice(
         Number(amount),
         description,
@@ -796,6 +847,80 @@ const SendLightning = ({ wallet }) => {
   )
 }
 
+const BackupToFederation = ({ wallet }) => {
+  const [metadata, setMetadata] = useState('')
+  const [backupResult, setBackupResult] = useState('')
+  const [backupError, setBackupError] = useState('')
+  const [isBackingUp, setIsBackingUp] = useState(false)
+
+  // Reset state when wallet changes
+  useEffect(() => {
+    setMetadata('')
+    setBackupResult('')
+    setBackupError('')
+  }, [wallet.id])
+
+  const handleBackup = async (e) => {
+    e.preventDefault()
+    setIsBackingUp(true)
+    setBackupError('')
+    setBackupResult('')
+
+    try {
+      let metadataObj = {}
+
+      // Try to parse metadata as JSON if provided, otherwise use as string
+      if (metadata.trim()) {
+        try {
+          metadataObj = JSON.parse(metadata)
+        } catch {
+          // If JSON parsing fails, use as a string value
+          metadataObj = { description: metadata }
+        }
+      }
+
+      await wallet.recovery.backupToFederation(metadataObj)
+      setBackupResult('Backup completed successfully!')
+      console.log('Backup to federation successful')
+    } catch (error) {
+      console.error('Error backing up to federation:', error)
+      setBackupError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setIsBackingUp(false)
+    }
+  }
+
+  return (
+    <div className="section">
+      <h3>Backup to Federation</h3>
+      <form onSubmit={handleBackup}>
+        <div className="input-group">
+          <textarea
+            placeholder="Optional metadata (JSON object or plain text)"
+            value={metadata}
+            onChange={(e) => setMetadata(e.target.value)}
+            rows={3}
+            style={{ resize: 'vertical' }}
+          />
+          <small style={{ color: '#666', fontSize: '0.9em' }}>
+            You can provide metadata as JSON (e.g.,{' '}
+            {JSON.stringify({
+              description: 'My backup',
+              timestamp: Date.now(),
+            })}
+            ) or plain text
+          </small>
+        </div>
+        <button type="submit" disabled={isBackingUp}>
+          {isBackingUp ? 'Backing up...' : 'Backup to Federation'}
+        </button>
+      </form>
+      {backupResult && <div className="success">{backupResult}</div>}
+      {backupError && <div className="error">{backupError}</div>}
+    </div>
+  )
+}
+
 const ParseInviteCode = () => {
   const [parseInviteInput, setParseInviteInput] = useState('')
   const [parsedInviteData, setParsedInviteData] = useState(null)
@@ -844,10 +969,6 @@ const ParseInviteCode = () => {
           <div>
             <strong>URL:</strong> {parsedInviteData.url}
           </div>
-          <details>
-            <summary>Full Details</summary>
-            <pre>{JSON.stringify(parsedInviteData, null, 2)}</pre>
-          </details>
         </div>
       )}
       {error && <div className="error">{error}</div>}
@@ -909,95 +1030,274 @@ const ParseBolt11Invoice = () => {
   )
 }
 
-const LoadingScreen = () => {
+const RecoveryProgress = ({
+  recoveryProgress,
+  isRecovering,
+  recoveryPercentage,
+}) => {
+  if (!isRecovering && recoveryProgress.length === 0) {
+    return null
+  }
+
   return (
-    <div className="loading-overlay">
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading your wallet...</p>
-      </div>
+    <div className="section">
+      <h3>🔄 Recovery Progress</h3>
+
+      {isRecovering && (
+        <>
+          {/* Overall Recovery Progress Bar */}
+          <div className="recovery-progress">
+            <h4>📊 Overall Recovery Progress</h4>
+
+            <div className="recovery-progress-status">
+              <span
+                className={
+                  recoveryPercentage === 0
+                    ? 'initializing'
+                    : recoveryPercentage >= 100
+                      ? 'complete'
+                      : ''
+                }
+              >
+                {recoveryPercentage === 0 ? (
+                  <>
+                    Initializing
+                    <span className="dot-animation">...</span>
+                  </>
+                ) : (
+                  `${recoveryPercentage.toFixed(1)}%`
+                )}
+              </span>
+            </div>
+
+            <div className="recovery-progress-bar">
+              <div
+                className={`recovery-progress-fill ${recoveryPercentage === 0 ? 'progress-pulse' : ''} ${recoveryPercentage >= 100 ? 'complete' : ''}`}
+                style={{
+                  width:
+                    recoveryPercentage === 0
+                      ? '5%'
+                      : `${Math.min(recoveryPercentage, 100)}%`,
+                  transition:
+                    recoveryPercentage === 0 ? 'none' : 'width 0.5s ease',
+                }}
+              />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
 
-const OnboardingPopup = ({ onCreateWallet, onRecoverWallet }) => {
-  return (
-    <div className="onboarding-overlay">
-      <div className="onboarding-container">
-        <h2>Welcome to Fedimint Wallet</h2>
-        <p>Let's get you set up with a wallet to start using Fedimint.</p>
+const MnemonicManager = () => {
+  const [mnemonicState, setMnemonicState] = useState('')
+  const [inputMnemonic, setInputMnemonic] = useState('')
+  const [activeAction, setActiveAction] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [message, setMessage] = useState(undefined)
+  const [showMnemonic, setShowMnemonic] = useState(false)
 
-        <div className="onboarding-buttons">
-          <button className="primary-button" onClick={onCreateWallet}>
-            Create New Wallet
-          </button>
-          <button className="secondary-button" onClick={onRecoverWallet}>
-            Recover Existing Wallet
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
+  const clearMessage = () => setMessage(undefined)
 
-const RecoveryForm = ({ onCancel, onWalletCreated }) => {
-  const [recoveryInput, setRecoveryInput] = useState('')
-  const [isRecovering, setIsRecovering] = useState(false)
-  const [recoveryError, setRecoveryError] = useState('')
+  // Helper function to extract user-friendly error messages
+  const extractErrorMessage = (error) => {
+    let errorMsg = 'Operation failed'
 
-  const handleRecovery = async (e) => {
-    e.preventDefault()
-    setIsRecovering(true)
-    setRecoveryError('')
+    if (error instanceof Error) {
+      errorMsg = error.message
+    } else if (typeof error === 'object' && error !== null) {
+      // Handle RPC error objects
+      const rpcError = error
+      if (rpcError.error) {
+        errorMsg = rpcError.error
+      } else if (rpcError.message) {
+        errorMsg = rpcError.message
+      }
+    }
 
+    return errorMsg
+  }
+
+  const handleAction = async (action) => {
+    if (activeAction === action) {
+      setActiveAction(null)
+      return
+    }
+    setActiveAction(action)
+    clearMessage()
+
+    if (action === 'get') {
+      await handleGetMnemonic()
+    } else if (action === 'generate') {
+      await handleGenerateMnemonic()
+    }
+  }
+
+  const handleGenerateMnemonic = async () => {
+    setIsLoading(true)
     try {
-      // Here you would implement the actual recovery logic
-      // This is a placeholder - you'll need to implement the appropriate recovery method
-      console.log('Recovering wallet with input:', recoveryInput)
-
-      // For demo purposes, we'll just join a federation with the recovery code
-      // assuming it's an invite code
-      const wallet = await joinFederation(recoveryInput)
-
-      onWalletCreated(wallet)
+      const newMnemonic = await generateMnemonic()
+      setMnemonicState(newMnemonic.join(' '))
+      setMessage({ text: 'New mnemonic generated!', type: 'success' })
+      setShowMnemonic(true)
     } catch (error) {
-      console.error('Error recovering wallet:', error)
-      setRecoveryError(error instanceof Error ? error.message : String(error))
+      console.error('Error generating mnemonic:', error)
+      const errorMsg = extractErrorMessage(error)
+      setMessage({ text: errorMsg, type: 'error' })
     } finally {
-      setIsRecovering(false)
+      setIsLoading(false)
+    }
+  }
+
+  const handleGetMnemonic = async () => {
+    setIsLoading(true)
+    try {
+      const mnemonic = await getMnemonic()
+      if (mnemonic && mnemonic.length > 0) {
+        setMnemonicState(mnemonic.join(' '))
+        setMessage({ text: 'Mnemonic retrieved!', type: 'success' })
+        setShowMnemonic(true)
+      } else {
+        setMessage({ text: 'No mnemonic found', type: 'error' })
+      }
+    } catch (error) {
+      console.error('Error getting mnemonic:', error)
+      const errorMsg = extractErrorMessage(error)
+      setMessage({ text: errorMsg, type: 'error' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSetMnemonic = async (e) => {
+    e.preventDefault()
+    if (!inputMnemonic.trim()) return
+
+    setIsLoading(true)
+    try {
+      const words = inputMnemonic.trim().split(/\s+/)
+      await setMnemonic(words)
+      setMessage({ text: 'Mnemonic set successfully!', type: 'success' })
+      setInputMnemonic('')
+      setMnemonicState(words.join(' '))
+      setActiveAction(null)
+    } catch (error) {
+      console.error('Error setting mnemonic:', error)
+      const errorMsg = extractErrorMessage(error)
+      setMessage({ text: errorMsg, type: 'error' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(mnemonicState)
+      setMessage({ text: 'Copied to clipboard!', type: 'success' })
+    } catch (error) {
+      setMessage({ text: 'Failed to copy', type: 'error' })
     }
   }
 
   return (
-    <div className="onboarding-overlay">
-      <div className="onboarding-container">
-        <h2>Recover Your Wallet</h2>
-        <p>Enter your recovery information below:</p>
+    <div className="section mnemonic-section">
+      <h3>🔑 Mnemonic Manager</h3>
 
-        <form onSubmit={handleRecovery}>
+      <div className="mnemonic-buttons">
+        <button
+          onClick={() => handleAction('get')}
+          disabled={isLoading}
+          className={`btn ${activeAction === 'get' ? 'active' : ''}`}
+        >
+          Get
+        </button>
+        <button
+          onClick={() => handleAction('set')}
+          disabled={isLoading}
+          className={`btn ${activeAction === 'set' ? 'active' : ''}`}
+        >
+          Set
+        </button>
+        <button
+          onClick={() => handleAction('generate')}
+          disabled={isLoading}
+          className={`btn ${activeAction === 'generate' ? 'active' : ''}`}
+        >
+          Generate
+        </button>
+      </div>
+
+      {activeAction === 'set' && (
+        <form onSubmit={handleSetMnemonic} className="mnemonic-form">
           <textarea
-            placeholder="Enter your recovery code or seed phrase..."
-            value={recoveryInput}
-            onChange={(e) => setRecoveryInput(e.target.value)}
-            rows={5}
-            required
+            placeholder="Enter 12 or 24 words separated by spaces"
+            value={inputMnemonic}
+            onChange={(e) => setInputMnemonic(e.target.value)}
+            rows={2}
+            className="mnemonic-input"
           />
-
-          {recoveryError && <div className="error">{recoveryError}</div>}
-
-          <div className="onboarding-buttons">
-            <button type="button" className="secondary-button" onClick={onCancel}>
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="primary-button"
-              disabled={isRecovering || !recoveryInput.trim()}
-            >
-              {isRecovering ? 'Recovering...' : 'Recover Wallet'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={isLoading || !inputMnemonic.trim()}
+            className="btn btn-primary"
+          >
+            {isLoading ? 'Setting...' : 'Set Mnemonic'}
+          </button>
         </form>
+      )}
+
+      {mnemonicState && (
+        <div className="mnemonic-display">
+          <div className="mnemonic-output">
+            <span className={showMnemonic ? '' : 'blurred'}>
+              {mnemonicState}
+            </span>
+            <div className="mnemonic-actions">
+              <button
+                onClick={() => setShowMnemonic(!showMnemonic)}
+                className="btn btn-small"
+                title={showMnemonic ? 'Hide mnemonic' : 'Show mnemonic'}
+              >
+                {showMnemonic ? '👁️' : '👁️‍🗨️'}
+              </button>
+              <button
+                onClick={copyToClipboard}
+                className="btn btn-small"
+                disabled={!showMnemonic}
+                title="Copy to clipboard"
+              >
+                📋
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {message && (
+        <div className={`message ${message.type}`}>{message.text}</div>
+      )}
+    </div>
+  )
+}
+
+// Custom Onboarding Modal component
+const OnboardingModal = ({ isVisible, onCreateNewWallet, onRecoverWallet }) => {
+  if (!isVisible) return null
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <h2>Welcome to Fedimint Wallet</h2>
+        <p>No wallets found. Please choose an option:</p>
+        <div className="modal-buttons">
+          <button className="button primary" onClick={onCreateNewWallet}>
+            Create New Wallet
+          </button>
+          <button className="button secondary" onClick={onRecoverWallet}>
+            Recover Existing Wallet
+          </button>
+        </div>
       </div>
     </div>
   )
