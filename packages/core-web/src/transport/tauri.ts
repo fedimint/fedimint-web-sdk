@@ -18,30 +18,16 @@ type ListenFunction = (
   callback: (event: any) => void,
 ) => Promise<() => void>
 
-// Store Tauri API functions
-let tauriInvoke: InvokeFunction | undefined
-let tauriListen: ListenFunction | undefined
-
-// Try to import Tauri APIs
-try {
-  // Dynamic imports to avoid breaking in non-Tauri environments
-  import('@tauri-apps/api/core')
-    .then((core) => {
-      tauriInvoke = core.invoke as InvokeFunction
-    })
-    .catch((err) => {
-      console.warn('Tauri core API not available:', err)
-    })
-
-  import('@tauri-apps/api/event')
-    .then((event) => {
-      tauriListen = event.listen as ListenFunction
-    })
-    .catch((err) => {
-      console.warn('Tauri event API not available:', err)
-    })
-} catch (error) {
-  console.warn('Tauri APIs not available in this environment')
+/**
+ * Verifies that the code is running in a Tauri environment
+ * @throws Error if not in a Tauri environment
+ */
+function verifyTauriEnvironment(): void {
+  if (typeof window === 'undefined' || !(window as any).__TAURI__) {
+    throw new Error(
+      'Not running in a Tauri environment. This functionality requires Tauri.',
+    )
+  }
 }
 
 /**
@@ -50,51 +36,38 @@ try {
  */
 export class TauriTransport extends BaseRpcTransport implements RpcTransport {
   private eventUnlisteners: (() => void)[] = []
+  private tauriInvoke: InvokeFunction
+  private tauriListen: ListenFunction
+
+  /**
+   * Constructor for TauriTransport
+   * @param onRpcResponse The callback to handle RPC responses
+   * @param tauriInvoke The Tauri invoke function
+   * @param tauriListen The Tauri listen function
+   * @param eventUnlistener Optional event unlistener function
+   */
+  constructor(
+    onRpcResponse: (response: any) => void,
+    tauriInvoke: InvokeFunction,
+    tauriListen: ListenFunction,
+  ) {
+    super(onRpcResponse)
+    this.tauriInvoke = tauriInvoke
+    this.tauriListen = tauriListen
+  }
 
   /**
    * Initializes the RPC transport for Tauri
    */
   async initialize(): Promise<void> {
     try {
-      // Check if we're running in Tauri environment
-      if (typeof window !== 'undefined' && !(window as any).__TAURI__) {
-        throw new Error(
-          'Not running in Tauri environment. Please run with `npm run tauri dev` and use the Tauri app window, not the browser.',
-        )
-      }
-
-      // Check if Tauri API is available
-      if (!tauriInvoke || !tauriListen) {
-        throw new Error(
-          'Tauri APIs not available. Please ensure @tauri-apps/api is installed.',
-        )
-      }
+      // Verify we're running in a Tauri environment
+      verifyTauriEnvironment()
 
       logger.info('Initializing Tauri transport...')
 
-      // Set up event listener for responses
-      const unlistenRpcResponse = await tauriListen(
-        'fedimint-rpc-response',
-        (event) => {
-          const response = event.payload
-          logger.debug('Received RPC response from Tauri:', response)
-
-          if (
-            response &&
-            typeof response === 'object' &&
-            'request_id' in response
-          ) {
-            this.onRpcResponse(response)
-          } else {
-            logger.warn('Invalid RPC response received from Tauri:', response)
-          }
-        },
-      )
-
-      this.eventUnlisteners.push(unlistenRpcResponse)
-
       // Call initialization API in Rust
-      await tauriInvoke('initialize_fedimint_client')
+      await this.tauriInvoke('initialize_fedimint_client')
 
       this.initialized = true
       logger.info('Tauri transport initialized successfully')
@@ -110,13 +83,13 @@ export class TauriTransport extends BaseRpcTransport implements RpcTransport {
    * Send request to the Tauri backend
    */
   sendRequest(request: RpcRequestFull): void {
-    if (!this.initialized || !tauriInvoke) {
+    if (!this.initialized) {
       throw new Error('Transport not initialized. Call initialize() first.')
     }
 
     try {
       logger.debug('Sending request to Tauri backend:', request)
-      tauriInvoke('send_fedimint_rpc', { request }).catch((error) => {
+      this.tauriInvoke('send_fedimint_rpc', { request }).catch((error) => {
         logger.error('Failed to send request to Tauri backend:', error)
         const responseType = 'error' as const
         this.sendResponse(
@@ -161,15 +134,52 @@ export class TauriTransport extends BaseRpcTransport implements RpcTransport {
  * This checks if we're running in a Tauri environment before initializing
  */
 export const createTauriTransport: TransportFactory = async (onRpcResponse) => {
-  // Check if we're in a Tauri environment
-  if (typeof window !== 'undefined' && !(window as any).__TAURI__) {
+  // Verify we're running in a Tauri environment
+  verifyTauriEnvironment()
+
+  // Dynamically import Tauri APIs
+  let tauriInvoke: InvokeFunction
+  let tauriListen: ListenFunction
+  let unlistenRpcResponse: () => void
+
+  try {
+    // Import core API for invoke function
+    const core = await import('@tauri-apps/api/core')
+    tauriInvoke = core.invoke as InvokeFunction
+
+    // Import event API for listen function
+    const event = await import('@tauri-apps/api/event')
+    tauriListen = event.listen as ListenFunction
+
+    // Singleton listener for all RPC responses
+    unlistenRpcResponse = await tauriListen(
+      'fedimint-rpc-response',
+      (event) => {
+        const response = event.payload
+        logger.debug('Received RPC response from Tauri:', response)
+
+        if (
+          response &&
+          typeof response === 'object' &&
+          'request_id' in response
+        ) {
+          onRpcResponse(response)
+        } else {
+          logger.warn('Invalid RPC response received from Tauri:', response)
+        }
+      },
+    )
+  } catch (error) {
+    console.warn('Failed to import Tauri APIs:', error)
     throw new Error(
-      'Not running in a Tauri environment. This transport requires Tauri.',
+      `Tauri APIs not available. Please ensure @tauri-apps/api is installed: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`,
     )
   }
 
-  // Create and initialize the transport
-  const transport = new TauriTransport(onRpcResponse)
+  // Create and initialize the transport with the event listener
+  const transport = new TauriTransport(onRpcResponse, tauriInvoke, tauriListen)
   await transport.initialize()
   return transport
 }
