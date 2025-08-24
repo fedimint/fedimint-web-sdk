@@ -176,7 +176,7 @@ type WalletVariant = {
   }
   withdraw?: {
     address: string
-    amountMsats: number
+    amount: number
     fee: {
       fee_rate: {
         sats_per_kvb: number
@@ -240,7 +240,7 @@ type EcashTransaction = BaseTransactions & {
 type WalletTransaction = BaseTransactions & {
   type: 'withdraw' | 'deposit'
   onchainAddress: string
-  amountMsats: number
+  amountSats: number
   fee: number
   outcome?:
     | 'WaitingForTransaction'
