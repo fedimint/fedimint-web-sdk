@@ -60,9 +60,12 @@ export const workerTest = test.extend<{
   transportClient: TransportClient
 }>({
   worker: async ({}, use) => {
-    const worker = new Worker(new URL('../worker/worker.js', import.meta.url), {
-      type: 'module',
-    })
+    const worker = new Worker(
+      new URL('../transport/wasmTransport/worker.js', import.meta.url),
+      {
+        type: 'module',
+      },
+    )
     await use(worker)
     worker.terminate()
   },
