@@ -2,6 +2,7 @@ import { expect, test } from 'vitest'
 import { TestFedimintWallet } from './TestFedimintWallet'
 import { TransportClient } from '../transport/TransportClient'
 import { WasmWorkerTransport } from '../transport/wasmTransport/WasmWorkerTransport'
+import { WalletDirector } from '../WalletDirector'
 
 /**
  * Adds Fixtures for setting up and tearing down a test FedimintWallet instance
@@ -13,8 +14,9 @@ export const walletTest = test.extend<{
   unopenedWallet: TestFedimintWallet
 }>({
   wallet: async ({}, use) => {
+    const walletDirector = new WalletDirector()
     const randomTestingId = Math.random().toString(36).substring(2, 15)
-    const wallet = new TestFedimintWallet()
+    const wallet = await walletDirector.createTestWallet()
     expect(wallet).toBeDefined()
     const inviteCode = await wallet.testing.getInviteCode()
     await expect(
@@ -46,8 +48,8 @@ export const walletTest = test.extend<{
     await use(wallet)
   },
   unopenedWallet: async ({}, use) => {
-    const wallet = new TestFedimintWallet()
-    await wallet.initialize()
+    const walletDirector = new WalletDirector()
+    const wallet = await walletDirector.createTestWallet()
     await use(wallet)
   },
 })
