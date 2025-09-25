@@ -8,14 +8,10 @@ import type {
 } from '../types'
 import { logger } from '../utils/logger'
 import type { Transport, TransportMessage } from '../types/transport'
-import { WasmWorkerTransport } from './wasmTransport/WasmWorkerTransport'
 
-// Handles communication with a worker transport
-// TODO: Move rpc stream management to a separate "SubscriptionManager" class
 /**
  * Handles communication with a generic transport.
  * Must be instantiated with a platform-specific transport. (wasm for web, react native, etc.)
- * Defaults to WasmWorkerTransport. (web)
  */
 export class TransportClient {
   // Generic Transport. Can be wasm, react native, node, etc.
@@ -27,9 +23,8 @@ export class TransportClient {
   /**
    * @summary Constructor for the TransportClient
    * @param transport - The platform-specific transport to use. (wasm for web, react native, etc.)
-   * Defaults to WasmWorkerTransport. (web)
    */
-  constructor(transport: Transport = new WasmWorkerTransport()) {
+  constructor(transport: Transport) {
     this.transport = transport
     this.transport.setMessageHandler(this.handleTransportMessage)
     this.transport.setErrorHandler(this.handleTransportError)

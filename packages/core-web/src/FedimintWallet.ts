@@ -1,4 +1,4 @@
-import { TransportClient } from './transport'
+import { TransportClient, WasmWorkerTransport } from './transport'
 import {
   BalanceService,
   MintService,
@@ -8,7 +8,7 @@ import {
   WalletService,
 } from './services'
 import { logger, type LogLevel } from './utils/logger'
-import { FederationConfig, JSONValue } from './types'
+import { FederationConfig, JSONValue, Transport } from './types'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
@@ -43,7 +43,7 @@ export class FedimintWallet {
    *
    * @param {boolean} lazy - If true, delays Web Worker and WebAssembly initialization
    *                         until needed. Default is false.
-   * @param {TransportClient} [transportClient] - Optional worker client instance. Provide your
+   * @param {Transport} [transport] - Optional worker client instance. Provide your
    *                         own to use a custom transport (e.g. React Native).
    *
    * @example
@@ -57,11 +57,14 @@ export class FedimintWallet {
    * lazyWallet.initialize();
    * lazyWallet.open();
    */
-  constructor(lazy: boolean = false, transportClient?: TransportClient) {
+  constructor(
+    lazy: boolean = false,
+    transport: Transport = new WasmWorkerTransport(),
+  ) {
     this._openPromise = new Promise((resolve) => {
       this._resolveOpen = resolve
     })
-    this._client = transportClient ?? new TransportClient()
+    this._client = new TransportClient(transport)
     this.mint = new MintService(this._client)
     this.lightning = new LightningService(this._client)
     this.balance = new BalanceService(this._client)
