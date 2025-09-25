@@ -20,7 +20,7 @@ console.log('Worker - init')
 /**
  * Type definitions for the worker messages
  *
- * @typedef {import('../types/worker').WorkerMessageType} WorkerMessageType
+ * @typedef {import('../../types/transport').TransportMessageType} WorkerMessageType
  * @typedef {{
  *  type: WorkerMessageType
  *  payload: any

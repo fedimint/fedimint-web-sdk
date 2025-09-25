@@ -1,4 +1,4 @@
-import { WorkerClient } from './worker'
+import { TransportClient } from './transport'
 import {
   BalanceService,
   MintService,
@@ -13,7 +13,7 @@ import { FederationConfig, JSONValue } from './types'
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
 export class FedimintWallet {
-  private _client: WorkerClient
+  private _client: TransportClient
 
   public balance: BalanceService
   public mint: MintService
@@ -43,6 +43,8 @@ export class FedimintWallet {
    *
    * @param {boolean} lazy - If true, delays Web Worker and WebAssembly initialization
    *                         until needed. Default is false.
+   * @param {TransportClient} [transportClient] - Optional worker client instance. Provide your
+   *                         own to use a custom transport (e.g. React Native).
    *
    * @example
    * // Create a wallet with immediate initialization
@@ -55,11 +57,11 @@ export class FedimintWallet {
    * lazyWallet.initialize();
    * lazyWallet.open();
    */
-  constructor(lazy: boolean = false) {
+  constructor(lazy: boolean = false, transportClient?: TransportClient) {
     this._openPromise = new Promise((resolve) => {
       this._resolveOpen = resolve
     })
-    this._client = new WorkerClient()
+    this._client = transportClient ?? new TransportClient()
     this.mint = new MintService(this._client)
     this.lightning = new LightningService(this._client)
     this.balance = new BalanceService(this._client)
@@ -75,9 +77,9 @@ export class FedimintWallet {
   }
 
   async initialize() {
-    logger.info('Initializing WorkerClient')
+    logger.info('Initializing TransportClient')
     await this._client.initialize()
-    logger.info('WorkerClient initialized')
+    logger.info('TransportClient initialized')
   }
 
   async waitForOpen() {
@@ -159,7 +161,7 @@ export class FedimintWallet {
   /**
    * Parses a federation invite code and retrieves its details.
    *
-   * This method sends the provided invite code to the WorkerClient for parsing.
+   * This method sends the provided invite code to the TransportClient for parsing.
    * The response includes the federation_id and url.
    *
    * @param {string} inviteCode - The invite code to be parsed.
@@ -168,7 +170,7 @@ export class FedimintWallet {
    *          - `federation_id`: The id of the feder.
    *          - `url`: One of the apipoints to connect to the federation
    *
-   * @throws {Error} If the WorkerClient encounters an issue during the parsing process.
+   * @throws {Error} If the TransportClient encounters an issue during the parsing process.
    *
    * @example
    * const inviteCode = "example-invite-code";
@@ -187,7 +189,7 @@ export class FedimintWallet {
   /**
    * Parses a BOLT11 Lightning invoice and retrieves its details.
    *
-   * This method sends the provided invoice string to the WorkerClient for parsing.
+   * This method sends the provided invoice string to the TransportClient for parsing.
    * The response includes details such as the amount, expiry, and memo.
    *
    * @param {string} invoiceStr - The BOLT11 invoice string to be parsed.
@@ -197,7 +199,7 @@ export class FedimintWallet {
    *          - `expiry`: The expiry time of the invoice in seconds.
    *          - `memo`: A description or memo attached to the invoice.
    *
-   * @throws {Error} If the WorkerClient encounters an issue during the parsing process.
+   * @throws {Error} If the TransportClient encounters an issue during the parsing process.
    *
    * @example
    * const invoiceStr = "lnbc1...";

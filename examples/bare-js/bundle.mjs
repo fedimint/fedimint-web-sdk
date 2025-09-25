@@ -15,7 +15,7 @@ function printErr(err) {
 
 // fs.copyFile(path.resolve(CORE_LIB_DIST, 'index.js'), './index.js', printErr)
 fs.copyFile(
-  path.resolve(CORE_LIB_DIST, '../src/worker/worker.js'),
+  path.resolve(CORE_LIB_DIST, '../src/transport/wasmTransport/worker.js'),
   './worker.js',
   printErr,
 )

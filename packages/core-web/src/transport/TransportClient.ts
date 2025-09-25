@@ -4,27 +4,37 @@ import type {
   ModuleKind,
   StreamError,
   StreamResult,
-  WorkerMessageType,
+  TransportMessageType,
 } from '../types'
 import { logger } from '../utils/logger'
+import type { Transport, TransportMessage } from '../types/transport'
+import { WasmWorkerTransport } from './wasmTransport/WasmWorkerTransport'
 
-// Handles communication with the wasm worker
+// Handles communication with a worker transport
 // TODO: Move rpc stream management to a separate "SubscriptionManager" class
-export class WorkerClient {
-  private worker: Worker
+/**
+ * Handles communication with a generic transport.
+ * Must be instantiated with a platform-specific transport. (wasm for web, react native, etc.)
+ * Defaults to WasmWorkerTransport. (web)
+ */
+export class TransportClient {
+  // Generic Transport. Can be wasm, react native, node, etc.
+  private readonly transport: Transport
   private requestCounter = 0
   private requestCallbacks = new Map<number, (value: any) => void>()
   private initPromise: Promise<boolean> | undefined = undefined
 
-  constructor() {
-    // Must create the URL inside the constructor for vite
-    this.worker = new Worker(new URL('./worker.js', import.meta.url), {
-      type: 'module',
-    })
-    this.worker.onmessage = this.handleWorkerMessage.bind(this)
-    this.worker.onerror = this.handleWorkerError.bind(this)
-    logger.info('WorkerClient instantiated')
-    logger.debug('WorkerClient', this.worker)
+  /**
+   * @summary Constructor for the TransportClient
+   * @param transport - The platform-specific transport to use. (wasm for web, react native, etc.)
+   * Defaults to WasmWorkerTransport. (web)
+   */
+  constructor(transport: Transport = new WasmWorkerTransport()) {
+    this.transport = transport
+    this.transport.setMessageHandler(this.handleTransportMessage)
+    this.transport.setErrorHandler(this.handleTransportError)
+    logger.info('TransportClient instantiated')
+    logger.debug('TransportClient transport', transport)
   }
 
   // Idempotent setup - Loads the wasm module
@@ -34,30 +44,31 @@ export class WorkerClient {
     return this.initPromise
   }
 
-  private handleWorkerLogs(event: MessageEvent) {
-    const { type, level, message, ...data } = event.data
-    logger.log(level, message, ...data)
+  private handleLogMessage(message: TransportMessage) {
+    const { type, level, message: logMessage, ...data } = message
+    logger.log(String(level), String(logMessage), data)
   }
 
-  private handleWorkerError(event: ErrorEvent) {
-    logger.error('Worker error', event)
+  private handleTransportError = (error: unknown) => {
+    logger.error('TransportClient error', error)
   }
 
-  private handleWorkerMessage(event: MessageEvent) {
-    const { type, requestId, ...data } = event.data
+  private handleTransportMessage = (message: TransportMessage) => {
+    const { type, requestId, ...data } = message
     if (type === 'log') {
-      this.handleWorkerLogs(event.data)
+      this.handleLogMessage(message)
     }
-    const streamCallback = this.requestCallbacks.get(requestId)
+    const streamCallback =
+      requestId !== undefined ? this.requestCallbacks.get(requestId) : undefined
     // TODO: Handle errors... maybe have another callbacks list for errors?
-    logger.debug('WorkerClient - handleWorkerMessage', event.data)
+    logger.debug('TransportClient - handleTransportMessage', message)
     if (streamCallback) {
       streamCallback(data) // {data: something} OR {error: something}
-    } else {
+    } else if (requestId !== undefined) {
       logger.warn(
-        'WorkerClient - handleWorkerMessage - received message with no callback',
+        'TransportClient - handleTransportMessage - received message with no callback',
         requestId,
-        event.data,
+        message,
       )
     }
   }
@@ -69,16 +80,21 @@ export class WorkerClient {
   sendSingleMessage<
     Response extends JSONValue = JSONValue,
     Payload extends JSONValue = JSONValue,
-  >(type: WorkerMessageType, payload?: Payload) {
+  >(type: TransportMessageType, payload?: Payload) {
     return new Promise<Response>((resolve, reject) => {
       const requestId = ++this.requestCounter
-      logger.debug('WorkerClient - sendSingleMessage', requestId, type, payload)
+      logger.debug(
+        'TransportClient - sendSingleMessage',
+        requestId,
+        type,
+        payload,
+      )
       this.requestCallbacks.set(
         requestId,
         (response: StreamResult<Response>) => {
           this.requestCallbacks.delete(requestId)
           logger.debug(
-            'WorkerClient - sendSingleMessage - response',
+            'TransportClient - sendSingleMessage - response',
             requestId,
             response,
           )
@@ -86,13 +102,13 @@ export class WorkerClient {
           else if (response.error) reject(response.error)
           else
             logger.warn(
-              'WorkerClient - sendSingleMessage - malformed response',
+              'TransportClient - sendSingleMessage - malformed response',
               requestId,
               response,
             )
         },
       )
-      this.worker.postMessage({ type, payload, requestId })
+      this.transport.postMessage({ type, payload, requestId })
     })
   }
 
@@ -132,7 +148,7 @@ export class WorkerClient {
     onEnd: () => void = () => {},
   ): CancelFunction {
     const requestId = ++this.requestCounter
-    logger.debug('WorkerClient - rpcStream', requestId, module, method, body)
+    logger.debug('TransportClient - rpcStream', requestId, module, method, body)
     let unsubscribe: (value: void) => void = () => {}
     let isSubscribed = false
 
@@ -180,10 +196,6 @@ export class WorkerClient {
     unsubscribePromise: Promise<void>,
     // Unsubscribe function
   ) {
-    // await this.openPromise
-    // if (!this.worker || !this._isOpen)
-    //   throw new Error('FedimintWallet is not open')
-
     this.requestCallbacks.set(requestId, (response: StreamResult<Response>) => {
       if (response.error !== undefined) {
         onError(response.error)
@@ -194,14 +206,14 @@ export class WorkerClient {
         onEnd()
       }
     })
-    this.worker.postMessage({
+    this.transport.postMessage({
       type: 'rpc',
       payload: { module, method, body },
       requestId,
     })
 
     unsubscribePromise.then(() => {
-      this.worker?.postMessage({
+      this.transport.postMessage({
         type: 'unsubscribe',
         requestId,
       })
@@ -213,7 +225,7 @@ export class WorkerClient {
     Response extends JSONValue = JSONValue,
     Error extends string = string,
   >(module: ModuleKind, method: string, body: JSONValue) {
-    logger.debug('WorkerClient - rpcSingle', module, method, body)
+    logger.debug('TransportClient - rpcSingle', module, method, body)
     return new Promise<Response>((resolve, reject) => {
       this.rpcStream<Response>(module, method, body, resolve, reject)
     })
