@@ -6,7 +6,7 @@ import type {
   StreamResult,
   TransportMessageType,
 } from '../types'
-import { logger } from '../utils/logger'
+import { Logger } from '../utils/logger'
 import type { Transport, TransportMessage } from '../types/transport'
 
 /**
@@ -19,6 +19,7 @@ export class TransportClient {
   private requestCounter = 0
   private requestCallbacks = new Map<number, (value: any) => void>()
   private initPromise: Promise<boolean> | undefined = undefined
+  logger: Logger
 
   /**
    * @summary Constructor for the TransportClient
@@ -26,10 +27,11 @@ export class TransportClient {
    */
   constructor(transport: Transport) {
     this.transport = transport
+    this.logger = new Logger(transport.logger)
     this.transport.setMessageHandler(this.handleTransportMessage)
     this.transport.setErrorHandler(this.handleTransportError)
-    logger.info('TransportClient instantiated')
-    logger.debug('TransportClient transport', transport)
+    this.logger.info('TransportClient instantiated')
+    this.logger.debug('TransportClient transport', transport)
   }
 
   // Idempotent setup - Loads the wasm module
@@ -41,11 +43,11 @@ export class TransportClient {
 
   private handleLogMessage(message: TransportMessage) {
     const { type, level, message: logMessage, ...data } = message
-    logger.log(String(level), String(logMessage), data)
+    this.logger.info(String(level), String(logMessage), data)
   }
 
   private handleTransportError = (error: unknown) => {
-    logger.error('TransportClient error', error)
+    this.logger.error('TransportClient error', error)
   }
 
   private handleTransportMessage = (message: TransportMessage) => {
@@ -56,11 +58,11 @@ export class TransportClient {
     const streamCallback =
       requestId !== undefined ? this.requestCallbacks.get(requestId) : undefined
     // TODO: Handle errors... maybe have another callbacks list for errors?
-    logger.debug('TransportClient - handleTransportMessage', message)
+    this.logger.debug('TransportClient - handleTransportMessage', message)
     if (streamCallback) {
       streamCallback(data) // {data: something} OR {error: something}
     } else if (requestId !== undefined) {
-      logger.warn(
+      this.logger.warn(
         'TransportClient - handleTransportMessage - received message with no callback',
         requestId,
         message,
@@ -78,7 +80,7 @@ export class TransportClient {
   >(type: TransportMessageType, payload?: Payload) {
     return new Promise<Response>((resolve, reject) => {
       const requestId = ++this.requestCounter
-      logger.debug(
+      this.logger.debug(
         'TransportClient - sendSingleMessage',
         requestId,
         type,
@@ -88,7 +90,7 @@ export class TransportClient {
         requestId,
         (response: StreamResult<Response>) => {
           this.requestCallbacks.delete(requestId)
-          logger.debug(
+          this.logger.debug(
             'TransportClient - sendSingleMessage - response',
             requestId,
             response,
@@ -96,7 +98,7 @@ export class TransportClient {
           if (response.data) resolve(response.data)
           else if (response.error) reject(response.error)
           else
-            logger.warn(
+            this.logger.warn(
               'TransportClient - sendSingleMessage - malformed response',
               requestId,
               response,
@@ -143,7 +145,13 @@ export class TransportClient {
     onEnd: () => void = () => {},
   ): CancelFunction {
     const requestId = ++this.requestCounter
-    logger.debug('TransportClient - rpcStream', requestId, module, method, body)
+    this.logger.debug(
+      'TransportClient - rpcStream',
+      requestId,
+      module,
+      method,
+      body,
+    )
     let unsubscribe: (value: void) => void = () => {}
     let isSubscribed = false
 
@@ -220,7 +228,7 @@ export class TransportClient {
     Response extends JSONValue = JSONValue,
     Error extends string = string,
   >(module: ModuleKind, method: string, body: JSONValue) {
-    logger.debug('TransportClient - rpcSingle', module, method, body)
+    this.logger.debug('TransportClient - rpcSingle', module, method, body)
     return new Promise<Response>((resolve, reject) => {
       this.rpcStream<Response>(module, method, body, resolve, reject)
     })

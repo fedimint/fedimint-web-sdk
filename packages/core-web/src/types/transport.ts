@@ -40,4 +40,15 @@ export interface Transport {
   postMessage(message: TransportRequest): void
   setMessageHandler(handler: TransportMessageHandler): void
   setErrorHandler(handler: TransportErrorHandler): void
+  logger: TransportLogger
+}
+
+/**
+ * Generic logger interface based on browser console.log
+ */
+export type TransportLogger = {
+  debug(message: string, ...args: any[]): void
+  info(message: string, ...args: any[]): void
+  warn(message: string, ...args: any[]): void
+  error(message: string, ...args: any[]): void
 }

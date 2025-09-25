@@ -1,10 +1,20 @@
+import { TransportLogger } from '../types/transport'
+
 const logLevels = ['debug', 'info', 'warn', 'error', 'none'] as const
 export type LogLevel = (typeof logLevels)[number]
 
 export class Logger {
   private level: LogLevel
+  private logger: TransportLogger
 
-  constructor(level: LogLevel = 'none') {
+  /**
+   * Generic Logger for a given environment.
+   *
+   * @param _logger - The transport's logger to use. (console for web, react native, etc.)
+   * @param level - The log level to use. (debug, info, warn, error, none)
+   */
+  constructor(_logger: TransportLogger = console, level: LogLevel = 'none') {
+    this.logger = _logger
     this.level = level
   }
 
@@ -12,7 +22,7 @@ export class Logger {
     this.level = level
   }
 
-  coerceLevel(level: string): LogLevel {
+  private coerceLevel(level: string): LogLevel {
     if (logLevels.includes(level.toLocaleUpperCase() as LogLevel)) {
       return level.toLocaleUpperCase() as LogLevel
     }
@@ -24,7 +34,7 @@ export class Logger {
     if (!this.shouldLog(logLevel)) {
       return
     }
-    const consoleFn = console[logLevel]
+    const consoleFn = this.logger[logLevel]
     consoleFn(`[${logLevel.toUpperCase()}] ${message}`, ...args)
   }
 
@@ -57,5 +67,3 @@ export class Logger {
     )
   }
 }
-
-export const logger = new Logger()

@@ -7,7 +7,7 @@ import {
   RecoveryService,
   WalletService,
 } from './services'
-import { logger, type LogLevel } from './utils/logger'
+import { type LogLevel } from './utils/logger'
 import { FederationConfig, JSONValue, Transport } from './types'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
@@ -72,7 +72,7 @@ export class FedimintWallet {
     this.recovery = new RecoveryService(this._client)
     this.wallet = new WalletService(this._client)
 
-    logger.info('FedimintWallet instantiated')
+    this._client.logger.info('FedimintWallet instantiated')
 
     if (!lazy) {
       this.initialize()
@@ -80,9 +80,9 @@ export class FedimintWallet {
   }
 
   async initialize() {
-    logger.info('Initializing TransportClient')
+    this._client.logger.info('Initializing TransportClient')
     await this._client.initialize()
-    logger.info('TransportClient initialized')
+    this._client.logger.info('TransportClient initialized')
   }
 
   async waitForOpen() {
@@ -125,7 +125,7 @@ export class FedimintWallet {
 
       return response.success
     } catch (e) {
-      logger.error('Error joining federation', e)
+      this._client.logger.error('Error joining federation', e)
       return false
     }
   }
@@ -157,8 +157,8 @@ export class FedimintWallet {
    * @param level The desired log level ('DEBUG', 'INFO', 'WARN', 'ERROR', 'NONE').
    */
   setLogLevel(level: LogLevel) {
-    logger.setLevel(level)
-    logger.info(`Log level set to ${level}.`)
+    this._client.logger.setLevel(level)
+    this._client.logger.info(`Log level set to ${level}.`)
   }
 
   /**

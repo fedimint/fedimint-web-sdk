@@ -1,6 +1,7 @@
 import type {
   Transport,
   TransportErrorHandler,
+  TransportLogger,
   TransportMessageHandler,
   TransportRequest,
 } from '../../types/transport'
@@ -9,6 +10,8 @@ export class WasmWorkerTransport implements Transport {
   private messageHandler: TransportMessageHandler = () => {}
   private errorHandler: TransportErrorHandler = () => {}
   private readonly worker: Worker
+
+  logger: TransportLogger = console
 
   constructor() {
     this.worker = new Worker(new URL('./worker.js', import.meta.url), {
