@@ -1,31 +1,7 @@
-import { test, expect } from 'vitest'
-import { TestFedimintWallet } from '../test/TestFedimintWallet'
-import { beforeAll } from 'vitest'
+import { expect } from 'vitest'
+import { walletTest } from '../test/fixtures'
 
-let randomTestingId: string
-let wallet: TestFedimintWallet
-
-beforeAll(async () => {
-  randomTestingId = Math.random().toString(36).substring(2, 15)
-  wallet = new TestFedimintWallet()
-  expect(wallet).toBeDefined()
-  await expect(
-    wallet.joinFederation(wallet.testing.TESTING_INVITE, randomTestingId),
-  ).resolves.toBe(true)
-  expect(wallet.isOpen()).toBe(true)
-
-  // Cleanup after all tests
-  return async () => {
-    // clear up browser resources
-    await wallet.cleanup()
-    // remove the wallet db
-    indexedDB.deleteDatabase(randomTestingId)
-    // swap out the randomTestingId for a new one, to avoid raciness
-    randomTestingId = Math.random().toString(36).substring(2, 15)
-  }
-})
-
-test('getBalance should be initially zero', async () => {
+walletTest('getBalance should be initially zero', async ({ wallet }) => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
   const beforeGetBalance = wallet.testing.getRequestCounter()
@@ -33,7 +9,7 @@ test('getBalance should be initially zero', async () => {
   expect(wallet.testing.getRequestCounter()).toBe(beforeGetBalance + 1)
 })
 
-test('subscribe balance', async () => {
+walletTest('subscribe balance', async ({ wallet }) => {
   expect(wallet).toBeDefined()
   expect(wallet.isOpen()).toBe(true)
 

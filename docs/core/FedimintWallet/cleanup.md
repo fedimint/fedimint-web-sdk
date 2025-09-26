@@ -6,9 +6,10 @@ Cleans up browser resources associated with the wallet. This should be called wh
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
 
 await wallet.open()
 // ... use the wallet

@@ -6,10 +6,12 @@ Create an onchain address. Returns a `deposit_address` (string) and an `operatio
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
+
+await wallet.open()
 
 const { deposit_address, operation_id } = await wallet.wallet.generateAddress() // [!code focus]
 ```

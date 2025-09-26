@@ -36,16 +36,16 @@ until needed. Default is false.
 #### Example
 
 ```ts twoslash
-import { FedimintWallet } from '@fedimint/core-web'
+// import { FedimintWallet } from '@fedimint/core-web'
 
-// Create a wallet with immediate initialization // [!code focus]
-const wallet = new FedimintWallet() // wasm gets initialized here // [!code focus]
-wallet.open()
+// // Create a wallet with immediate initialization // [!code focus]
+// const wallet = new FedimintWallet() // wasm gets initialized here // [!code focus]
+// wallet.open()
 
-// Create a wallet with lazy initialization // [!code focus]
-const lazyWallet = new FedimintWallet(true) // lazy = true // [!code focus]
-// Some time later...
-lazyWallet.open() // wasm gets initialized here
+// // Create a wallet with lazy initialization // [!code focus]
+// const lazyWallet = new FedimintWallet(true) // lazy = true // [!code focus]
+// // Some time later...
+// lazyWallet.open() // wasm gets initialized here
 ```
 
 #### Defined in

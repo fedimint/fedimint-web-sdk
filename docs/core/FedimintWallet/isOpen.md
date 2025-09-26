@@ -6,9 +6,10 @@ Check if the wallet is open.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
 
 const isOpen = wallet.isOpen() // [!code focus]
 

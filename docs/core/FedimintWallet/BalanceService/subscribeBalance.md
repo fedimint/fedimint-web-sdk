@@ -5,10 +5,13 @@
 Subscribe to balance updates as they occur.
 
 ```ts twoslash
-import { FedimintWallet } from '@fedimint/core-web'
+// @esModuleInterop
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
+
+await wallet.open()
 
 const unsubscribe = wallet.balance.subscribeBalance((mSats) => { // [!code focus]
   console.log('Balance updated:', mSats) // [!code focus]

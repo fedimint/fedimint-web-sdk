@@ -5,9 +5,9 @@ import { TestingService } from './TestingService'
 export class TestFedimintWallet extends FedimintWallet {
   public testing: TestingService
 
-  constructor() {
-    super()
-    this.testing = new TestingService(this.getTransportClient(), this.lightning)
+  constructor(_client: TransportClient) {
+    super(_client)
+    this.testing = new TestingService(_client, this.lightning)
   }
 
   async fundWallet(amountMSats: number) {

@@ -2,13 +2,13 @@
 
 ### `setLogLevel()`
 
-Set the log level for the wallet.
+Set the log level for the walletDirector.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const walletDirector = new WalletDirector()
 
-wallet.setLogLevel('debug') // [!code focus]
+walletDirector.setLogLevel('debug') // [!code focus]
 ```

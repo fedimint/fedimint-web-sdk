@@ -10,10 +10,12 @@ You can use `subscribeLnReceive` to track the invoice status.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 import type { LnReceiveState } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
+
 wallet.open()
 
 const { operation_id, invoice } = await wallet.lightning.createInvoice( // [!code focus]
