@@ -2,19 +2,23 @@ import { expect, test } from 'vitest'
 import { TestFedimintWallet } from './TestFedimintWallet'
 import { TransportClient } from '../transport/TransportClient'
 import { WasmWorkerTransport } from '../transport/wasmTransport/WasmWorkerTransport'
-import { WalletDirector } from '../WalletDirector'
+import { TestWalletDirector } from './TestWalletDirector'
 
 /**
- * Adds Fixtures for setting up and tearing down a test FedimintWallet instance
+ * Adds Fixtures for setting up and tearing down test FedimintWallet/WalletDirector instances
  */
 export const walletTest = test.extend<{
+  walletDirector: TestWalletDirector
   wallet: TestFedimintWallet
   fundedWallet: TestFedimintWallet
   fundedWalletBeefy: TestFedimintWallet
   unopenedWallet: TestFedimintWallet
 }>({
-  wallet: async ({}, use) => {
-    const walletDirector = new WalletDirector()
+  walletDirector: async ({}, use) => {
+    const walletDirector = new TestWalletDirector()
+    await use(walletDirector)
+  },
+  wallet: async ({ walletDirector }, use) => {
     const randomTestingId = Math.random().toString(36).substring(2, 15)
     const wallet = await walletDirector.createTestWallet()
     expect(wallet).toBeDefined()
@@ -47,8 +51,7 @@ export const walletTest = test.extend<{
     await wallet.fundWallet(1_000_000)
     await use(wallet)
   },
-  unopenedWallet: async ({}, use) => {
-    const walletDirector = new WalletDirector()
+  unopenedWallet: async ({ walletDirector }, use) => {
     const wallet = await walletDirector.createTestWallet()
     await use(wallet)
   },

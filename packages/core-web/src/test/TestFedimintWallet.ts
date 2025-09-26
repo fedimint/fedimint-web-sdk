@@ -5,7 +5,7 @@ import { TestingService } from './TestingService'
 export class TestFedimintWallet extends FedimintWallet {
   public testing: TestingService
 
-  constructor(_client: TransportClient) {
+  constructor(protected _client: TransportClient) {
     super(_client)
     this.testing = new TestingService(_client, this.lightning)
   }

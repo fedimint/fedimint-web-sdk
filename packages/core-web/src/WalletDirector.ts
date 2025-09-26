@@ -4,7 +4,8 @@ import { FederationConfig, JSONValue, Transport } from './types'
 import { FedimintWallet } from './FedimintWallet'
 
 export class WalletDirector {
-  private _client: TransportClient
+  // Protected to allow for TestWalletDirector to access the client
+  protected _client: TransportClient
 
   /**
    * Creates a new instance of WalletDirector.
