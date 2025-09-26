@@ -1,4 +1,4 @@
-import { WorkerClient } from './worker'
+import { TransportClient, WasmWorkerTransport } from './transport'
 import {
   BalanceService,
   MintService,
@@ -7,13 +7,13 @@ import {
   RecoveryService,
   WalletService,
 } from './services'
-import { logger, type LogLevel } from './utils/logger'
-import { FederationConfig, JSONValue } from './types'
+import { type LogLevel } from './utils/logger'
+import { FederationConfig, JSONValue, Transport } from './types'
 
 const DEFAULT_CLIENT_NAME = 'fm-default' as const
 
 export class FedimintWallet {
-  private _client: WorkerClient
+  private _client: TransportClient
 
   public balance: BalanceService
   public mint: MintService
@@ -43,6 +43,8 @@ export class FedimintWallet {
    *
    * @param {boolean} lazy - If true, delays Web Worker and WebAssembly initialization
    *                         until needed. Default is false.
+   * @param {Transport} [transport] - Optional worker client instance. Provide your
+   *                         own to use a custom transport (e.g. React Native).
    *
    * @example
    * // Create a wallet with immediate initialization
@@ -55,11 +57,14 @@ export class FedimintWallet {
    * lazyWallet.initialize();
    * lazyWallet.open();
    */
-  constructor(lazy: boolean = false) {
+  constructor(
+    lazy: boolean = false,
+    transport: Transport = new WasmWorkerTransport(),
+  ) {
     this._openPromise = new Promise((resolve) => {
       this._resolveOpen = resolve
     })
-    this._client = new WorkerClient()
+    this._client = new TransportClient(transport)
     this.mint = new MintService(this._client)
     this.lightning = new LightningService(this._client)
     this.balance = new BalanceService(this._client)
@@ -67,7 +72,7 @@ export class FedimintWallet {
     this.recovery = new RecoveryService(this._client)
     this.wallet = new WalletService(this._client)
 
-    logger.info('FedimintWallet instantiated')
+    this._client.logger.info('FedimintWallet instantiated')
 
     if (!lazy) {
       this.initialize()
@@ -75,9 +80,9 @@ export class FedimintWallet {
   }
 
   async initialize() {
-    logger.info('Initializing WorkerClient')
+    this._client.logger.info('Initializing TransportClient')
     await this._client.initialize()
-    logger.info('WorkerClient initialized')
+    this._client.logger.info('TransportClient initialized')
   }
 
   async waitForOpen() {
@@ -120,7 +125,7 @@ export class FedimintWallet {
 
       return response.success
     } catch (e) {
-      logger.error('Error joining federation', e)
+      this._client.logger.error('Error joining federation', e)
       return false
     }
   }
@@ -152,14 +157,14 @@ export class FedimintWallet {
    * @param level The desired log level ('DEBUG', 'INFO', 'WARN', 'ERROR', 'NONE').
    */
   setLogLevel(level: LogLevel) {
-    logger.setLevel(level)
-    logger.info(`Log level set to ${level}.`)
+    this._client.logger.setLevel(level)
+    this._client.logger.info(`Log level set to ${level}.`)
   }
 
   /**
    * Parses a federation invite code and retrieves its details.
    *
-   * This method sends the provided invite code to the WorkerClient for parsing.
+   * This method sends the provided invite code to the TransportClient for parsing.
    * The response includes the federation_id and url.
    *
    * @param {string} inviteCode - The invite code to be parsed.
@@ -168,7 +173,7 @@ export class FedimintWallet {
    *          - `federation_id`: The id of the feder.
    *          - `url`: One of the apipoints to connect to the federation
    *
-   * @throws {Error} If the WorkerClient encounters an issue during the parsing process.
+   * @throws {Error} If the TransportClient encounters an issue during the parsing process.
    *
    * @example
    * const inviteCode = "example-invite-code";
@@ -187,7 +192,7 @@ export class FedimintWallet {
   /**
    * Parses a BOLT11 Lightning invoice and retrieves its details.
    *
-   * This method sends the provided invoice string to the WorkerClient for parsing.
+   * This method sends the provided invoice string to the TransportClient for parsing.
    * The response includes details such as the amount, expiry, and memo.
    *
    * @param {string} invoiceStr - The BOLT11 invoice string to be parsed.
@@ -197,7 +202,7 @@ export class FedimintWallet {
    *          - `expiry`: The expiry time of the invoice in seconds.
    *          - `memo`: A description or memo attached to the invoice.
    *
-   * @throws {Error} If the WorkerClient encounters an issue during the parsing process.
+   * @throws {Error} If the TransportClient encounters an issue during the parsing process.
    *
    * @example
    * const invoiceStr = "lnbc1...";

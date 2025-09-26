@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest'
 import { TestFedimintWallet } from './TestFedimintWallet'
-import { WorkerClient } from '../worker/WorkerClient'
+import { TransportClient } from '../transport/TransportClient'
+import { WasmWorkerTransport } from '../transport/wasmTransport/WasmWorkerTransport'
 
 /**
  * Adds Fixtures for setting up and tearing down a test FedimintWallet instance
@@ -57,12 +58,15 @@ export const walletTest = test.extend<{
 export const workerTest = test.extend<{
   worker: Worker
   clientName: string
-  workerClient: WorkerClient
+  transportClient: TransportClient
 }>({
   worker: async ({}, use) => {
-    const worker = new Worker(new URL('../worker/worker.js', import.meta.url), {
-      type: 'module',
-    })
+    const worker = new Worker(
+      new URL('../transport/wasmTransport/worker.js', import.meta.url),
+      {
+        type: 'module',
+      },
+    )
     await use(worker)
     worker.terminate()
   },
@@ -70,8 +74,10 @@ export const workerTest = test.extend<{
     const randomTestingId = Math.random().toString(36).substring(2, 15)
     await use(randomTestingId)
   },
-  workerClient: async ({}, use) => {
-    const workerClient = new WorkerClient()
-    await use(workerClient)
+  transportClient: async ({}, use) => {
+    // TODO: figure out how to use a different transport in runtime depending on the test
+    // Ideally, we don't want to create separate fixtures for each transport
+    const transportClient = new TransportClient(new WasmWorkerTransport())
+    await use(transportClient)
   },
 })
