@@ -2,7 +2,6 @@ import { TransportClient, WasmWorkerTransport } from './transport'
 import { type LogLevel } from './utils/logger'
 import { FederationConfig, JSONValue, Transport } from './types'
 import { FedimintWallet } from './FedimintWallet'
-import { TestFedimintWallet } from './test/TestFedimintWallet'
 
 export class WalletDirector {
   private _client: TransportClient
@@ -37,11 +36,6 @@ export class WalletDirector {
   async createWallet() {
     await this._client.initialize()
     return new FedimintWallet(this._client)
-  }
-
-  async createTestWallet() {
-    await this._client.initialize()
-    return new TestFedimintWallet(this._client)
   }
 
   async previewFederation(inviteCode: string) {
