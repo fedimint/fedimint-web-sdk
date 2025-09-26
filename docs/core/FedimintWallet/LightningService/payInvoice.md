@@ -6,10 +6,12 @@ Attempts to pay an invoice. Returns a `Promise` that resolves when the payment s
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
+
+await wallet.open()
 
 const result = await wallet.lightning.payInvoiceSync( // [!code focus]
   'lnbc...', // bolt11 invoice // [!code focus]
@@ -31,11 +33,13 @@ You can use `subscribeLnPay` and `subscribeInternalPay` to track the payment sta
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 import type { LnPayState } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
+
+await wallet.open()
 
 const { fee, payment_type } = await wallet.lightning.payInvoice( // [!code focus]
   'lnbc...', // bolt11 invoice // [!code focus]

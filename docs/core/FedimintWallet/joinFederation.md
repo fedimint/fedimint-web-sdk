@@ -6,9 +6,10 @@ Attempts to join a federation.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
 
 const didJoin = await wallet.joinFederation('fed123...') // [!code focus]
 
@@ -21,9 +22,10 @@ To support multiple wallets within a single application, you can pass in a custo
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
 
 const didJoin = await wallet.joinFederation('fed456...', 'my-client-name') // [!code focus]
 ```

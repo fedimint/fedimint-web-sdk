@@ -6,11 +6,11 @@ Parses a BOLT11 invoice and extracts its components (`amount`, `expiry`, and `me
 
 ```ts
 // @esModuleInterop
-import { FedimintWallet } from '@Fedimint/core-web'
+import { WalletDirector } from '@Fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const director = new WalletDirector()
 
-const result = await wallet.parseBolt11Invoice('lnbc1....') // [!code focus]
+const result = await director.parseBolt11Invoice('lnbc1....') // [!code focus]
 
 console.log(result)
 // Output: { amount: 1000, expiry: 3600, memo: 'Payment for services' }
