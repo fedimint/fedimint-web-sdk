@@ -48,7 +48,7 @@ export class FedimintWallet {
    * lazyWallet.initialize();
    * lazyWallet.open();
    */
-  constructor(protected _client: TransportClient) {
+  constructor(private _client: TransportClient) {
     this._openPromise = new Promise((resolve) => {
       this._resolveOpen = resolve
     })
