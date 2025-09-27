@@ -68,6 +68,12 @@ importers:
       '@fedimint/core-web':
         specifier: workspace:*
         version: link:../packages/core-web
+      '@fedimint/transport-types':
+        specifier: workspace:*
+        version: link:../packages/transport-types
+      '@fedimint/transport-web':
+        specifier: workspace:*
+        version: link:../packages/transport-web
       '@shikijs/vitepress-twoslash':
         specifier: 1.4.0
         version: 1.4.0(typescript@5.8.3)
@@ -190,6 +196,10 @@ importers:
         version: 5.2.1(webpack-cli@6.0.1)(webpack@5.99.9)
 
   packages/core-web:
+    dependencies:
+      '@fedimint/transport-types':
+        specifier: workspace:*
+        version: link:../transport-types
     devDependencies:
       '@rollup/plugin-terser':
         specifier: ^0.4.4
@@ -308,6 +318,12 @@ importers:
         specifier: ^3.4.1
         version: 3.4.1(vite@5.4.20(@types/node@22.5.5)(lightningcss@1.30.1)(terser@5.32.0))
 
+  packages/transport-types:
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   packages/transport-web:
     dependencies:
       '@fedimint/core-web':
@@ -316,6 +332,9 @@ importers:
       '@fedimint/fedimint-client-wasm-bundler':
         specifier: workspace:*
         version: link:../wasm-bundler
+      '@fedimint/transport-types':
+        specifier: workspace:*
+        version: link:../transport-types
     devDependencies:
       '@rollup/plugin-terser':
         specifier: ^0.4.4

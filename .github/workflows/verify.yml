@@ -49,6 +49,9 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-deps
 
+      - name: Build types package
+      - run: pnpm --filter @fedimint/transport-types build
+
       - name: Check types
         run: pnpm typecheck
 
