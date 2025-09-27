@@ -1,4 +1,5 @@
 import { WalletDirector, FedimintWallet } from '@fedimint/core-web'
+import { WasmWorkerTransport } from '@fedimint/transport-web'
 import {
   createContext,
   createElement,
@@ -8,7 +9,7 @@ import {
 } from 'react'
 
 let wallet: FedimintWallet
-const walletDirector = new WalletDirector()
+const walletDirector = new WalletDirector(new WasmWorkerTransport())
 
 type FedimintWalletConfig = {
   lazy?: boolean

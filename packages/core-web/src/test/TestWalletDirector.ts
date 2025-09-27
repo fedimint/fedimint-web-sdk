@@ -1,4 +1,4 @@
-import { WasmWorkerTransport } from '../transport/wasmTransport/WasmWorkerTransport'
+import { WasmWorkerTransport } from '@fedimint/transport-web'
 import { Transport } from '../types'
 import { WalletDirector } from '../WalletDirector'
 import { TestFedimintWallet } from './TestFedimintWallet'
