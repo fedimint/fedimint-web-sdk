@@ -19,15 +19,12 @@
     "src"
   ],
   "sideEffects": [
-    "./dist/worker.js",
     "./dist/index.js"
   ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "dependencies": {
-    "@fedimint/fedimint-client-wasm-bundler": "workspace:*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",

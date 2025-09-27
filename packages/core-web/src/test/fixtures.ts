@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { TestFedimintWallet } from './TestFedimintWallet'
 import { TransportClient } from '../transport/TransportClient'
-import { WasmWorkerTransport } from '../transport/wasmTransport/WasmWorkerTransport'
+import { WasmWorkerTransport, createWasmWorker } from '@fedimint/transport-web'
 import { TestWalletDirector } from './TestWalletDirector'
 
 /**
@@ -66,12 +66,7 @@ export const workerTest = test.extend<{
   transportClient: TransportClient
 }>({
   worker: async ({}, use) => {
-    const worker = new Worker(
-      new URL('../transport/wasmTransport/worker.js', import.meta.url),
-      {
-        type: 'module',
-      },
-    )
+    const worker = createWasmWorker()
     await use(worker)
     worker.terminate()
   },

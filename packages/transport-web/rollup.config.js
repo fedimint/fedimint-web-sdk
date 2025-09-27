@@ -5,7 +5,10 @@ import { dts } from 'rollup-plugin-dts'
 
 export default [
   {
-    input: 'src/index.ts',
+    input: {
+      index: 'src/index.ts',
+      worker: 'src/worker.js',
+    },
     output: {
       dir: 'dist',
       format: 'esm',
@@ -15,7 +18,7 @@ export default [
       sourcemap: true,
     },
     plugins: [typescript(), terser()],
-    external: [],
+    external: ['@fedimint/core-web', '@fedimint/fedimint-client-wasm-bundler'],
   },
   {
     input: './dist/dts/index.d.ts',
