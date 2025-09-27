@@ -1,5 +1,33 @@
 # @fedimint/core-web
 
+## 0.1.0
+
+### Minor Changes
+
+- f95792f: Implemented getNotesByDenomination in mint service
+
+  Added and implemented getWalletSummary in wallet service
+
+  Implemented previewFederation
+
+  Added docs for the implementation of getNotesByDenomination, getWalletSummary, previewFederation
+
+- 2aac568: Created WalletDirector class for supporting multiple federations simulataneously
+
+### Patch Changes
+
+- 77c8692: Bump Fedimint pinned version for devimint to 0.8.1
+- fb4e09c: Bump vitest framework to v3.2.4
+- b0a6c28: Implemented getOperation method and enabled pagination in listOperations and updated the docs
+- aec5823: Implemented GenerateAddress and SendOnchain methods and updated the Docs.
+- 5fb29a5: Added subscribe_internal_payment and subscribe_deposit
+- 357effb: Bump fedimint version for devimint. Fixed testing harness.
+- Updated dependencies [22ac0ce]
+- Updated dependencies [f95792f]
+- Updated dependencies [b0a6c28]
+- Updated dependencies [5fb29a5]
+  - @fedimint/fedimint-client-wasm-bundler@0.1.0
+
 ## 0.0.11
 
 ### Patch Changes

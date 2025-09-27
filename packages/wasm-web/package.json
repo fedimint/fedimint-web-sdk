@@ -2,7 +2,7 @@
   "name": "@fedimint/fedimint-client-wasm-web",
   "type": "module",
   "description": "Wasm-pack output (target web) for fedimint-client-wasm",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "license": "MIT",
   "repository": {
     "type": "git",
