@@ -33,7 +33,7 @@
     "test": "pnpm run test:setup pnpm run test:lib",
     "test:setup": "bash scripts/setup_test_shell.sh",
     "test:coverage": "vitest run --coverage",
-    "test:lib": "vitest --project core",
+    "test:lib": "vitest --project integration-tests",
     "test:create": "vitest --watch=false --project cli",
     "test:ui": "vitest --browser.headless=false --ui",
     "format": "prettier --write .",
