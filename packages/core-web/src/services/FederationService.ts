@@ -9,10 +9,10 @@ import type {
   WalletTransaction,
   WalletVariant,
 } from '../types'
-import { WorkerClient } from '../worker'
+import { TransportClient } from '../transport'
 
 export class FederationService {
-  constructor(private client: WorkerClient) {}
+  constructor(private client: TransportClient) {}
 
   async getConfig() {
     return await this.client.rpcSingle('', 'get_config', {})

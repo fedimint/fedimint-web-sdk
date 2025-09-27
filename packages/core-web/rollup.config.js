@@ -5,7 +5,10 @@ import { dts } from 'rollup-plugin-dts'
 
 export default [
   {
-    input: { worker: 'src/worker/worker.js', index: 'src/index.ts' },
+    input: {
+      worker: 'src/transport/wasmTransport/worker.js',
+      index: 'src/index.ts',
+    },
     output: {
       dir: 'dist',
       format: 'esm',

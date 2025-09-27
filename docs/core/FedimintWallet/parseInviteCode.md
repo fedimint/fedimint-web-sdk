@@ -6,11 +6,11 @@ Parses an invite code and extracts its components (`federationId` and `url`) **w
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const walletDirector = new WalletDirector()
 
-const result = await wallet.parseInviteCode('fed11.......') // [!code focus]
+const result = await walletDirector.parseInviteCode('fed11.......') // [!code focus]
 
 console.log(result)
 // Output: { federation_id: 'fed123', url: 'wss://fm_url......' }

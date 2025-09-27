@@ -4,10 +4,10 @@ import {
   GenerateAddressResponse,
   WalletDepositState,
 } from '../types'
-import { WorkerClient } from '../worker'
+import { TransportClient } from '../transport'
 
 export class WalletService {
-  constructor(private client: WorkerClient) {}
+  constructor(private client: TransportClient) {}
 
   async getWalletSummary(): Promise<WalletSummary> {
     return await this.client.rpcSingle('wallet', 'get_wallet_summary', {})

@@ -59,8 +59,8 @@ walletTest('empty getBalance', async ({ wallet }) => {
   await expect(wallet.balance.getBalance()).resolves.toEqual(0)
 })
 
-walletTest('previewFederation', async ({ unopenedWallet }) => {
-  const preview = await unopenedWallet.previewFederation(
+walletTest('previewFederation', async ({ walletDirector, unopenedWallet }) => {
+  const preview = await walletDirector.previewFederation(
     unopenedWallet.testing.TESTING_INVITE,
   )
   expect(preview).toBeDefined()

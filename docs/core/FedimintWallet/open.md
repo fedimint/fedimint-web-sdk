@@ -8,9 +8,10 @@ Default client name is `fm-wallet`.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
 
 const isOpen = await wallet.open() // [!code focus]
 
@@ -25,9 +26,10 @@ To support multiple wallets within a single application, you can pass in a custo
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
 
 const isOpen = await wallet.open('my-client-name') // [!code focus]
 ```

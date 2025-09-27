@@ -1,13 +1,13 @@
 import { FedimintWallet } from '../FedimintWallet'
-import { WorkerClient } from '../worker/WorkerClient'
+import { TransportClient } from '../transport/TransportClient'
 import { TestingService } from './TestingService'
 
 export class TestFedimintWallet extends FedimintWallet {
   public testing: TestingService
 
-  constructor() {
-    super()
-    this.testing = new TestingService(this.getWorkerClient(), this.lightning)
+  constructor(_client: TransportClient) {
+    super(_client)
+    this.testing = new TestingService(_client, this.lightning)
   }
 
   async fundWallet(amountMSats: number) {
@@ -24,8 +24,8 @@ export class TestFedimintWallet extends FedimintWallet {
     ])
   }
 
-  // Method to expose the WorkerClient
-  getWorkerClient(): WorkerClient {
+  // Method to expose the TransportClient
+  getTransportClient(): TransportClient {
     return this['_client']
   }
 }

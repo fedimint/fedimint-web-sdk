@@ -1,19 +1,26 @@
 import { expect, test } from 'vitest'
 import { TestFedimintWallet } from './TestFedimintWallet'
-import { WorkerClient } from '../worker/WorkerClient'
+import { TransportClient } from '../transport/TransportClient'
+import { WasmWorkerTransport } from '../transport/wasmTransport/WasmWorkerTransport'
+import { TestWalletDirector } from './TestWalletDirector'
 
 /**
- * Adds Fixtures for setting up and tearing down a test FedimintWallet instance
+ * Adds Fixtures for setting up and tearing down test FedimintWallet/WalletDirector instances
  */
 export const walletTest = test.extend<{
+  walletDirector: TestWalletDirector
   wallet: TestFedimintWallet
   fundedWallet: TestFedimintWallet
   fundedWalletBeefy: TestFedimintWallet
   unopenedWallet: TestFedimintWallet
 }>({
-  wallet: async ({}, use) => {
+  walletDirector: async ({}, use) => {
+    const walletDirector = new TestWalletDirector()
+    await use(walletDirector)
+  },
+  wallet: async ({ walletDirector }, use) => {
     const randomTestingId = Math.random().toString(36).substring(2, 15)
-    const wallet = new TestFedimintWallet()
+    const wallet = await walletDirector.createTestWallet()
     expect(wallet).toBeDefined()
     const inviteCode = await wallet.testing.getInviteCode()
     await expect(
@@ -44,9 +51,8 @@ export const walletTest = test.extend<{
     await wallet.fundWallet(1_000_000)
     await use(wallet)
   },
-  unopenedWallet: async ({}, use) => {
-    const wallet = new TestFedimintWallet()
-    await wallet.initialize()
+  unopenedWallet: async ({ walletDirector }, use) => {
+    const wallet = await walletDirector.createTestWallet()
     await use(wallet)
   },
 })
@@ -57,12 +63,15 @@ export const walletTest = test.extend<{
 export const workerTest = test.extend<{
   worker: Worker
   clientName: string
-  workerClient: WorkerClient
+  transportClient: TransportClient
 }>({
   worker: async ({}, use) => {
-    const worker = new Worker(new URL('../worker/worker.js', import.meta.url), {
-      type: 'module',
-    })
+    const worker = new Worker(
+      new URL('../transport/wasmTransport/worker.js', import.meta.url),
+      {
+        type: 'module',
+      },
+    )
     await use(worker)
     worker.terminate()
   },
@@ -70,8 +79,10 @@ export const workerTest = test.extend<{
     const randomTestingId = Math.random().toString(36).substring(2, 15)
     await use(randomTestingId)
   },
-  workerClient: async ({}, use) => {
-    const workerClient = new WorkerClient()
-    await use(workerClient)
+  transportClient: async ({}, use) => {
+    // TODO: figure out how to use a different transport in runtime depending on the test
+    // Ideally, we don't want to create separate fixtures for each transport
+    const transportClient = new TransportClient(new WasmWorkerTransport())
+    await use(transportClient)
   },
 })

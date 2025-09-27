@@ -134,7 +134,8 @@ type WalletSummary = {
   spendable_utxos: TxOutputSummary[]
   unsigned_peg_out_txos: TxOutputSummary[]
   unsigned_change_utxos: TxOutputSummary[]
-  unconfirmed_peg_out_utxos: TxOutputSummary[]
+  // TODO: fix typo in rust
+  unconfirmed_peg_out_txos: TxOutputSummary[]
   unconfirmed_change_utxos: TxOutputSummary[]
 }
 

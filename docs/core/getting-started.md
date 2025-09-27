@@ -247,10 +247,11 @@ Here's a basic example of how to use the `@fedimint/core-web` library:
 ::: code-group
 
 ```ts twoslash [example.ts]
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
 // Create the Wallet client
-const wallet = new FedimintWallet()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
 
 // Open the wallet (should be called once in the application lifecycle)
 await wallet.open()

@@ -1,4 +1,4 @@
-import { WorkerClient } from '../worker'
+import { TransportClient } from '../transport'
 import type {
   Duration,
   JSONObject,
@@ -11,7 +11,7 @@ import type {
 } from '../types'
 
 export class MintService {
-  constructor(private client: WorkerClient) {}
+  constructor(private client: TransportClient) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/MintService/redeemEcash */
   async redeemEcash(notes: string) {

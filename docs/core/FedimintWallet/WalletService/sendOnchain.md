@@ -6,10 +6,12 @@ Attempts to send bitcoin to an onchain address.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
+
+await wallet.open()
 
 const amount = 20 // amount in Sats // [!code focus]
 const address = 'bc1q...' // [!code focus]

@@ -6,10 +6,12 @@ Access configuration details about a connected federation.
 
 ```ts twoslash
 // @esModuleInterop
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core-web'
 
-const wallet = new FedimintWallet()
-wallet.open()
+const director = new WalletDirector()
+const wallet = await director.createWallet()
+
+await wallet.open()
 
 const config = await wallet.federation.getConfig() // [!code focus]
 ```

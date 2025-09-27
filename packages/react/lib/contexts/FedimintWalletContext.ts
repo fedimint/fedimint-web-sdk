@@ -1,4 +1,4 @@
-import { FedimintWallet } from '@fedimint/core-web'
+import { WalletDirector, FedimintWallet } from '@fedimint/core-web'
 import {
   createContext,
   createElement,
@@ -8,6 +8,7 @@ import {
 } from 'react'
 
 let wallet: FedimintWallet
+const walletDirector = new WalletDirector()
 
 type FedimintWalletConfig = {
   lazy?: boolean
@@ -17,9 +18,11 @@ type FedimintWalletConfig = {
 export type WalletStatus = 'open' | 'closed' | 'opening'
 
 export const setupFedimintWallet = (config: FedimintWalletConfig) => {
-  wallet = new FedimintWallet(!!config.lazy)
+  walletDirector.createWallet().then((w) => {
+    wallet = w
+  })
   if (config.debug) {
-    wallet.setLogLevel('debug')
+    walletDirector.setLogLevel('debug')
   }
 }
 

@@ -8,23 +8,23 @@ The **Core Web** library is built around a set of composable services and a comm
 
 ## [**FedimintWallet**](FedimintWallet/index)
 
-The `FedimintWallet` class serves as the main entry point for the library. It orchestrates the various services and the WorkerClient.
+The `FedimintWallet` class serves as the main entry point for the library. It orchestrates the various services and the TransportClient.
 
 [Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core-web/src/FedimintWallet.ts)
 
-## **WorkerClient**
+## **TransportClient**
 
-The `WorkerClient` manages all communication between the main thread and the Web Worker.
+The `TransportClient` manages all communication between the main js thread and environment-dependent transport (wasm for web, NativeModule for react-native, etc.).
 
-- Initializes and maintains the Web Worker instance.
+- Initializes and maintains the Transport instance.
 - Handles message passing and response callbacks.
 - Provides methods for sending RPC requests and handling streaming responses.
 
 ::: info
-The `WorkerClient` should not be used directly by the end user. Instead, the `FedimintWallet` class should be used to interact with the library.
+The `TransportClient` should not be used directly by the end user. Instead, the `FedimintWallet` class should be used to interact with the library.
 :::
 
-[Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core-web/src/worker/WorkerClient.ts)
+[Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core-web/src/worker/TransportClient.ts)
 
 ## Services
 
