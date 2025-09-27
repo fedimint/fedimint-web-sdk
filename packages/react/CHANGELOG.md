@@ -1,5 +1,23 @@
 # @fedimint/react
 
+## 1.0.0
+
+### Minor Changes
+
+- 2aac568: Created WalletDirector class for supporting multiple federations simulataneously
+
+### Patch Changes
+
+- Updated dependencies [77c8692]
+- Updated dependencies [f95792f]
+- Updated dependencies [fb4e09c]
+- Updated dependencies [b0a6c28]
+- Updated dependencies [2aac568]
+- Updated dependencies [aec5823]
+- Updated dependencies [5fb29a5]
+- Updated dependencies [357effb]
+  - @fedimint/core-web@0.1.0
+
 ## 0.0.4
 
 ### Patch Changes
