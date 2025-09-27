@@ -1,6 +1,5 @@
-import { WasmWorkerTransport } from '../transport/wasmTransport/WasmWorkerTransport'
-import { Transport } from '../types'
-import { WalletDirector } from '../WalletDirector'
+import { WasmWorkerTransport } from '@fedimint/transport-web'
+import { WalletDirector, type Transport } from '@fedimint/core-web'
 import { TestFedimintWallet } from './TestFedimintWallet'
 
 export class TestWalletDirector extends WalletDirector {

@@ -13,8 +13,8 @@ export default defineConfig({
         plugins: [wasm()],
         test: {
           environment: 'happy-dom',
-          name: 'core',
-          include: ['packages/core-web/**/*.test.ts'],
+          name: 'integration-tests',
+          include: ['packages/integration-tests/**/*.test.ts'],
           exclude: ['packages/create-fedimint-app/**/*.test.ts'],
           browser: {
             enabled: true,

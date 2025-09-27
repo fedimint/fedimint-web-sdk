@@ -1,4 +1,4 @@
-import { TransportClient, WasmWorkerTransport } from './transport'
+import { TransportClient } from './transport'
 import { type LogLevel } from './utils/logger'
 import { FederationConfig, JSONValue, Transport } from './types'
 import { FedimintWallet } from './FedimintWallet'
@@ -16,10 +16,10 @@ export class WalletDirector {
    * @param {boolean} lazy - If true, delays Web Worker and WebAssembly initialization
    *                         until needed. Default is false.
    */
-  constructor(
-    transport: Transport = new WasmWorkerTransport(),
-    lazy: boolean = false,
-  ) {
+  constructor(transport: Transport, lazy: boolean = false) {
+    if (!transport) {
+      throw new Error('WalletDirector requires a transport implementation')
+    }
     this._client = new TransportClient(transport)
     this._client.logger.info('WalletDirector instantiated')
     if (!lazy) {

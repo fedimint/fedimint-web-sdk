@@ -8,7 +8,7 @@ Parses a BOLT11 invoice and extracts its components (`amount`, `expiry`, and `me
 // @esModuleInterop
 import { WalletDirector } from '@Fedimint/core-web'
 
-const director = new WalletDirector()
+const director = new WalletDirector(new WasmWorkerTransport())
 
 const result = await director.parseBolt11Invoice('lnbc1....') // [!code focus]
 
