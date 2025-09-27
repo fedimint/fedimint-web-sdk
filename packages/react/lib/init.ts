@@ -1,11 +1,14 @@
-import { FedimintWallet, WalletDirector } from '@fedimint/core-web'
-import { WasmWorkerTransport } from '@fedimint/transport-web'
+import { FedimintWallet, Transport, WalletDirector } from '@fedimint/core-web'
 
 let wallet: FedimintWallet | undefined
 
-const walletDirector = new WalletDirector(new WasmWorkerTransport())
+let walletDirector: WalletDirector
 
-export const initFedimintReact = (lazy: boolean = false) => {
+export const initFedimintReact = (
+  lazy: boolean = false,
+  transport: Transport,
+) => {
+  walletDirector = new WalletDirector(transport)
   if (!lazy) {
     walletDirector.createWallet().then((w) => {
       wallet = w
