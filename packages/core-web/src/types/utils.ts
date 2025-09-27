@@ -1,3 +1,5 @@
+import type { JSONValue } from '@fedimint/transport-types'
+
 type Alias<T> = T & {}
 type Resolve<T> = T & unknown
 
@@ -11,14 +13,6 @@ type Duration = {
 
 type MSats = Alias<number>
 type Sats = Alias<number>
-
-type JSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: JSONValue }
-  | JSONValue[]
 
 type JSONObject = Record<string, JSONValue>
 

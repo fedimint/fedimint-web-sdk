@@ -24,7 +24,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fedimint/fedimint-client-wasm-bundler": "workspace:*"
+    "@fedimint/fedimint-client-wasm-bundler": "workspace:*",
+    "@fedimint/transport-types": "workspace:*"
   },
   "peerDependencies": {
     "@fedimint/core-web": "workspace:*"

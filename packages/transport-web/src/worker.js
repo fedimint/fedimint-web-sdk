@@ -20,7 +20,7 @@ console.log('Worker - init')
 /**
  * Type definitions for the worker messages
  *
- * @typedef {import('@fedimint/core-web').TransportMessageType} WorkerMessageType
+ * @typedef {import('@fedimint/transport-types').TransportMessageType} WorkerMessageType
  * @typedef {{
  *  type: WorkerMessageType
  *  payload: any

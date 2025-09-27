@@ -4,7 +4,7 @@ import type {
   TransportLogger,
   TransportMessageHandler,
   TransportRequest,
-} from '@fedimint/core-web'
+} from '@fedimint/transport-types'
 
 export class WasmWorkerTransport implements Transport {
   private messageHandler: TransportMessageHandler = () => {}

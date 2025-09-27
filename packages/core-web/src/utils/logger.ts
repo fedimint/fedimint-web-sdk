@@ -1,4 +1,4 @@
-import { TransportLogger } from '../types/transport'
+import type { TransportLogger } from '@fedimint/transport-types'
 
 const logLevels = ['debug', 'info', 'warn', 'error', 'none'] as const
 export type LogLevel = (typeof logLevels)[number]
