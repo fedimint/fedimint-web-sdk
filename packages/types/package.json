@@ -1,11 +1,11 @@
 {
-  "name": "@fedimint/transport-types",
+  "name": "@fedimint/types",
   "version": "0.0.1",
   "description": "Shared transport interfaces for Fedimint client implementations",
   "repository": {
     "type": "git",
     "url": "https://github.com/fedimint/fedimint-web-sdk.git",
-    "directory": "packages/transport-types"
+    "directory": "packages/types"
   },
   "type": "module",
   "main": "./dist/index.js",

@@ -1,1 +1,1 @@
-export * from '@fedimint/transport-types'
+export * from '@fedimint/types'

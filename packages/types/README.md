@@ -1,4 +1,4 @@
-# @fedimint/transport-types
+# @fedimint/types
 
 Shared TypeScript definitions for transport adapters used by the Fedimint SDK. These types express the contract between `TransportClient` implementations and platform-specific transports (web worker, React Native, etc.).
 

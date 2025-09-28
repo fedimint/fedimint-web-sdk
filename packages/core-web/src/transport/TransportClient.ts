@@ -10,7 +10,7 @@ import type {
   Transport,
   TransportMessage,
   TransportMessageType,
-} from '@fedimint/transport-types'
+} from '@fedimint/types'
 
 /**
  * Handles communication with a generic transport.

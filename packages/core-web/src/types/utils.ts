@@ -1,4 +1,4 @@
-import type { JSONValue } from '@fedimint/transport-types'
+import type { JSONValue } from '@fedimint/types'
 
 type Alias<T> = T & {}
 type Resolve<T> = T & unknown

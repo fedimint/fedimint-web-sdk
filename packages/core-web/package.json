@@ -25,7 +25,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@fedimint/transport-types": "workspace:*"
+    "@fedimint/types": "workspace:*"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
