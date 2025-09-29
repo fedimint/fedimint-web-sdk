@@ -235,7 +235,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: [
       '@fedimint/core',
-      '@fedimint/transport-web'
+      '@fedimint/transport-web' // replace with other transport if used.
     ],
   },
 })
