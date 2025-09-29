@@ -1,0 +1,20 @@
+{
+  "name": "@fedimint/core-web",
+  "version": "0.0.11",
+  "description": "Shim package that re-exports @fedimint/core. Use that instead.",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "default": "./index.js"
+    }
+  },
+  "files": [
+    "index.d.ts",
+    "index.js"
+  ],
+  "dependencies": {
+    "@fedimint/core": "workspace:*"
+  }
+}
