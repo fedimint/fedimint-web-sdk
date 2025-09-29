@@ -1,4 +1,4 @@
-import { FedimintWallet } from '@fedimint/core-web'
+import { FedimintWallet } from '@fedimint/core'
 
 const wallet = new FedimintWallet()
 

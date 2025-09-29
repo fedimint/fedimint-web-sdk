@@ -6,7 +6,7 @@ Attempts to pay an invoice. Returns a `Promise` that resolves when the payment s
 
 ```ts twoslash
 // @esModuleInterop
-import { WalletDirector } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core'
 import { WasmWorkerTransport } from '@fedimint/transport-web'
 
 const director = new WalletDirector(new WasmWorkerTransport())
@@ -34,9 +34,9 @@ You can use `subscribeLnPay` and `subscribeInternalPay` to track the payment sta
 
 ```ts twoslash
 // @esModuleInterop
-import { WalletDirector } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core'
 import { WasmWorkerTransport } from '@fedimint/transport-web'
-import type { LnPayState } from '@fedimint/core-web'
+import type { LnPayState } from '@fedimint/core'
 
 const director = new WalletDirector(new WasmWorkerTransport())
 const wallet = await director.createWallet()

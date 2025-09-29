@@ -1,6 +1,6 @@
 import { expect } from 'vitest'
 import { walletTest } from '../test/fixtures'
-import { TxOutputSummary, WalletSummary } from '@fedimint/core-web'
+import { TxOutputSummary, WalletSummary } from '@fedimint/core'
 
 walletTest(
   'getWalletSummary should return empty object if wallet is empty',

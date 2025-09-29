@@ -6,7 +6,7 @@ Returns a paginated list of operations (transactions) from the federation. In ca
 
 ```ts twoslash
 // @esModuleInterop
-import { WalletDirector } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core'
 import { WasmWorkerTransport } from '@fedimint/transport-web'
 
 const director = new WalletDirector(new WasmWorkerTransport())

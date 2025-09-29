@@ -15,7 +15,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "peerDependencies": {
-    "@fedimint/core-web": "workspace:*",
+    "@fedimint/core": "workspace:*",
     "react": "^18.3.1"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useFedimintWallet, useOpenWallet } from '.'
-import { LnReceiveState, type CreateBolt11Response } from '@fedimint/core-web'
+import { LnReceiveState, type CreateBolt11Response } from '@fedimint/core'
 
 export const useReceiveLightning = () => {
   const wallet = useFedimintWallet()

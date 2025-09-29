@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import { WasmWorkerTransport, createWasmWorker } from '@fedimint/transport-web'
-import { TransportClient } from '@fedimint/core-web'
+import { TransportClient } from '@fedimint/core'
 import { TestFedimintWallet } from './TestFedimintWallet'
 import { TestWalletDirector } from './TestWalletDirector'
 

@@ -8,7 +8,7 @@ Default client name is `fm-wallet`.
 
 ```ts twoslash
 // @esModuleInterop
-import { WalletDirector } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core'
 import { WasmWorkerTransport } from '@fedimint/transport-web'
 
 const director = new WalletDirector(new WasmWorkerTransport())
@@ -27,7 +27,7 @@ To support multiple wallets within a single application, you can pass in a custo
 
 ```ts twoslash
 // @esModuleInterop
-import { WalletDirector } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core'
 import { WasmWorkerTransport } from '@fedimint/transport-web'
 
 const director = new WalletDirector(new WasmWorkerTransport())

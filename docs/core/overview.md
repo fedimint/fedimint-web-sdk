@@ -1,6 +1,6 @@
 # Overview
 
-The `@fedimint/core-web` package provides a javascript interface for running a fedimint client in the browser.
+The `@fedimint/core` package provides a javascript interface for running a fedimint client in the browser.
 
 <div class="tip custom-block" style="padding-top: 8px">
 
@@ -8,7 +8,7 @@ Just want to try it out? Skip to the [Quickstart](./getting-started).
 
 </div>
 
-The `@fedimint/core-web` package contains a robust, fault-tolerant fedimint client via a [wasm](https://webassembly.org/) module that runs in a web worker. This wasm module is compiled from the rust-based [fedimint client](https://github.com/fedimint/fedimint/tree/master/fedimint-client-wasm).
+The `@fedimint/core` package contains a robust, fault-tolerant fedimint client via a [wasm](https://webassembly.org/) module that runs in a web worker. This wasm module is compiled from the rust-based [fedimint client](https://github.com/fedimint/fedimint/tree/master/fedimint-client-wasm).
 
 ## Key Features:
 

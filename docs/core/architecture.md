@@ -10,7 +10,7 @@ The **Core Web** library is built around a set of composable services and a comm
 
 The `FedimintWallet` class serves as the main entry point for the library. It orchestrates the various services and the TransportClient.
 
-[Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core-web/src/FedimintWallet.ts)
+[Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core/src/FedimintWallet.ts)
 
 ## **TransportClient**
 
@@ -24,7 +24,7 @@ The `TransportClient` manages all communication between the main js thread and e
 The `TransportClient` should not be used directly by the end user. Instead, the `FedimintWallet` class should be used to interact with the library.
 :::
 
-[Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core-web/src/worker/TransportClient.ts)
+[Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core/src/worker/TransportClient.ts)
 
 ## Services
 

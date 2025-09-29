@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useFedimintWallet, useOpenWallet } from '.'
-import { type SpendNotesState } from '@fedimint/core-web'
+import { type SpendNotesState } from '@fedimint/core'
 
 export const useSpendEcash = () => {
   const wallet = useFedimintWallet()

@@ -62,24 +62,24 @@ You can use `.` for the project name to scaffold in the current directory.
 
 ## Manual Installation
 
-To add @fedimint/core-web to your project, install the package alongside a transport implementation:
+To add @fedimint/core to your project, install the package alongside a transport implementation:
 
 ::: code-group
 
 ```bash [npm]
-npm install @fedimint/core-web @fedimint/transport-web
+npm install @fedimint/core @fedimint/transport-web
 ```
 
 ```bash [yarn]
-yarn add @fedimint/core-web @fedimint/transport-web
+yarn add @fedimint/core @fedimint/transport-web
 ```
 
 ```bash [pnpm]
-pnpm add @fedimint/core-web @fedimint/transport-web
+pnpm add @fedimint/core @fedimint/transport-web
 ```
 
 ```bash [bun]
-bun add @fedimint/core-web @fedimint/transport-web
+bun add @fedimint/core @fedimint/transport-web
 ```
 
 :::
@@ -233,7 +233,7 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    exclude: ['@fedimint/core-web'],
+    exclude: ['@fedimint/core'],
   },
 })
 ```
@@ -244,12 +244,12 @@ Check out the [vite-react sample app](../examples/vite-react) for a full working
 
 ## Usage
 
-Here's a basic example of how to use the `@fedimint/core-web` library:
+Here's a basic example of how to use the `@fedimint/core` library:
 
 ::: code-group
 
 ```ts twoslash [example.ts]
-import { WalletDirector } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core'
 import { WasmWorkerTransport } from '@fedimint/transport-web'
 
 // Create the Wallet client

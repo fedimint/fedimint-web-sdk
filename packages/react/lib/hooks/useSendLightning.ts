@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useFedimintWallet, useOpenWallet } from '.'
-import {
-  type LnPayState,
-  type OutgoingLightningPayment,
-} from '@fedimint/core-web'
+import { type LnPayState, type OutgoingLightningPayment } from '@fedimint/core'
 
 export const useSendLightning = () => {
   const wallet = useFedimintWallet()

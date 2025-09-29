@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useFedimintWallet, useOpenWallet } from '.'
-import { ReissueExternalNotesState } from '@fedimint/core-web'
+import { ReissueExternalNotesState } from '@fedimint/core'
 
 export const useReceiveEcash = () => {
   const wallet = useFedimintWallet()

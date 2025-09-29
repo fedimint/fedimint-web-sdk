@@ -6,7 +6,7 @@ on:
 
   # push:
   # branches: ['main']
-  # paths: ['packages/core-web/**', 'examples/vite-core/**']
+  # paths: ['packages/core/**', 'examples/vite-core/**']
   workflow_dispatch:
 
 permissions:
@@ -22,7 +22,7 @@ jobs:
   deploy:
     name: Deploy Vite-Core Example to GitHub Pages
     environment:
-      name: '@fedimint/core-web + Vite Example'
+      name: '@fedimint/core + Vite Example'
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: [self-hosted, linux, x64]
     steps:

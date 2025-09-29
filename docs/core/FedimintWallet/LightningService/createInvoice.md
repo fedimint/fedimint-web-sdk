@@ -10,9 +10,9 @@ You can use `subscribeLnReceive` to track the invoice status.
 
 ```ts twoslash
 // @esModuleInterop
-import { WalletDirector } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core'
 import { WasmWorkerTransport } from '@fedimint/transport-web'
-import type { LnReceiveState } from '@fedimint/core-web'
+import type { LnReceiveState } from '@fedimint/core'
 
 const director = new WalletDirector(new WasmWorkerTransport())
 const wallet = await director.createWallet()

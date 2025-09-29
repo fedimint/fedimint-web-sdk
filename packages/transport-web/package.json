@@ -28,7 +28,7 @@
     "@fedimint/types": "workspace:*"
   },
   "peerDependencies": {
-    "@fedimint/core-web": "workspace:*"
+    "@fedimint/core": "workspace:*"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",

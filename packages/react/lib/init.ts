@@ -1,4 +1,4 @@
-import { FedimintWallet, Transport, WalletDirector } from '@fedimint/core-web'
+import { FedimintWallet, Transport, WalletDirector } from '@fedimint/core'
 
 let wallet: FedimintWallet | undefined
 

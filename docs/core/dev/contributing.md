@@ -66,8 +66,8 @@ To start the local development playgrounds, run one of the following commands. T
 
 ```bash
 pnpm dev              # aliased to `pnpm dev:core`
-pnpm dev:core         # `@fedimint/core-web` + Vite + React app
-pnpm dev:next         # `@fedimint/core-web` + Next.js app
+pnpm dev:core         # `@fedimint/core` + Vite + React app
+pnpm dev:next         # `@fedimint/core` + Next.js app
 # pnpm dev:react      # TBD
 pnpm dev:bare         # HTML + VanillaJS app (no framework)
 ```

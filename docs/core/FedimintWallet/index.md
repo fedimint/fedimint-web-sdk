@@ -16,7 +16,7 @@ Check out the [Getting Started](../getting-started) guide to get started using t
 
 #### Defined in
 
-[FedimintWallet.ts:18](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L18)
+[FedimintWallet.ts:18](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L18)
 
 ---
 
@@ -26,7 +26,7 @@ Check out the [Getting Started](../getting-started) guide to get started using t
 
 #### Defined in
 
-[FedimintWallet.ts:21](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L21)
+[FedimintWallet.ts:21](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L21)
 
 ---
 
@@ -36,7 +36,7 @@ Check out the [Getting Started](../getting-started) guide to get started using t
 
 #### Defined in
 
-[FedimintWallet.ts:20](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L20)
+[FedimintWallet.ts:20](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L20)
 
 ---
 
@@ -46,7 +46,7 @@ Check out the [Getting Started](../getting-started) guide to get started using t
 
 #### Defined in
 
-[FedimintWallet.ts:19](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L19)
+[FedimintWallet.ts:19](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L19)
 
 ---
 
@@ -56,7 +56,7 @@ Check out the [Getting Started](../getting-started) guide to get started using t
 
 #### Defined in
 
-[FedimintWallet.ts:22](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L22)
+[FedimintWallet.ts:22](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L22)
 
 ## Methods
 
@@ -73,7 +73,7 @@ After this call, the FedimintWallet instance should be discarded.
 
 #### Defined in
 
-[FedimintWallet.ts:134](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L134)
+[FedimintWallet.ts:134](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L134)
 
 ---
 
@@ -87,7 +87,7 @@ After this call, the FedimintWallet instance should be discarded.
 
 #### Defined in
 
-[FedimintWallet.ts:85](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L85)
+[FedimintWallet.ts:85](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L85)
 
 ---
 
@@ -101,7 +101,7 @@ After this call, the FedimintWallet instance should be discarded.
 
 #### Defined in
 
-[FedimintWallet.ts:140](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L140)
+[FedimintWallet.ts:140](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L140)
 
 ---
 
@@ -119,7 +119,7 @@ After this call, the FedimintWallet instance should be discarded.
 
 #### Defined in
 
-[FedimintWallet.ts:147](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/core-web/src/FedimintWallet.ts#L147)
+[FedimintWallet.ts:147](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/core/src/FedimintWallet.ts#L147)
 
 ---
 
@@ -137,7 +137,7 @@ After this call, the FedimintWallet instance should be discarded.
 
 #### Defined in
 
-[FedimintWallet.ts:157](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/core-web/src/FedimintWallet.ts#157)
+[FedimintWallet.ts:157](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/core/src/FedimintWallet.ts#157)
 
 ---
 
@@ -157,7 +157,7 @@ After this call, the FedimintWallet instance should be discarded.
 
 #### Defined in
 
-[FedimintWallet.ts:110](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L110)
+[FedimintWallet.ts:110](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L110)
 
 ---
 
@@ -175,7 +175,7 @@ After this call, the FedimintWallet instance should be discarded.
 
 #### Defined in
 
-[FedimintWallet.ts:141](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/core-web/src/FedimintWallet.ts#L141)
+[FedimintWallet.ts:141](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/core/src/FedimintWallet.ts#L141)
 
 ---
 
@@ -193,7 +193,7 @@ After this call, the FedimintWallet instance should be discarded.
 
 #### Defined in
 
-[FedimintWallet.ts:96](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L96)
+[FedimintWallet.ts:96](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L96)
 
 ---
 
@@ -215,7 +215,7 @@ The desired log level ('DEBUG', 'INFO', 'WARN', 'ERROR', 'NONE').
 
 #### Defined in
 
-[FedimintWallet.ts:148](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L148)
+[FedimintWallet.ts:148](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L148)
 
 ---
 
@@ -229,4 +229,4 @@ The desired log level ('DEBUG', 'INFO', 'WARN', 'ERROR', 'NONE').
 
 #### Defined in
 
-[FedimintWallet.ts:91](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L91)
+[FedimintWallet.ts:91](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L91)

@@ -98,7 +98,7 @@ export default defineConfig({
       },
       {
         icon: 'npm',
-        link: 'https://www.npmjs.com/package/@fedimint/core-web',
+        link: 'https://www.npmjs.com/package/@fedimint/core',
       },
       {
         icon: 'discord',
