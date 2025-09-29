@@ -1,6 +1,6 @@
 {
   "name": "@fedimint/types",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Shared transport interfaces for Fedimint client implementations",
   "repository": {
     "type": "git",

@@ -1,5 +1,13 @@
 # @fedimint/core
 
+## 0.1.1
+
+### Patch Changes
+
+- fdfc947: Rename @fedimint/core-web to @fedimint/core
+- Updated dependencies [adfc30a]
+  - @fedimint/types@0.0.2
+
 ## 0.1.0
 
 ### Minor Changes

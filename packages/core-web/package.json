@@ -1,6 +1,6 @@
 {
   "name": "@fedimint/core-web",
-  "version": "0.0.11",
+  "version": "0.1.1",
   "description": "Shim package that re-exports @fedimint/core. Use that instead.",
   "type": "module",
   "main": "./index.js",
