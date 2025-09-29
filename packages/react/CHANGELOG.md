@@ -1,5 +1,17 @@
 # @fedimint/react
 
+## 0.2.0
+
+### Minor Changes
+
+- fdfc947: Rename @fedimint/core-web to @fedimint/core
+
+### Patch Changes
+
+- adfc30a: Split transport into external package from core-web. Externalize shared types.
+- Updated dependencies [fdfc947]
+  - @fedimint/core@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes

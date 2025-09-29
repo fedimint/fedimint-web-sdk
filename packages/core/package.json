@@ -1,7 +1,7 @@
 {
   "name": "@fedimint/core",
   "description": "Core Fedimint client library for JavaScript environments",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/fedimint/fedimint-web-sdk.git",
