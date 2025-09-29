@@ -1,18 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { wallet } from './wallet'
+import { wallet, director } from './wallet'
 
 const TESTNET_FEDERATION_CODE =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
-
-// Expose the wallet to the global window object for testing
-// @ts-ignore
-globalThis.wallet = wallet
 
 const useIsOpen = () => {
   const [open, setIsOpen] = useState(false)
 
   const checkIsOpen = useCallback(() => {
-    if (open !== wallet.isOpen()) {
+    if (wallet && open !== wallet?.isOpen()) {
       setIsOpen(wallet.isOpen())
     }
   }, [open])
@@ -28,7 +24,7 @@ const useBalance = (checkIsOpen: () => void) => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
-    const unsubscribe = wallet.balance.subscribeBalance((balance) => {
+    const unsubscribe = wallet?.balance.subscribeBalance((balance) => {
       // checks if the wallet is open when the first
       // subscription event fires.
       // TODO: make a subscription to the wallet open status
@@ -37,7 +33,7 @@ const useBalance = (checkIsOpen: () => void) => {
     })
 
     return () => {
-      unsubscribe()
+      unsubscribe?.()
     }
   }, [checkIsOpen])
 
@@ -134,6 +130,7 @@ const JoinFederation = ({
 
     console.log('Joining federation:', inviteCode)
     try {
+      if (!wallet) throw new Error('Wallet unavailable')
       setJoining(true)
       const res = await wallet.joinFederation(inviteCode)
       console.log('join federation res', res)
@@ -179,6 +176,7 @@ const RedeemEcash = () => {
   const handleRedeem = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      if (!wallet) throw new Error('Wallet unavailable')
       const res = await wallet.mint.redeemEcash(ecashInput)
       console.log('redeem ecash res', res)
       setRedeemResult('Redeemed!')
@@ -216,6 +214,7 @@ const SendLightning = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      if (!wallet) throw new Error('Wallet unavailable')
       await wallet.lightning.payInvoice(lightningInput)
       setLightningResult('Paid!')
       setLightningError('')
@@ -257,11 +256,12 @@ const GenerateLightningInvoice = () => {
     setError('')
     setGenerating(true)
     try {
+      if (!wallet) throw new Error('Wallet unavailable')
       const response = await wallet.lightning.createInvoice(
         Number(amount),
         description,
       )
-      setInvoice(response.invoice)
+      response && setInvoice(response.invoice)
     } catch (e) {
       console.error('Error generating Lightning invoice', e)
       setError(e instanceof Error ? e.message : String(e))
@@ -332,7 +332,7 @@ const InviteCodeParser = () => {
     setParsingStatus(true)
 
     try {
-      const result = await wallet.parseInviteCode(inviteCode)
+      const result = await director.parseInviteCode(inviteCode)
       setParseResult(result)
     } catch (e) {
       console.error('Error parsing invite code', e)
@@ -386,7 +386,7 @@ const ParseLightningInvoice = () => {
     setParsingStatus(true)
 
     try {
-      const result = await wallet.parseBolt11Invoice(invoiceStr)
+      const result = await director.parseBolt11Invoice(invoiceStr)
       console.log('result ', result)
       setParseResult(result)
     } catch (e) {
@@ -442,8 +442,9 @@ const Deposit = () => {
     e.preventDefault()
     setAddressStatus(true)
     try {
+      if (!wallet) throw new Error('Wallet unavailable')
       const result = await wallet.wallet.generateAddress()
-      setAddress(result.deposit_address)
+      result && setAddress(result.deposit_address)
     } catch (e) {
       console.error('Error', e)
       setAddressError(e instanceof Error ? e.message : String(e))
@@ -480,8 +481,9 @@ const SendOnchain = () => {
     e.preventDefault()
     try {
       setWithdrawalStatus(true)
+      if (!wallet) throw new Error('Wallet unavailable')
       const result = await wallet.wallet.sendOnchain(amount, address)
-      setWithdrawalResult(result.operation_id)
+      result && setWithdrawalResult(result.operation_id)
     } catch (e) {
       console.error('Error ', e)
       setWithdrawalError(e instanceof Error ? e.message : String(e))
