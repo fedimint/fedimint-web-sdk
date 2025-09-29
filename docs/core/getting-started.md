@@ -233,7 +233,10 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    exclude: ['@fedimint/core'],
+    exclude: [
+      '@fedimint/core',
+      '@fedimint/transport-web'
+    ],
   },
 })
 ```

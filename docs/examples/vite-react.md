@@ -6,7 +6,7 @@ aside: false
 
 This is an example application demonstrating the usage of Fedimint client in React Application.
 
-[Code on Github](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/bare-js)
+[Code on Github](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/vite-core)
 
 ## Live Preview
 

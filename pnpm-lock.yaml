@@ -132,6 +132,9 @@ importers:
       '@fedimint/core':
         specifier: latest
         version: 0.1.0
+      '@fedimint/transport-web':
+        specifier: latest
+        version: 0.1.0(@fedimint/core@0.1.0)
       react:
         specifier: '>=19.1.0'
         version: 19.1.0
@@ -1558,8 +1561,19 @@ packages:
   '@fedimint/core@0.1.0':
     resolution: {integrity: sha512-TKuu6EtWNK0ybODB3mIsoYcF0fBmRoOITp2/4DnLatlCNgC68RhERvjqRvL+OLdg1yv8W/uiRcUBjuvdf8+reg==}
 
+  '@fedimint/fedimint-client-wasm-bundler@0.1.0':
+    resolution: {integrity: sha512-qreuumJYeySKXJuY9aFzU7cX95fhlv3+49Sf5h3SBJhzdYpXbu+c39xoc+HF9/3qlpoHWakQgpo4LoMqT380nQ==}
+
+  '@fedimint/transport-web@0.1.0':
+    resolution: {integrity: sha512-2LpYteNJMS3ucQlM8cLFqakEBrwoV9WG8HprW7JkFvbltgm99tHcJy73IHhXWp1Ye5SVK2QH9+vFt8/9WIBSQA==}
+    peerDependencies:
+      '@fedimint/core': 0.1.1
+
   '@fedimint/types@0.0.1':
     resolution: {integrity: sha512-PEGbCjBiV6C+ELzGkxGDbUJJgDZwo17L9GFyXaLJimu+Pbe5kbDr27uhzDqnhIncSPl97NIMhBWkhO0p6EPiMw==}
+
+  '@fedimint/types@0.0.2':
+    resolution: {integrity: sha512-5HkzOEMLVh2vJzZu+s9v+WuQccTCyPWgZj3fgBhEPt3btHG9WGZnVDDsnqKObcsbL+NoLTMu26FZJIEgxEqldg==}
 
   '@floating-ui/core@1.6.8':
     resolution: {integrity: sha512-7XJ9cPU+yI2QeLS+FCSlqNFZJq8arvswefkZrYI1yQBbftw6FyrZOxYSh+9S7z7TpeWlRt9zJ5IhM1WIL334jA==}
@@ -7736,7 +7750,17 @@ snapshots:
     dependencies:
       '@fedimint/types': 0.0.1
 
+  '@fedimint/fedimint-client-wasm-bundler@0.1.0': {}
+
+  '@fedimint/transport-web@0.1.0(@fedimint/core@0.1.0)':
+    dependencies:
+      '@fedimint/core': 0.1.0
+      '@fedimint/fedimint-client-wasm-bundler': 0.1.0
+      '@fedimint/types': 0.0.2
+
   '@fedimint/types@0.0.1': {}
+
+  '@fedimint/types@0.0.2': {}
 
   '@floating-ui/core@1.6.8':
     dependencies:
