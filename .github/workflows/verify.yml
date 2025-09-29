@@ -73,7 +73,10 @@ jobs:
         uses: ./.github/actions/build-wasm
 
       - name: Setup Nix shell and run commands
+        shell: bash
         run: |
+          set -euo pipefail
+
           # Install dependencies
           pnpm install
 
