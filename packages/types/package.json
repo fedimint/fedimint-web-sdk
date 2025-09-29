@@ -1,0 +1,25 @@
+{
+  "name": "@fedimint/types",
+  "version": "0.0.1",
+  "description": "Shared transport interfaces for Fedimint client implementations",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fedimint/fedimint-web-sdk.git",
+    "directory": "packages/types"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

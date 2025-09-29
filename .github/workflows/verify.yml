@@ -49,6 +49,9 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-deps
 
+      - name: Build types package
+        run: pnpm --filter @fedimint/types build
+
       - name: Check types
         run: pnpm typecheck
 
@@ -70,7 +73,10 @@ jobs:
         uses: ./.github/actions/build-wasm
 
       - name: Setup Nix shell and run commands
+        shell: bash
         run: |
+          set -euo pipefail
+
           # Install dependencies
           pnpm install
 

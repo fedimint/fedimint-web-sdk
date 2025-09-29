@@ -4,10 +4,13 @@ import type {
   ModuleKind,
   StreamError,
   StreamResult,
-  TransportMessageType,
 } from '../types'
 import { Logger } from '../utils/logger'
-import type { Transport, TransportMessage } from '../types/transport'
+import type {
+  Transport,
+  TransportMessage,
+  TransportMessageType,
+} from '@fedimint/types'
 
 /**
  * Handles communication with a generic transport.

@@ -7,8 +7,9 @@ Parses an invite code and extracts its components (`federationId` and `url`) **w
 ```ts twoslash
 // @esModuleInterop
 import { WalletDirector } from '@fedimint/core-web'
+import { WasmWorkerTransport } from '@fedimint/transport-web'
 
-const walletDirector = new WalletDirector()
+const walletDirector = new WalletDirector(new WasmWorkerTransport())
 
 const result = await walletDirector.parseInviteCode('fed11.......') // [!code focus]
 

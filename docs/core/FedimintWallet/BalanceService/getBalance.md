@@ -7,8 +7,9 @@ Get the current balance of the wallet in milli-satoshis (MSats).
 ```ts twoslash
 // @esModuleInterop
 import { WalletDirector } from '@fedimint/core-web'
+import { WasmWorkerTransport } from '@fedimint/transport-web'
 
-const director = new WalletDirector()
+const director = new WalletDirector(new WasmWorkerTransport())
 const wallet = await director.createWallet()
 
 await wallet.open()

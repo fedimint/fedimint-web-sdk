@@ -6,8 +6,8 @@ import { dts } from 'rollup-plugin-dts'
 export default [
   {
     input: {
-      worker: 'src/transport/wasmTransport/worker.js',
       index: 'src/index.ts',
+      testing: 'src/testing.ts',
     },
     output: {
       dir: 'dist',
@@ -18,11 +18,18 @@ export default [
       sourcemap: true,
     },
     plugins: [typescript(), terser()],
-    external: ['@fedimint/fedimint-client-wasm-bundler'],
+    external: [],
   },
   {
-    input: './dist/dts/index.d.ts',
-    output: [{ file: 'dist/index.d.ts', format: 'es' }],
+    input: {
+      index: './dist/dts/index.d.ts',
+      testing: './dist/dts/testing.d.ts',
+    },
+    output: {
+      dir: 'dist',
+      format: 'es',
+      entryFileNames: '[name].d.ts',
+    },
     plugins: [dts()],
   },
 ]

@@ -19,24 +19,32 @@
     "src"
   ],
   "sideEffects": [
-    "./dist/worker.js",
     "./dist/index.js"
   ],
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
+    },
+    "./package.json": "./package.json"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@fedimint/fedimint-client-wasm-bundler": "workspace:*"
+    "@fedimint/types": "workspace:*"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "^20.17.49",
-    "@types/secp256k1": "^4.0.6",
     "rollup": "^4.41.0",
     "rollup-plugin-dts": "^6.2.1",
     "rollup-plugin-typescript2": "^0.36.0",
-    "secp256k1": "^5.0.1",
     "tslib": "^2.8.1",
     "typescript": "^5.8.3"
   }

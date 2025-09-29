@@ -62,27 +62,29 @@ You can use `.` for the project name to scaffold in the current directory.
 
 ## Manual Installation
 
-To add @fedimint/core-web to your project, install the package using your preferred package manager:
+To add @fedimint/core-web to your project, install the package alongside a transport implementation:
 
 ::: code-group
 
 ```bash [npm]
-npm install @fedimint/core-web
+npm install @fedimint/core-web @fedimint/transport-web
 ```
 
 ```bash [yarn]
-yarn add @fedimint/core-web
+yarn add @fedimint/core-web @fedimint/transport-web
 ```
 
 ```bash [pnpm]
-pnpm add @fedimint/core-web
+pnpm add @fedimint/core-web @fedimint/transport-web
 ```
 
 ```bash [bun]
-bun add @fedimint/core-web
+bun add @fedimint/core-web @fedimint/transport-web
 ```
 
 :::
+
+> For browser applications, use `@fedimint/transport-web`. Alternate transports can be supplied for other runtimes.
 
 ## Framework Setup
 
@@ -248,9 +250,10 @@ Here's a basic example of how to use the `@fedimint/core-web` library:
 
 ```ts twoslash [example.ts]
 import { WalletDirector } from '@fedimint/core-web'
+import { WasmWorkerTransport } from '@fedimint/transport-web'
 
 // Create the Wallet client
-const director = new WalletDirector()
+const director = new WalletDirector(new WasmWorkerTransport())
 const wallet = await director.createWallet()
 
 // Open the wallet (should be called once in the application lifecycle)

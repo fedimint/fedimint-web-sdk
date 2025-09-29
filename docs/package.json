@@ -9,6 +9,8 @@
   },
   "devDependencies": {
     "@fedimint/core-web": "workspace:*",
+    "@fedimint/transport-web": "workspace:*",
+    "@fedimint/types": "workspace:*",
     "@shikijs/vitepress-twoslash": "1.4.0",
     "vitepress": "1.1.4",
     "vitepress-plugin-group-icons": "^1.5.5"

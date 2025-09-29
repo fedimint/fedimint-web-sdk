@@ -1,5 +1,5 @@
-import { LightningService } from '../services'
-import { TransportClient } from '../transport'
+import { TransportClient } from '@fedimint/core-web'
+import { FedimintWallet } from '@fedimint/core-web/testing'
 
 export const TESTING_INVITE =
   'fed11qgqrsdnhwden5te0v9cxjtt4dekxzamxw4kz6mmjvvkhydted9ukg6r9xfsnx7th0fhn26tf093juamwv4u8gtnpwpcz7qqpyz0e327ua8geceutfrcaezwt22mk6s2rdy09kg72jrcmncng2gn0kp2m5sk'
@@ -10,7 +10,7 @@ export class TestingService {
   public TESTING_INVITE: string
   constructor(
     private client: TransportClient,
-    private lightning: LightningService,
+    private lightning: FedimintWallet['lightning'],
   ) {
     // Solo Mint on mutinynet
     this.TESTING_INVITE = TESTING_INVITE
