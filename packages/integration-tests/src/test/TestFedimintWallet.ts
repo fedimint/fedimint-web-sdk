@@ -1,5 +1,5 @@
-import { TransportClient } from '@fedimint/core-web'
-import { FedimintWallet } from '@fedimint/core-web/testing'
+import { TransportClient } from '@fedimint/core'
+import { FedimintWallet } from '@fedimint/core/testing'
 import { TestingService } from './TestingService'
 
 export class TestFedimintWallet extends FedimintWallet {

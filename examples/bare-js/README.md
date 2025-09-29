@@ -1,6 +1,6 @@
 # Bare JS Example
 
-This example shows how to use the `core-web` package in a bare javascript environment (no bundler).
+This example shows how to use the `@fedimint/core` package in a bare javascript environment (no bundler).
 
 There's no ui, so open your browser's console to see the library in action.
 

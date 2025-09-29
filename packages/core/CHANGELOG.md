@@ -1,4 +1,4 @@
-# @fedimint/core-web
+# @fedimint/core
 
 ## 0.1.0
 

@@ -36,7 +36,7 @@ until needed. Default is false.
 #### Example
 
 ```ts twoslash
-// import { FedimintWallet } from '@fedimint/core-web'
+// import { FedimintWallet } from '@fedimint/core'
 
 // // Create a wallet with immediate initialization // [!code focus]
 // const wallet = new FedimintWallet() // wasm gets initialized here // [!code focus]
@@ -50,4 +50,4 @@ until needed. Default is false.
 
 #### Defined in
 
-[FedimintWallet.ts:59](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core-web/src/FedimintWallet.ts#L59)
+[FedimintWallet.ts:59](https://github.com/fedimint/fedimint-web-sdk/blob/451b02527305a23fec3a269d39bde9a3ec377df2/packages/core/src/FedimintWallet.ts#L59)

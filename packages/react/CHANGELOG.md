@@ -16,7 +16,7 @@
 - Updated dependencies [aec5823]
 - Updated dependencies [5fb29a5]
 - Updated dependencies [357effb]
-  - @fedimint/core-web@0.1.0
+  - @fedimint/core@0.1.0
 
 ## 0.0.4
 
@@ -28,7 +28,7 @@
 - Updated dependencies [6dd98ef]
 - Updated dependencies [6dd98ef]
 - Updated dependencies [6dd98ef]
-  - @fedimint/core-web@0.0.11
+  - @fedimint/core@0.0.11
 
 ## 0.0.3
 
@@ -36,14 +36,14 @@
 
 - Updated dependencies [21f94f9]
 - Updated dependencies [9468ef5]
-  - @fedimint/core-web@0.0.10
+  - @fedimint/core@0.0.10
 
 ## 0.0.2
 
 ### Patch Changes
 
 - Updated dependencies [7b67b6d]
-  - @fedimint/core-web@0.0.9
+  - @fedimint/core@0.0.9
 
 ## 0.0.1
 
@@ -55,4 +55,4 @@
 - a8c7f1d: Introduces the `FedimintWalletContext` and `FedimintWalletProvider` to provide access to the FedimintWallet functions throughout your app.`
 - Updated dependencies [e50ec77]
 - Updated dependencies [d1ad74c]
-  - @fedimint/core-web@0.0.8
+  - @fedimint/core@0.0.8

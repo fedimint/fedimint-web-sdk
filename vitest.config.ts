@@ -49,6 +49,6 @@ export default defineConfig({
     ],
   },
   optimizeDeps: {
-    exclude: ['@fedimint/core-web'],
+    exclude: ['@fedimint/core'],
   },
 })

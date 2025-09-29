@@ -10,7 +10,7 @@ You can preview this example live with [StackBlitz](https://stackblitz.com/githu
 
 ## Technologies Used
 
-- core-web: The Fedimint client library for web applications
+- @fedimint/core: The Fedimint client library for JavaScript applications
 - Vite: A fast build tool and development server. Check the [`vite.config.ts`](./vite.config.ts) for configurations required for handling wasm.
 - React
 

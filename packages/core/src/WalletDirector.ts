@@ -1,6 +1,7 @@
 import { TransportClient } from './transport'
 import { type LogLevel } from './utils/logger'
-import { FederationConfig, JSONValue, Transport } from './types'
+import { FederationConfig, JSONValue } from './types'
+import { Transport } from '@fedimint/types'
 import { FedimintWallet } from './FedimintWallet'
 
 export class WalletDirector {

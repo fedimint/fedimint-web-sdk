@@ -8,7 +8,7 @@
     "docs:preview": "vitepress preview"
   },
   "devDependencies": {
-    "@fedimint/core-web": "workspace:*",
+    "@fedimint/core": "workspace:*",
     "@fedimint/transport-web": "workspace:*",
     "@fedimint/types": "workspace:*",
     "@shikijs/vitepress-twoslash": "1.4.0",

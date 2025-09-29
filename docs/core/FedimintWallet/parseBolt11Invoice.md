@@ -6,7 +6,7 @@ Parses a BOLT11 invoice and extracts its components (`amount`, `expiry`, and `me
 
 ```ts
 // @esModuleInterop
-import { WalletDirector } from '@Fedimint/core-web'
+import { WalletDirector } from '@fedimint/core'
 
 const director = new WalletDirector(new WasmWorkerTransport())
 

@@ -65,15 +65,15 @@ importers:
 
   docs:
     devDependencies:
-      '@fedimint/core-web':
+      '@fedimint/core':
         specifier: workspace:*
-        version: link:../packages/core-web
-      '@fedimint/types':
-        specifier: workspace:*
-        version: link:../packages/types
+        version: link:../packages/core
       '@fedimint/transport-web':
         specifier: workspace:*
         version: link:../packages/transport-web
+      '@fedimint/types':
+        specifier: workspace:*
+        version: link:../packages/types
       '@shikijs/vitepress-twoslash':
         specifier: 1.4.0
         version: 1.4.0(typescript@5.8.3)
@@ -92,9 +92,9 @@ importers:
 
   examples/next-js:
     dependencies:
-      '@fedimint/core-web':
+      '@fedimint/core':
         specifier: latest
-        version: 0.0.11
+        version: 0.1.0
       next:
         specifier: 15.2.4
         version: 15.2.4(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -129,9 +129,9 @@ importers:
 
   examples/vite-core:
     dependencies:
-      '@fedimint/core-web':
+      '@fedimint/core':
         specifier: latest
-        version: 0.0.11
+        version: 0.1.0
       react:
         specifier: '>=19.1.0'
         version: 19.1.0
@@ -163,9 +163,9 @@ importers:
 
   examples/webpack-app:
     dependencies:
-      '@fedimint/core-web':
+      '@fedimint/core':
         specifier: latest
-        version: 0.0.11
+        version: 0.1.0
     devDependencies:
       '@babel/core':
         specifier: ^7.27.1
@@ -195,7 +195,7 @@ importers:
         specifier: ^5.2.1
         version: 5.2.1(webpack-cli@6.0.1)(webpack@5.99.9)
 
-  packages/core-web:
+  packages/core:
     dependencies:
       '@fedimint/types':
         specifier: workspace:*
@@ -226,6 +226,12 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  packages/core-web:
+    dependencies:
+      '@fedimint/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/create-fedimint-app:
     devDependencies:
       '@types/cross-spawn':
@@ -255,9 +261,9 @@ importers:
 
   packages/integration-tests:
     dependencies:
-      '@fedimint/core-web':
+      '@fedimint/core':
         specifier: workspace:*
-        version: link:../core-web
+        version: link:../core
       '@fedimint/transport-web':
         specifier: workspace:*
         version: link:../transport-web
@@ -271,9 +277,9 @@ importers:
 
   packages/react:
     dependencies:
-      '@fedimint/core-web':
+      '@fedimint/core':
         specifier: workspace:*
-        version: link:../core-web
+        version: link:../core
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -318,17 +324,11 @@ importers:
         specifier: ^3.4.1
         version: 3.4.1(vite@5.4.20(@types/node@22.5.5)(lightningcss@1.30.1)(terser@5.32.0))
 
-  packages/types:
-    devDependencies:
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-
   packages/transport-web:
     dependencies:
-      '@fedimint/core-web':
+      '@fedimint/core':
         specifier: workspace:*
-        version: link:../core-web
+        version: link:../core
       '@fedimint/fedimint-client-wasm-bundler':
         specifier: workspace:*
         version: link:../wasm-bundler
@@ -357,6 +357,12 @@ importers:
       tslib:
         specifier: ^2.8.1
         version: 2.8.1
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  packages/types:
+    devDependencies:
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -1549,11 +1555,11 @@ packages:
     resolution: {integrity: sha512-0J+zgWxHN+xXONWIyPWKFMgVuJoZuGiIFu8yxk7RJjxkzpGmyja5wRFqZIVtjDVOQpV+Rw0iOAjYPE2eQyjr0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@fedimint/core-web@0.0.11':
-    resolution: {integrity: sha512-7Sx9gg43JzrobFg+GDAn75hctQ4i9/STXY6D7ZKQkP5YbWvsuz5zaz7WIfQIq+JLIQY9BMIMDQiFc6cTzNH9qQ==}
+  '@fedimint/core@0.1.0':
+    resolution: {integrity: sha512-TKuu6EtWNK0ybODB3mIsoYcF0fBmRoOITp2/4DnLatlCNgC68RhERvjqRvL+OLdg1yv8W/uiRcUBjuvdf8+reg==}
 
-  '@fedimint/fedimint-client-wasm-bundler@0.0.3':
-    resolution: {integrity: sha512-6YKr+OjlFIy7RyGqNo2mTbNW6UoyC7M/UOJtqok//PdOEQbaZYGI23qFASHMnJLJQFmHK9xi9IfrF44jwo2ofg==}
+  '@fedimint/types@0.0.1':
+    resolution: {integrity: sha512-PEGbCjBiV6C+ELzGkxGDbUJJgDZwo17L9GFyXaLJimu+Pbe5kbDr27uhzDqnhIncSPl97NIMhBWkhO0p6EPiMw==}
 
   '@floating-ui/core@1.6.8':
     resolution: {integrity: sha512-7XJ9cPU+yI2QeLS+FCSlqNFZJq8arvswefkZrYI1yQBbftw6FyrZOxYSh+9S7z7TpeWlRt9zJ5IhM1WIL334jA==}
@@ -7726,11 +7732,11 @@ snapshots:
       '@eslint/core': 0.14.0
       levn: 0.4.1
 
-  '@fedimint/core-web@0.0.11':
+  '@fedimint/core@0.1.0':
     dependencies:
-      '@fedimint/fedimint-client-wasm-bundler': 0.0.3
+      '@fedimint/types': 0.0.1
 
-  '@fedimint/fedimint-client-wasm-bundler@0.0.3': {}
+  '@fedimint/types@0.0.1': {}
 
   '@floating-ui/core@1.6.8':
     dependencies:

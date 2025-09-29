@@ -24,7 +24,7 @@
 
 | Package                                                                 | Version                                                                                                                                                                                                                                                                               | Description                                                                                               |
 | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [`@fedimint/core-web`](https://npmjs.com/package/fedimint/core-web)     | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Fcore-web?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fcore-web>)                                                                                                                 | Typescript interface for the Fedimint client wasm                                                         |
+| [`@fedimint/core`](https://npmjs.com/package/fedimint/core)             | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Fcore?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fcore>)                                                                                                                         | Typescript interface for the Fedimint client wasm                                                         |
 | [`@fedimint/react`](https://web.fedimint.org/docs/core/getting-started) | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Freact?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Freact>)                                                                                                                       | React components and hooks for interacting with the Fedimint client                                       |
 | [`@fedimint/wasm-web`](../packages/wasm-web/README.md)                  | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ffedimint-client-wasm-web?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fwasm-web&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40fedimint%2Ffedimint-client-wasm-web>)             | Not intended for direct use. Contains the wasm pack output (target web) for the Fedimint client wasm.     |
 | [`@fedimint/wasm-bundler`](../packages/wasm-bundler/README.md)          | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ffedimint-client-wasm-bundler?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fwasm-bundler&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40fedimint%2Ffedimint-client-wasm-bundler>) | Not intended for direct use. Contains the wasm pack output (target bundler) for the Fedimint client wasm. |
@@ -43,7 +43,7 @@ fedimint-web-sdk
 │   ├── webpack-app
 │   └── bare-js
 └── packages
-    ├── core-web
+    ├── core
     ├── react
     ├── wasm-web
     ├── wasm-bundler
@@ -52,8 +52,8 @@ fedimint-web-sdk
 
 ### Examples
 
-- [`vite-core`](../examples/vite-core/README.md): Simple example of how to use the `core-web` package within a React app bundled with Vite.
-- [`bare-js`](../examples/bare-js/README.md): Simple example of how to use the `core-web` package in a bare javascript environment (no bundler)
+- [`vite-core`](../examples/vite-core/README.md): Simple example of how to use the `core` package within a React app bundled with Vite.
+- [`bare-js`](../examples/bare-js/README.md): Simple example of how to use the `core` package in a bare javascript environment (no bundler)
 - [`next-js`](../examples/next-js/README.md): Example configuration for use within a `nextjs` project.
 - [`webpack-app`](../examples/webpack-app/README.md): Example configuration for use within a project bundled with `webpack`.
 

@@ -10,7 +10,7 @@
     "clean:deep": "pnpm run clean && rm -rf node_modules"
   },
   "dependencies": {
-    "@fedimint/core-web": "latest",
+    "@fedimint/core": "latest",
     "react": ">=19.1.0",
     "react-dom": ">=19.1.0"
   },

@@ -11,7 +11,7 @@
 ## Install
 
 ```bash
-pnpm install @fedimint/core-web @fedimint/react
+pnpm install @fedimint/core @fedimint/react
 ```
 
 ## Usage

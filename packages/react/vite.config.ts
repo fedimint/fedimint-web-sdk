@@ -21,14 +21,14 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      external: ['react', 'react-dom', '@fedimint/core-web'],
+      external: ['react', 'react-dom', '@fedimint/core'],
       output: {
         // Provide global variables to use in the UMD build
         // for externalized deps
         globals: {
           react: 'react',
           'react-dom': 'react-dom',
-          '@fedimint/core-web': '@fedimint/core-web',
+          '@fedimint/core': '@fedimint/core',
         },
       },
     },

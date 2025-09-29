@@ -19,7 +19,7 @@ A curated list of talks, awesome projects, resources, and tools built with the *
 
 ### Demo Apps
 
-- [Vite React Example](https://web.fedimint.org/examples/vite-react) - Basic example using @fedimint/core-web
+- [Vite React Example](https://web.fedimint.org/examples/vite-react) - Basic example using @fedimint/core
 - [Bare JS Example](https://web.fedimint.org/examples/bare-js) - Minimal JavaScript implementation
 - [Next.JS Example](https://web.fedimint.org/examples/next-js)
 - [Webpack Example](https://web.fedimint.org/examples/webpack-app)
@@ -33,7 +33,7 @@ A curated list of talks, awesome projects, resources, and tools built with the *
 
 ## Tools & Libraries
 
-- [@fedimint/core-web](https://web.fedimint.org/core/FedimintWallet/) - Core Fedimint web utilities
+- [@fedimint/core](https://web.fedimint.org/core/FedimintWallet/) - Core Fedimint web utilities
 - [@fedimint/react](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/react) - React contexts and hooks
 
 ## Contributing

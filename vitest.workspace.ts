@@ -7,7 +7,7 @@
 //     test: {
 //       environment: 'happy-dom',
 //       name: 'core',
-//       include: ['packages/core-web/**/*.test.ts'],
+//       include: ['packages/core/**/*.test.ts'],
 //       exclude: ['packages/create-fedimint-app/**/*.test.ts'],
 //       browser: {
 //         enabled: true,

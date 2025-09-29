@@ -1,4 +1,4 @@
-import { WalletDirector, FedimintWallet, Transport } from '@fedimint/core-web'
+import { WalletDirector, FedimintWallet, Transport } from '@fedimint/core'
 import {
   createContext,
   createElement,

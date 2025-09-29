@@ -6,7 +6,7 @@ Cleans up browser resources associated with the wallet. This should be called wh
 
 ```ts twoslash
 // @esModuleInterop
-import { WalletDirector } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core'
 import { WasmWorkerTransport } from '@fedimint/transport-web'
 
 const director = new WalletDirector(new WasmWorkerTransport())

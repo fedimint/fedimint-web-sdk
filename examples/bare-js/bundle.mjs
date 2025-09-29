@@ -3,7 +3,7 @@ import path from 'path'
 import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url)
-const CORE_LIB_DIST = path.dirname(require.resolve('@fedimint/core-web'))
+const CORE_LIB_DIST = path.dirname(require.resolve('@fedimint/core'))
 const TRANSPORT_DIST = path.dirname(require.resolve('@fedimint/transport-web'))
 const WASM_DIST = path.resolve(
   CORE_LIB_DIST,

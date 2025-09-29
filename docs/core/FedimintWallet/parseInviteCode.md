@@ -6,7 +6,7 @@ Parses an invite code and extracts its components (`federationId` and `url`) **w
 
 ```ts twoslash
 // @esModuleInterop
-import { WalletDirector } from '@fedimint/core-web'
+import { WalletDirector } from '@fedimint/core'
 import { WasmWorkerTransport } from '@fedimint/transport-web'
 
 const walletDirector = new WalletDirector(new WasmWorkerTransport())
