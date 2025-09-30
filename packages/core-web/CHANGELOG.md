@@ -1,5 +1,11 @@
 # @fedimint/core-web
 
+## 0.1.2
+
+### Patch Changes
+
+- 57ad162: Added readme for deprecated pacakge"
+
 ## 0.1.1
 
 ### Patch Changes
