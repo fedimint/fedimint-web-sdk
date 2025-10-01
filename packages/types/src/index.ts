@@ -1,10 +1,4 @@
-export type JSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: JSONValue }
-  | JSONValue[]
+import type { JSONValue } from './common'
 
 export const TRANSPORT_MESSAGE_TYPES = [
   'init',
@@ -58,3 +52,6 @@ export type TransportLogger = {
   warn(message: string, ...args: any[]): void
   error(message: string, ...args: any[]): void
 }
+
+export * from './rpc'
+export * from './common'
