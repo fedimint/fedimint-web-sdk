@@ -1,19 +1,13 @@
-// Web Worker for fedimint-client-wasm to run in the browser
+// Web Worker for fedimint-client-wasm to run in the browser using new RPC architecture
 
 // HACK: Fixes vitest browser runner
 // TODO: remove once https://github.com/vitest-dev/vitest/pull/6569 lands in a release
 globalThis.__vitest_browser_runner__ = { wrapDynamicImport: (foo) => foo() }
 
-// dynamically imported Constructor for WasmClient
-let WasmClient = null
-// client instance
-let client = null
+// RpcHandler instance
+let rpcHandler = null
 
-const streamCancelMap = new Map()
-
-const handleFree = (requestId) => {
-  streamCancelMap.delete(requestId)
-}
+// TODO: needs proper logging.
 
 console.log('Worker - init')
 
@@ -33,135 +27,93 @@ self.onmessage = async (event) => {
 
   try {
     if (type === 'init') {
-      WasmClient = (await import('@fedimint/fedimint-client-wasm-bundler'))
-        .WasmClient
-      self.postMessage({ type: 'initialized', data: {}, requestId })
-    } else if (type === 'open') {
-      const { clientName } = payload
-      client = (await WasmClient.open(clientName)) || null
-      self.postMessage({
-        type: 'open',
-        data: { success: !!client },
-        requestId,
+      let RpcHandler = (await import('@fedimint/fedimint-client-wasm-bundler'))
+        .RpcHandler
+
+      const root = await navigator.storage.getDirectory()
+      const dbFileHandle = await root.getFileHandle('fedimint.db', {
+        create: true,
       })
-    } else if (type === 'join') {
-      const { inviteCode, clientName: joinClientName } = payload
-      try {
-        client = await WasmClient.join_federation(joinClientName, inviteCode)
-        self.postMessage({
-          type: 'join',
-          data: { success: !!client },
-          requestId,
-        })
-      } catch (e) {
-        self.postMessage({ type: 'error', error: e.message, requestId })
-      }
-    } else if (type === 'previewFederation') {
-      const { inviteCode } = payload
-      try {
-        client = await WasmClient.preview_federation(inviteCode)
-        const parsed = JSON.parse(client)
-        self.postMessage({
-          type: 'previewFederation',
-          data: {
-            success: !!client,
-            config: parsed.config,
-            federation_id: parsed.federation_id,
-          },
-          requestId,
-        })
-      } catch (e) {
-        self.postMessage({ type: 'error', error: e.message, requestId })
-      }
-    } else if (type === 'rpc') {
-      const { module, method, body } = payload
-      console.log('RPC received', module, method, body)
-      if (!client) {
+      const dbSyncHandle = await dbFileHandle.createSyncAccessHandle()
+
+      rpcHandler = new RpcHandler(dbSyncHandle)
+
+      self.postMessage({ type: 'initialized', data: {}, requestId })
+    } else if (
+      type === 'set_mnemonic' ||
+      type === 'generate_mnemonic' ||
+      type === 'get_mnemonic' ||
+      type === 'join_federation' ||
+      type === 'open_client' ||
+      type === 'close_client' ||
+      type === 'client_rpc' ||
+      type === 'parse_invite_code' ||
+      type === 'parse_bolt11_invoice' ||
+      type === 'preview_federation' ||
+      type === 'cancel_rpc'
+    ) {
+      if (!rpcHandler) {
         self.postMessage({
           type: 'error',
-          error: 'WasmClient not initialized',
+          error: 'RpcHandler not initialized',
           requestId,
         })
         return
       }
-      const rpcHandle = await client.rpc(
-        module,
-        method,
-        JSON.stringify(body),
-        (res) => {
-          console.log('RPC response', requestId, res)
-          const data = JSON.parse(res)
-          self.postMessage({ type: 'rpcResponse', requestId, ...data })
 
-          if (data.end !== undefined) {
-            // Handle stream ending
-            const handle = streamCancelMap.get(requestId)
-            handle?.free()
-          }
-        },
-      )
-      streamCancelMap.set(requestId, rpcHandle)
-    } else if (type === 'unsubscribe') {
-      const rpcHandle = streamCancelMap.get(requestId)
-      if (rpcHandle) {
-        rpcHandle.cancel()
-        rpcHandle.free()
-        streamCancelMap.delete(requestId)
+      const rpcRequest = JSON.stringify({
+        request_id: requestId,
+        ...payload,
+      })
+
+      // Debug: Log the final RPC request
+      console.log('RPC request being sent:', rpcRequest)
+
+      // Create a callback function to handle RPC responses
+      const callback = (responseStr) => {
+        try {
+          const response = JSON.parse(responseStr)
+
+          // Debug: Log the raw response to see the structure
+          console.log(
+            'Raw RPC response received:',
+            JSON.stringify(response, null, 2),
+          )
+
+          self.postMessage({
+            type: 'rpcResponse',
+            requestId: response.request_id,
+            response: response,
+          })
+        } catch (error) {
+          self.postMessage({
+            type: 'error',
+            error: `Failed to parse RPC response: ${error.message}`,
+            requestId,
+          })
+        }
       }
+      // Call the RPC handler
+      rpcHandler.rpc(rpcRequest, callback)
     } else if (type === 'cleanup') {
+      // TODO: proper cleanup.
       console.log('cleanup message received')
-      client?.free()
+      rpcHandler = null
       self.postMessage({
         type: 'cleanup',
         data: {},
         requestId,
       })
       close()
-    } else if (type === 'parseInviteCode') {
-      const { inviteCode } = payload
-      try {
-        const res = WasmClient.parse_invite_code(inviteCode)
-        const parsedRes = JSON.parse(res)
-        self.postMessage({
-          type: 'parseInviteCode',
-          data: parsedRes,
-          requestId,
-        })
-      } catch (error) {
-        self.postMessage({
-          type: 'error',
-          error: `Failed to parse invite code: ${error.message}`,
-          requestId,
-        })
-      }
-    } else if (type === 'parseBolt11Invoice') {
-      const { invoiceStr } = payload
-      try {
-        const res = WasmClient.parse_bolt11_invoice(invoiceStr)
-        const parsedRes = JSON.parse(res)
-        self.postMessage({
-          type: 'parseBolt11Invoice',
-          data: parsedRes,
-          requestId,
-        })
-      } catch (error) {
-        self.postMessage({
-          type: 'error',
-          error: `Failed to parse invoice: ${error.message}`,
-          requestId,
-        })
-      }
     } else {
       self.postMessage({
         type: 'error',
-        error: 'Unknown message type',
+        error: `Unknown message type: ${type}`,
         requestId,
       })
     }
   } catch (e) {
     console.error('ERROR', e)
-    self.postMessage({ type: 'error', error: e, requestId })
+    self.postMessage({ type: 'error', error: e.message || e, requestId })
   }
 }
-
-// self.postMessage({ type: 'init', data: {} })

@@ -8,7 +8,7 @@ import {
   WalletService,
 } from './services'
 
-const DEFAULT_CLIENT_NAME = 'fm-default' as const
+const DEFAULT_CLIENT_NAME = 'dd5135b2-c228-41b7-a4f9-3b6e7afe3088' as const
 
 export class FedimintWallet {
   public balance: BalanceService
@@ -68,14 +68,16 @@ export class FedimintWallet {
   async open(clientName: string = DEFAULT_CLIENT_NAME) {
     // TODO: Determine if this should be safe or throw
     if (this._isOpen) throw new Error('The FedimintWallet is already open.')
-    const { success } = await this._client.sendSingleMessage<{
-      success: boolean
-    }>('open', { clientName })
-    if (success) {
-      this._isOpen = !!success
+
+    try {
+      await this._client.openClient(clientName)
+      this._isOpen = true
       this._resolveOpen()
+      return true
+    } catch (e) {
+      this._client.logger.error('Error opening client', e)
+      return false
     }
-    return success
   }
 
   async joinFederation(
@@ -88,15 +90,10 @@ export class FedimintWallet {
         'The FedimintWallet is already open. You can only call `joinFederation` on closed clients.',
       )
     try {
-      const response = await this._client.sendSingleMessage<{
-        success: boolean
-      }>('join', { inviteCode, clientName })
-      if (response.success) {
-        this._isOpen = true
-        this._resolveOpen()
-      }
-
-      return response.success
+      await this._client.joinFederation(inviteCode, clientName)
+      this._isOpen = true
+      this._resolveOpen()
+      return true
     } catch (e) {
       this._client.logger.error('Error joining federation', e)
       return false

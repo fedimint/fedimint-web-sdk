@@ -1,7 +1,11 @@
 import { TransportClient } from './transport'
 import { type LogLevel } from './utils/logger'
 import { FederationConfig, JSONValue } from './types'
-import { Transport } from '@fedimint/types'
+import {
+  Transport,
+  ParsedInviteCode,
+  ParsedBolt11Invoice,
+} from '@fedimint/types'
 import { FedimintWallet } from './FedimintWallet'
 
 export class WalletDirector {
@@ -40,15 +44,6 @@ export class WalletDirector {
     return new FedimintWallet(this._client)
   }
 
-  async previewFederation(inviteCode: string) {
-    await this._client.initialize()
-    const response = this._client.sendSingleMessage<{
-      config: FederationConfig
-      federation_id: string
-    }>('previewFederation', { inviteCode })
-    return response
-  }
-
   /**
    * Sets the log level for the library.
    * @param level The desired log level ('DEBUG', 'INFO', 'WARN', 'ERROR', 'NONE').
@@ -65,26 +60,21 @@ export class WalletDirector {
    * The response includes the federation_id and url.
    *
    * @param {string} inviteCode - The invite code to be parsed.
-   * @returns {Promise<{ federation_id: string, url: string}>}
+   * @returns {Promise<ParsedInviteCode>}
    *          A promise that resolves to an object containing:
-   *          - `federation_id`: The id of the feder.
+   *          - `federation_id`: The id of the federation.
    *          - `url`: One of the apipoints to connect to the federation
    *
    * @throws {Error} If the TransportClient encounters an issue during the parsing process.
    *
    * @example
    * const inviteCode = "example-invite-code";
-   * const parsedCode = await wallet.parseInviteCode(inviteCode);
+   * const parsedCode = await walletDirector.parseInviteCode(inviteCode);
    * console.log(parsedCode.federation_id, parsedCode.url);
    */
-  async parseInviteCode(inviteCode: string) {
+  async parseInviteCode(inviteCode: string): Promise<ParsedInviteCode> {
     await this._client.initialize()
-    const response = await this._client.sendSingleMessage<{
-      type: string
-      data: JSONValue
-      requestId: number
-    }>('parseInviteCode', { inviteCode })
-    return response
+    return this._client.parseInviteCode(inviteCode)
   }
 
   /**
@@ -94,9 +84,9 @@ export class WalletDirector {
    * The response includes details such as the amount, expiry, and memo.
    *
    * @param {string} invoiceStr - The BOLT11 invoice string to be parsed.
-   * @returns {Promise<{ amount: string, expiry: number, memo: string }>}
+   * @returns {Promise<ParsedBolt11Invoice>}
    *          A promise that resolves to an object containing:
-   *          - `amount`: The amount specified in the invoice.
+   *          - `amount`: The amount specified in the invoice (in satoshis).
    *          - `expiry`: The expiry time of the invoice in seconds.
    *          - `memo`: A description or memo attached to the invoice.
    *
@@ -104,16 +94,26 @@ export class WalletDirector {
    *
    * @example
    * const invoiceStr = "lnbc1...";
-   * const parsedInvoice = await wallet.parseBolt11Invoice(invoiceStr);
+   * const parsedInvoice = await walletDirector.parseBolt11Invoice(invoiceStr);
    * console.log(parsedInvoice.amount, parsedInvoice.expiry, parsedInvoice.memo);
    */
-  async parseBolt11Invoice(invoiceStr: string) {
+  async parseBolt11Invoice(invoiceStr: string): Promise<ParsedBolt11Invoice> {
     await this._client.initialize()
-    const response = await this._client.sendSingleMessage<{
-      type: string
-      data: JSONValue
-      requestId: number
-    }>('parseBolt11Invoice', { invoiceStr })
-    return response
+    return this._client.parseBolt11Invoice(invoiceStr)
+  }
+
+  async generateMnemonic(): Promise<string[]> {
+    const result = await this._client.generateMnemonic()
+    return result.mnemonic
+  }
+
+  async getMnemonic(): Promise<string[]> {
+    const result = await this._client.getMnemonic()
+    return result.mnemonic
+  }
+
+  async setMnemonic(words: string[]): Promise<boolean> {
+    const result = await this._client.setMnemonic(words)
+    return result.success
   }
 }

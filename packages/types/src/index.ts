@@ -3,16 +3,20 @@ import type { JSONValue } from './common'
 export const TRANSPORT_MESSAGE_TYPES = [
   'init',
   'initialized',
-  'rpc',
+  'set_mnemonic',
+  'generate_mnemonic',
+  'get_mnemonic',
+  'join_federation',
+  'open_client',
+  'close_client',
+  'client_rpc',
+  'parse_invite_code',
+  'parse_bolt11_invoice',
+  'preview_federation',
+  'cancel_rpc',
   'log',
-  'open',
-  'join',
   'error',
-  'unsubscribe',
   'cleanup',
-  'parseInviteCode',
-  'parseBolt11Invoice',
-  'previewFederation',
 ] as const
 
 export type TransportMessageType = (typeof TRANSPORT_MESSAGE_TYPES)[number]
