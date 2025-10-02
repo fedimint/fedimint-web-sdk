@@ -6,6 +6,16 @@ export type RpcRequestFull = {
 
 export type RpcRequest =
   | {
+      type: 'set_mnemonic'
+      words: string[]
+    }
+  | {
+      type: 'generate_mnemonic'
+    }
+  | {
+      type: 'get_mnemonic'
+    }
+  | {
       type: 'join_federation'
       invite_code: string
       client_name: string
@@ -24,18 +34,10 @@ export type RpcRequest =
       client_name: string
       module: string
       method: string
-      payload: any
-    }
-  | {
-      type: 'cancel_rpc'
-      cancel_request_id: number
+      payload: JSONValue
     }
   | {
       type: 'parse_invite_code'
-      invite_code: string
-    }
-  | {
-      type: 'preview_federation'
       invite_code: string
     }
   | {
@@ -43,28 +45,23 @@ export type RpcRequest =
       invoice: string
     }
   | {
-      type: 'generate_mnemonic'
+      type: 'preview_federation'
+      invite_code: string
     }
   | {
-      type: 'set_mnemonic'
-      words: string[]
-    }
-  | {
-      type: 'get_mnemonic'
-    }
-  | {
-      type: 'backup_to_federation'
-      metadata: JSONValue
+      type: 'cancel_rpc'
+      cancel_request_id: number
     }
 
 export type RpcResponse = {
   request_id: number
-} & RpcResponseKind
+  kind: RpcResponseKind
+}
 
 export type RpcResponseKind =
   | {
       type: 'data'
-      data: any
+      data: JSONValue
     }
   | {
       type: 'error'
@@ -76,6 +73,26 @@ export type RpcResponseKind =
   | {
       type: 'end'
     }
+
+const validRpcRequestTypes = [
+  'set_mnemonic',
+  'generate_mnemonic',
+  'get_mnemonic',
+  'join_federation',
+  'open_client',
+  'close_client',
+  'client_rpc',
+  'parse_invite_code',
+  'parse_bolt11_invoice',
+  'preview_federation',
+  'cancel_rpc',
+] as const
+
+export type RpcRequestType = RpcRequest['type']
+
+export function isValidRpcRequestType(type: string): type is RpcRequestType {
+  return validRpcRequestTypes.includes(type as RpcRequestType)
+}
 
 export interface ParsedInviteCode extends Record<string, JSONValue> {
   federation_id: string

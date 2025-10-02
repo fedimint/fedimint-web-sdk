@@ -10,6 +10,9 @@ import type {
   Transport,
   TransportMessage,
   TransportMessageType,
+  ParsedInviteCode,
+  ParsedBolt11Invoice,
+  PreviewFederation,
 } from '@fedimint/types'
 
 /**
@@ -40,7 +43,7 @@ export class TransportClient {
   // Idempotent setup - Loads the wasm module
   initialize() {
     if (this.initPromise) return this.initPromise
-    this.initPromise = this.sendSingleMessage('init')
+    this.initPromise = this.sendUnifiedRpcRequest({ type: 'init' })
     return this.initPromise
   }
 
@@ -58,6 +61,48 @@ export class TransportClient {
     if (type === 'log') {
       this.handleLogMessage(message)
     }
+
+    if (type === 'rpcResponse') {
+      // Handle native RPC response format
+      const rpcResponse = (message as any).response
+      const callback =
+        requestId !== undefined
+          ? this.requestCallbacks.get(requestId)
+          : undefined
+
+      this.logger.debug(
+        'TransportClient - rpcResponse received',
+        requestId,
+        rpcResponse,
+      )
+
+      if (callback && rpcResponse) {
+        // Check if the response has the expected structure
+        if (rpcResponse.kind) {
+          // Convert RPC response kind to transport format
+          const transportData = this.mapRpcResponseToTransport(rpcResponse.kind)
+          callback(transportData)
+        } else {
+          // Response might be in a different format, let's handle it
+          this.logger.debug(
+            'TransportClient - unexpected response format',
+            rpcResponse,
+          )
+
+          // Try to handle the response directly
+          if (rpcResponse.error) {
+            callback({ error: rpcResponse.error })
+          } else if (rpcResponse.data !== undefined) {
+            callback({ data: rpcResponse.data })
+          } else {
+            // If it's a successful response without explicit data/error structure
+            callback({ data: rpcResponse })
+          }
+        }
+      }
+      return
+    }
+
     const streamCallback =
       requestId !== undefined ? this.requestCallbacks.get(requestId) : undefined
     // TODO: Handle errors... maybe have another callbacks list for errors?
@@ -73,44 +118,27 @@ export class TransportClient {
     }
   }
 
+  /**
+   * Maps RPC response kinds to transport message format
+   */
+  private mapRpcResponseToTransport(kind: any) {
+    switch (kind.type) {
+      case 'data':
+        return { data: kind.data }
+      case 'error':
+        return { error: kind.error }
+      case 'aborted':
+        return { aborted: true }
+      case 'end':
+        return { end: true }
+      default:
+        return { error: 'Unknown response type' }
+    }
+  }
+
   // TODO: Handle errors... maybe have another callbacks list for errors?
   // TODO: Handle timeouts
   // TODO: Handle multiple errors
-
-  sendSingleMessage<
-    Response extends JSONValue = JSONValue,
-    Payload extends JSONValue = JSONValue,
-  >(type: TransportMessageType, payload?: Payload) {
-    return new Promise<Response>((resolve, reject) => {
-      const requestId = ++this.requestCounter
-      this.logger.debug(
-        'TransportClient - sendSingleMessage',
-        requestId,
-        type,
-        payload,
-      )
-      this.requestCallbacks.set(
-        requestId,
-        (response: StreamResult<Response>) => {
-          this.requestCallbacks.delete(requestId)
-          this.logger.debug(
-            'TransportClient - sendSingleMessage - response',
-            requestId,
-            response,
-          )
-          if (response.data) resolve(response.data)
-          else if (response.error) reject(response.error)
-          else
-            this.logger.warn(
-              'TransportClient - sendSingleMessage - malformed response',
-              requestId,
-              response,
-            )
-        },
-      )
-      this.transport.postMessage({ type, payload, requestId })
-    })
-  }
 
   /**
    * @summary Initiates an RPC stream with the specified module and method.
@@ -171,12 +199,17 @@ export class TransportClient {
       }
     })
 
+    const rpcRequest = {
+      type: 'client_rpc',
+      module: module,
+      method: method,
+      payload: body,
+    }
+
     // Initiate the inner RPC stream setup asynchronously
     this._rpcStreamInner(
       requestId,
-      module,
-      method,
-      body,
+      rpcRequest,
       onSuccess,
       onError,
       onEnd,
@@ -188,14 +221,9 @@ export class TransportClient {
     return unsubscribe
   }
 
-  private async _rpcStreamInner<
-    Response extends JSONValue = JSONValue,
-    Body extends JSONValue = JSONValue,
-  >(
+  private async _rpcStreamInner<Response extends JSONValue = JSONValue>(
     requestId: number,
-    module: ModuleKind,
-    method: string,
-    body: Body,
+    rpcRequest: any,
     onSuccess: (res: Response) => void,
     onError: (res: StreamError['error']) => void,
     onEnd: () => void = () => {},
@@ -212,16 +240,23 @@ export class TransportClient {
         onEnd()
       }
     })
+
+    // Send the unified RPC request with specific type
     this.transport.postMessage({
-      type: 'rpc',
-      payload: { module, method, body },
+      type: rpcRequest.type as TransportMessageType,
+      payload: rpcRequest,
       requestId,
     })
 
     unsubscribePromise.then(() => {
+      // Use the new RPC cancel method
       this.transport.postMessage({
-        type: 'unsubscribe',
-        requestId,
+        type: 'cancel_rpc' as TransportMessageType,
+        payload: {
+          type: 'cancel_rpc',
+          cancel_request_id: requestId,
+        },
+        requestId: ++this.requestCounter,
       })
       this.requestCallbacks.delete(requestId)
     })
@@ -232,13 +267,148 @@ export class TransportClient {
     Error extends string = string,
   >(module: ModuleKind, method: string, body: JSONValue) {
     this.logger.debug('TransportClient - rpcSingle', module, method, body)
-    return new Promise<Response>((resolve, reject) => {
-      this.rpcStream<Response>(module, method, body, resolve, reject)
+    const rpcRequest = {
+      type: 'client_rpc',
+      module: module,
+      method: method,
+      payload: body,
+    }
+    return this.sendUnifiedRpcRequest<Response>(rpcRequest)
+  }
+
+  // New RPC methods for the updated architecture - using existing transport infrastructure
+
+  /**
+   * Send a direct RPC request
+   */
+  async sendUnifiedRpcRequest<T = JSONValue>(kind: any): Promise<T> {
+    const requestId = ++this.requestCounter
+
+    // Debug: Log what we're sending
+    this.logger.debug(
+      'TransportClient - sendUnifiedRpcRequest',
+      requestId,
+      kind,
+    )
+
+    return new Promise<T>((resolve, reject) => {
+      this.requestCallbacks.set(requestId, (response: any) => {
+        this.requestCallbacks.delete(requestId)
+
+        if (response.error) {
+          reject(new Error(response.error))
+        } else if (response.data !== undefined) {
+          resolve(response.data)
+        } else {
+          reject(new Error('Invalid response format'))
+        }
+      })
+
+      // Use the specific RPC type directly
+      this.transport.postMessage({
+        type: kind.type as TransportMessageType,
+        payload: kind,
+        requestId,
+      })
+    })
+  }
+
+  /**
+   * Set mnemonic words for the wallet
+   */
+  async setMnemonic(words: string[]): Promise<{ success: boolean }> {
+    return this.sendUnifiedRpcRequest({
+      type: 'set_mnemonic',
+      words,
+    })
+  }
+
+  /**
+   * Generate a new mnemonic
+   */
+  async generateMnemonic(): Promise<{ mnemonic: string[] }> {
+    return this.sendUnifiedRpcRequest({
+      type: 'generate_mnemonic',
+    })
+  }
+
+  /**
+   * Get the current mnemonic
+   */
+  async getMnemonic(): Promise<{ mnemonic: string[] }> {
+    return this.sendUnifiedRpcRequest({
+      type: 'get_mnemonic',
+    })
+  }
+
+  /**
+   * Join a federation
+   */
+  async joinFederation(
+    inviteCode: string,
+    clientName: string,
+    forceRecover: boolean = false,
+  ): Promise<void> {
+    await this.sendUnifiedRpcRequest({
+      type: 'join_federation',
+      invite_code: inviteCode,
+      force_recover: forceRecover,
+      client_name: clientName,
+    })
+  }
+
+  /**
+   * Open a client
+   */
+  async openClient(clientName: string): Promise<void> {
+    await this.sendUnifiedRpcRequest({
+      type: 'open_client',
+      client_name: clientName,
+    })
+  }
+
+  /**
+   * Close a client
+   */
+  async closeClient(clientName: string): Promise<void> {
+    await this.sendUnifiedRpcRequest({
+      type: 'close_client',
+      client_name: clientName,
+    })
+  }
+
+  /**
+   * Parse an invite code
+   */
+  async parseInviteCode(inviteCode: string): Promise<ParsedInviteCode> {
+    return this.sendUnifiedRpcRequest({
+      type: 'parse_invite_code',
+      invite_code: inviteCode,
+    })
+  }
+
+  /**
+   * Parse a Bolt11 invoice
+   */
+  async parseBolt11Invoice(invoice: string): Promise<ParsedBolt11Invoice> {
+    return this.sendUnifiedRpcRequest({
+      type: 'parse_bolt11_invoice',
+      invoice,
+    })
+  }
+
+  /**
+   * Preview federation information
+   */
+  async previewFederation(inviteCode: string): Promise<PreviewFederation> {
+    return this.sendUnifiedRpcRequest({
+      type: 'preview_federation',
+      invite_code: inviteCode,
     })
   }
 
   async cleanup() {
-    await this.sendSingleMessage('cleanup')
+    await this.sendUnifiedRpcRequest({ type: 'cleanup' })
     this.requestCounter = 0
     this.initPromise = undefined
     this.requestCallbacks.clear()
