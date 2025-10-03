@@ -5,6 +5,7 @@ import {
   Transport,
   ParsedInviteCode,
   ParsedBolt11Invoice,
+  PreviewFederation,
 } from '@fedimint/types'
 import { FedimintWallet } from './FedimintWallet'
 
@@ -100,6 +101,24 @@ export class WalletDirector {
   async parseBolt11Invoice(invoiceStr: string): Promise<ParsedBolt11Invoice> {
     await this._client.initialize()
     return this._client.parseBolt11Invoice(invoiceStr)
+  }
+
+  /**
+   * Previews the configuration of a federation using the provided invite code.
+   *
+   * Retrieves and returns the federation configuration
+   * associated with the given invite code.
+   *
+   * @param inviteCode - The invite code used to identify the federation to preview.
+   * @returns {Promise<PreviewFederation>} A promise that resolves to a `PreviewFederation` object containing the federation's
+   * configuration and ID.
+   * @example
+   * const inviteCode = "example-invite-code";
+   * const federationPreview = await walletDirector.previewFederation(inviteCode);
+   * console.log(federationPreview.config, federationPreview.federation_id);
+   */
+  async previewFederation(inviteCode: string): Promise<PreviewFederation> {
+    return await this._client.previewFederation(inviteCode)
   }
 
   async generateMnemonic(): Promise<string[]> {
