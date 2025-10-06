@@ -22,13 +22,24 @@
 
 ## Packages 📦
 
-| Package                                                                 | Version                                                                                                                                                                                                                                                                               | Description                                                                                               |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [`@fedimint/core`](https://npmjs.com/package/fedimint/core)             | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Fcore?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fcore>)                                                                                                                         | Typescript interface for the Fedimint client wasm                                                         |
-| [`@fedimint/react`](https://web.fedimint.org/docs/core/getting-started) | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Freact?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Freact>)                                                                                                                       | React components and hooks for interacting with the Fedimint client                                       |
-| [`@fedimint/wasm-web`](../packages/wasm-web/README.md)                  | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ffedimint-client-wasm-web?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fwasm-web&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40fedimint%2Ffedimint-client-wasm-web>)             | Not intended for direct use. Contains the wasm pack output (target web) for the Fedimint client wasm.     |
-| [`@fedimint/wasm-bundler`](../packages/wasm-bundler/README.md)          | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ffedimint-client-wasm-bundler?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fwasm-bundler&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40fedimint%2Ffedimint-client-wasm-bundler>) | Not intended for direct use. Contains the wasm pack output (target bundler) for the Fedimint client wasm. |
-| [`create-fedimint-app`](../packages/create-fedimint-app/README.md)      | ![NPM Version (latest)](<https://img.shields.io/npm/v/create-fedimint-app?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=create-fedimint-app&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Fcreate-fedimint-app>)                                                      | Scaffold a new Fedimint app with Vite, React, and TypeScript.                                             |
+### Public packages
+
+| Package                                                                            | Version                                                                                                                                                                         | Description                                                                                      |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| [`@fedimint/core`](https://www.npmjs.com/package/@fedimint/core)                   | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Fcore?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fcore>)                   | Core Fedimint client for JavaScript runtimes (Wasm bindings, high-level API, testing utilities). |
+| [`@fedimint/react`](https://www.npmjs.com/package/@fedimint/react)                 | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Freact?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Freact>)                 | React hooks and context for working with Fedimint clients in React applications.                 |
+| [`@fedimint/transport-web`](https://www.npmjs.com/package/@fedimint/transport-web) | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ftransport-web?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Ftransport-web>) | Web worker transport that hosts the Wasm client and communicates with `@fedimint/core`.          |
+| [`create-fedimint-app`](https://www.npmjs.com/package/create-fedimint-app)         | ![NPM Version (latest)](<https://img.shields.io/npm/v/create-fedimint-app?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=create-fedimint-app>)                 | CLI tool for scaffolding a Fedimint starter app with Vite, React, and TypeScript.                |
+
+### Internal & legacy
+
+| Package                                                                               | Version                                                                                                                                                                                                       | Description                                                                                                                 |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| [`@fedimint/core-web`](https://www.npmjs.com/package/@fedimint/core-web) (deprecated) | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Fcore-web?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fcore-web>)                                         | Legacy shim that re-exports `@fedimint/core`; new projects should depend on `@fedimint/core` directly.                      |
+| [`@fedimint/fedimint-client-wasm-web`](../packages/wasm-web/README.md)                | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ffedimint-client-wasm-web?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Ffedimint-client-wasm-web>)         | Not intended for direct use. Wasm-pack build targeting web environments; consumed by `@fedimint/transport-web`.             |
+| [`@fedimint/fedimint-client-wasm-bundler`](../packages/wasm-bundler/README.md)        | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ffedimint-client-wasm-bundler?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Ffedimint-client-wasm-bundler>) | Not intended for direct use. Wasm-pack build targeting bundler environments; used when bundling custom transports or hosts. |
+| [`@fedimint/types`](https://www.npmjs.com/package/@fedimint/types)                    | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ftypes?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Ftypes>)                                               | Shared TypeScript interfaces for transports and other Fedimint client implementations.                                      |
+| [`@fedimint/integration-tests`](../packages/integration-tests/README.md) (private)    | —                                                                                                                                                                                                             | Internal Vitest harness for exercising the SDK against embedded nodes.                                                      |
 
 ## Structure 🛠️
 
@@ -36,26 +47,34 @@ This monorepo is structured as a pnpm workspace. There are some helpful scripts 
 
 ```bash
 fedimint-web-sdk
-├── README.md
+├── docs
 ├── examples
 │   ├── vite-core
+│   ├── bare-js
 │   ├── next-js
-│   ├── webpack-app
-│   └── bare-js
+│   └── webpack-app
 └── packages
     ├── core
+    ├── core-web
+    ├── create-fedimint-app
+    ├── integration-tests
     ├── react
-    ├── wasm-web
+    ├── transport-web
+    ├── types
     ├── wasm-bundler
-    └── create-fedimint-app
+    └── wasm-web
+├── scripts
 ```
 
 ### Examples
 
-- [`vite-core`](../examples/vite-core/README.md): Simple example of how to use the `core` package within a React app bundled with Vite.
-- [`bare-js`](../examples/bare-js/README.md): Simple example of how to use the `core` package in a bare javascript environment (no bundler)
-- [`next-js`](../examples/next-js/README.md): Example configuration for use within a `nextjs` project.
-- [`webpack-app`](../examples/webpack-app/README.md): Example configuration for use within a project bundled with `webpack`.
+- [`bare-js`](../examples/bare-js/README.md): Minimal usage of `@fedimint/core` without a bundler.
+- [`lit`](../examples/lit/README.md): Demonstrates the `@fedimint/transport-web` worker inside a Lit component.
+- [`next-js`](../examples/next-js/README.md): Example configuration for a Next.js application.
+- [`remix`](../examples/remix/README.md): Template for integrating the SDK into a Remix project.
+- [`solidjs-app`](../examples/solidjs-app/README.md): SolidJS example showing cross-framework compatibility.
+- [`vite-core`](../examples/vite-core/README.md): React + Vite starter focused on `@fedimint/core` primitives.
+- [`webpack-app`](../examples/webpack-app/README.md): Demonstrates configuring webpack for Fedimint applications.
 
 ### Credit
 
