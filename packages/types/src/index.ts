@@ -8,17 +8,18 @@ export type JSONValue =
 
 export const TRANSPORT_MESSAGE_TYPES = [
   'init',
-  'initialized',
-  'rpc',
-  'log',
-  'open',
-  'join',
+  'client_rpc',
+  'open_client',
+  'cancel_rpc',
+  'join_federation',
   'error',
-  'unsubscribe',
   'cleanup',
-  'parseInviteCode',
-  'parseBolt11Invoice',
-  'previewFederation',
+  'generate_mnemonic',
+  'get_mnemonic',
+  'set_mnemonic',
+  'parse_invite_code',
+  'parse_bolt11_invoice',
+  'preview_federation',
 ] as const
 
 export type TransportMessageType = (typeof TRANSPORT_MESSAGE_TYPES)[number]
