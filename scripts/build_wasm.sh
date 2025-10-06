@@ -2,6 +2,8 @@
 
 set -e 
 
+set -euo pipefail
+
 echo "Building WASM bundle..."
 nix build -L .#wasmBundle
 

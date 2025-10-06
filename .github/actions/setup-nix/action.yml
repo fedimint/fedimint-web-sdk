@@ -27,6 +27,8 @@ runs:
     - name: Expose fedimint ref, Node, PNPM from dev shell
       shell: bash
       run: |
+        set -euo pipefail
+
         nix develop --accept-flake-config --command bash << 'EOF'
           echo "FEDIMINT_REF=${{ env.FEDIMINT_REF }}" >> $GITHUB_ENV
 
