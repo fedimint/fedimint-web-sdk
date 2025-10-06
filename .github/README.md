@@ -68,13 +68,10 @@ fedimint-web-sdk
 
 ### Examples
 
-- [`bare-js`](../examples/bare-js/README.md): Minimal usage of `@fedimint/core` without a bundler.
-- [`lit`](../examples/lit/README.md): Demonstrates the `@fedimint/transport-web` worker inside a Lit component.
-- [`next-js`](../examples/next-js/README.md): Example configuration for a Next.js application.
-- [`remix`](../examples/remix/README.md): Template for integrating the SDK into a Remix project.
-- [`solidjs-app`](../examples/solidjs-app/README.md): SolidJS example showing cross-framework compatibility.
 - [`vite-core`](../examples/vite-core/README.md): React + Vite starter focused on `@fedimint/core` primitives.
+- [`next-js`](../examples/next-js/README.md): Example configuration for a Next.js application.
 - [`webpack-app`](../examples/webpack-app/README.md): Demonstrates configuring webpack for Fedimint applications.
+- [`bare-js`](../examples/bare-js/README.md): Minimal usage of `@fedimint/core` without a bundler.
 
 ### Credit
 
