@@ -72,7 +72,7 @@ jobs:
       - name: Build WASM
         uses: ./.github/actions/build-wasm
 
-      - name: Setup Nix shell and run commands
+      - name: Run pnpm tests
         shell: bash
         run: |
           set -euo pipefail
