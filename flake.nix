@@ -22,7 +22,9 @@
         nixpkgs = fedimint.inputs.nixpkgs;
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [fedimint.overlays.all];
+          overlays = [
+             (import "${fedimint}/nix/overlays/esplora-electrs.nix")
+          ];
         };
       in
       {
