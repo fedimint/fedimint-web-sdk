@@ -12,20 +12,33 @@ import type {
 import { TransportClient } from '../transport'
 
 export class FederationService {
-  constructor(private client: TransportClient) {}
+  constructor(
+    private client: TransportClient,
+    private clientName: string,
+  ) {}
 
   async getConfig() {
-    return await this.client.rpcSingle('', 'get_config', {})
+    return await this.client.rpcSingle('', 'get_config', {}, this.clientName)
   }
 
   async getFederationId() {
-    return await this.client.rpcSingle<string>('', 'get_federation_id', {})
+    return await this.client.rpcSingle<string>(
+      '',
+      'get_federation_id',
+      {},
+      this.clientName,
+    )
   }
 
   async getInviteCode(peer: number = 0) {
-    return await this.client.rpcSingle<string | null>('', 'get_invite_code', {
-      peer,
-    })
+    return await this.client.rpcSingle<string | null>(
+      '',
+      'get_invite_code',
+      {
+        peer,
+      },
+      this.clientName,
+    )
   }
 
   async listOperations(
@@ -39,6 +52,7 @@ export class FederationService {
         limit: limit ?? null,
         last_seen: last_seen ?? null,
       },
+      this.clientName,
     )
   }
 
@@ -47,6 +61,7 @@ export class FederationService {
       '',
       'get_operation',
       { operation_id: operationId },
+      this.clientName,
     )
   }
 

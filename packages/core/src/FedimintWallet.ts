@@ -8,7 +8,9 @@ import {
   WalletService,
 } from './services'
 
-const DEFAULT_CLIENT_NAME = 'fm-default' as const
+// The Rpc requires exactly 36 length uuid strings
+// This is temporary until we have a proper client management system
+const DEFAULT_CLIENT_NAME = 'dd5135b2-c228-41b7-a4f9-3b6e7afe3088' as const
 
 export class FedimintWallet {
   public balance: BalanceService
@@ -48,16 +50,19 @@ export class FedimintWallet {
    * lazyWallet.initialize();
    * lazyWallet.open();
    */
-  constructor(private _client: TransportClient) {
+  constructor(
+    private _client: TransportClient,
+    private _clientName: string = DEFAULT_CLIENT_NAME,
+  ) {
     this._openPromise = new Promise((resolve) => {
       this._resolveOpen = resolve
     })
-    this.mint = new MintService(this._client)
-    this.lightning = new LightningService(this._client)
-    this.balance = new BalanceService(this._client)
-    this.federation = new FederationService(this._client)
-    this.recovery = new RecoveryService(this._client)
-    this.wallet = new WalletService(this._client)
+    this.mint = new MintService(this._client, this._clientName)
+    this.lightning = new LightningService(this._client, this._clientName)
+    this.balance = new BalanceService(this._client, this._clientName)
+    this.federation = new FederationService(this._client, this._clientName)
+    this.recovery = new RecoveryService(this._client, this._clientName)
+    this.wallet = new WalletService(this._client, this._clientName)
   }
 
   async waitForOpen() {
@@ -70,7 +75,7 @@ export class FedimintWallet {
     if (this._isOpen) throw new Error('The FedimintWallet is already open.')
     const { success } = await this._client.sendSingleMessage<{
       success: boolean
-    }>('open', { clientName })
+    }>('open_client', { clientName })
     if (success) {
       this._isOpen = !!success
       this._resolveOpen()

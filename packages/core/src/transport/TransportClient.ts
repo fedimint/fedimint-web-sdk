@@ -143,6 +143,7 @@ export class TransportClient {
     module: ModuleKind,
     method: string,
     body: Body,
+    clientName: string,
     onSuccess: (res: Response) => void,
     onError: (res: StreamError['error']) => void,
     onEnd: () => void = () => {},
@@ -154,6 +155,7 @@ export class TransportClient {
       module,
       method,
       body,
+      clientName,
     )
     let unsubscribe: (value: void) => void = () => {}
     let isSubscribed = false
@@ -177,6 +179,7 @@ export class TransportClient {
       module,
       method,
       body,
+      clientName,
       onSuccess,
       onError,
       onEnd,
@@ -196,6 +199,7 @@ export class TransportClient {
     module: ModuleKind,
     method: string,
     body: Body,
+    clientName: string,
     onSuccess: (res: Response) => void,
     onError: (res: StreamError['error']) => void,
     onEnd: () => void = () => {},
@@ -213,8 +217,8 @@ export class TransportClient {
       }
     })
     this.transport.postMessage({
-      type: 'rpc',
-      payload: { module, method, body },
+      type: 'client_rpc',
+      payload: { clientName, module, method, body },
       requestId,
     })
 
@@ -230,10 +234,22 @@ export class TransportClient {
   rpcSingle<
     Response extends JSONValue = JSONValue,
     Error extends string = string,
-  >(module: ModuleKind, method: string, body: JSONValue) {
+  >(
+    module: ModuleKind,
+    method: string,
+    body: JSONValue,
+    clientName: string,
+  ): Promise<Response> {
     this.logger.debug('TransportClient - rpcSingle', module, method, body)
     return new Promise<Response>((resolve, reject) => {
-      this.rpcStream<Response>(module, method, body, resolve, reject)
+      this.rpcStream<Response>(
+        module,
+        method,
+        body,
+        clientName,
+        resolve,
+        reject,
+      )
     })
   }
 
