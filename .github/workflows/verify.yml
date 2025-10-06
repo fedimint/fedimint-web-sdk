@@ -66,9 +66,12 @@ jobs:
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - name: Setup Nix shell and run commands
+      - name: Run pnpm tests
         run: |
           nix develop --accept-flake-config --command bash << EOF
+
+            set -euo pipefail
+
             # Install dependencies
             pnpm install
 
