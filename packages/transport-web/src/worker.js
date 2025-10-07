@@ -5,7 +5,10 @@
 globalThis.__vitest_browser_runner__ = { wrapDynamicImport: (foo) => foo() }
 
 // dynamically imported rpcHandler
-let rpcHandler = null
+/** @type {import('@fedimint/fedimint-client-wasm-bundler').RpcHandler} */
+let rpcHandler
+let dbSyncHandle = null
+let dbFilename = null
 
 console.log('Worker - init')
 
@@ -30,12 +33,19 @@ self.onmessage = async (event) => {
       ).RpcHandler
 
       const root = await navigator.storage.getDirectory()
-      const dbFileHandle = await root.getFileHandle('fedimint.db', {
+      // Allows to pass in a filename for testing
+      const filename = payload?.filename || 'fedimint.db'
+      dbFilename = filename
+      const dbFileHandle = await root.getFileHandle(filename, {
         create: true,
       })
-      const dbSyncHandle = await dbFileHandle.createSyncAccessHandle()
+      dbSyncHandle = await dbFileHandle.createSyncAccessHandle()
       rpcHandler = new RpcHandler(dbSyncHandle)
-      self.postMessage({ type: 'initialized', data: {}, requestId })
+      self.postMessage({
+        type: 'initialized',
+        data: { filename },
+        request_id: requestId,
+      })
     } else if (
       type === 'set_mnemonic' ||
       type === 'generate_mnemonic' ||
@@ -44,22 +54,23 @@ self.onmessage = async (event) => {
       type === 'open_client' ||
       type === 'close_client' ||
       type === 'client_rpc' ||
+      type === 'cancel_rpc' ||
       type === 'parse_invite_code' ||
       type === 'parse_bolt11_invoice' ||
-      type === 'preview_federation' ||
-      type === 'cancel_rpc'
+      type === 'preview_federation'
     ) {
       console.log('RPC received', requestId, type, payload)
       if (!rpcHandler) {
         self.postMessage({
           type: 'error',
           error: 'rpcHandler not initialized',
+          request_id: requestId,
         })
         return
       }
       const rpcRequest = JSON.stringify({
         request_id: requestId,
-        type: type,
+        type,
         ...payload,
       })
       rpcHandler.rpc(rpcRequest, (response) =>
@@ -67,24 +78,27 @@ self.onmessage = async (event) => {
       )
     } else if (type === 'cleanup') {
       console.log('cleanup message received')
-      client?.free()
+      dbSyncHandle?.close()
+      rpcHandler?.free()
       self.postMessage({
         type: 'cleanup',
-        data: {},
-        requestId,
+        data: { filename: dbFilename },
+        request_id: requestId,
       })
       close()
     } else {
       self.postMessage({
         type: 'error',
         error: 'Unknown message type',
-        requestId,
+        request_id: requestId,
       })
     }
   } catch (e) {
     console.error('ERROR', e)
-    self.postMessage({ type: 'error', error: e, requestId })
+    self.postMessage({ type: 'error', error: e.message, request_id: requestId })
   }
 }
 
-// self.postMessage({ type: 'init', data: {} })
+self.onerror = (e) => {
+  self.postMessage({ type: 'error', error: e.message })
+}

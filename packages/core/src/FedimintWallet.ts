@@ -93,15 +93,15 @@ export class FedimintWallet {
         'The FedimintWallet is already open. You can only call `joinFederation` on closed clients.',
       )
     try {
-      const response = await this._client.sendSingleMessage<{
-        success: boolean
-      }>('join', { inviteCode, clientName })
-      if (response.success) {
-        this._isOpen = true
-        this._resolveOpen()
-      }
+      await this._client.sendSingleMessage('join_federation', {
+        invite_code: inviteCode,
+        client_name: clientName,
+        force_recover: false,
+      })
+      this._isOpen = true
+      this._resolveOpen()
 
-      return response.success
+      return true
     } catch (e) {
       this._client.logger.error('Error joining federation', e)
       return false

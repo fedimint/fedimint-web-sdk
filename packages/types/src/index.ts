@@ -8,15 +8,18 @@ export type JSONValue =
 
 export const TRANSPORT_MESSAGE_TYPES = [
   'init',
-  'client_rpc',
-  'open_client',
-  'cancel_rpc',
-  'join_federation',
   'error',
   'cleanup',
+  // Defined in fedimint-client-rpc crate: https://github.com/fedimint/fedimint/blob/master/fedimint-client-rpc/src/lib.rs#L60
+  // TODO: generate this list automatically
+  'set_mnemonic',
   'generate_mnemonic',
   'get_mnemonic',
-  'set_mnemonic',
+  'join_federation',
+  'open_client',
+  'close_client',
+  'client_rpc',
+  'cancel_rpc',
   'parse_invite_code',
   'parse_bolt11_invoice',
   'preview_federation',
@@ -30,9 +33,12 @@ export type TransportRequest = {
   payload?: JSONValue
 }
 
+const TransportResponseTypes = ['data', 'error', 'end', 'log'] as const
+type TransportResponseType = (typeof TransportResponseTypes)[number]
+
 export type TransportMessage = {
-  type: TransportMessageType | string
-  requestId?: number
+  type: TransportResponseType
+  request_id?: number
 } & Record<string, unknown>
 
 export type TransportMessageHandler = (message: TransportMessage) => void

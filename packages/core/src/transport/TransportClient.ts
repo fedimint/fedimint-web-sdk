@@ -38,9 +38,17 @@ export class TransportClient {
   }
 
   // Idempotent setup - Loads the wasm module
-  initialize() {
+  initialize(): Promise<boolean>
+  initialize(testFilename: string): Promise<boolean>
+  initialize(testFilename?: string): Promise<boolean> {
     if (this.initPromise) return this.initPromise
-    this.initPromise = this.sendSingleMessage('init')
+    if (testFilename) {
+      this.initPromise = this.sendSingleMessage('init', {
+        filename: testFilename,
+      })
+    } else {
+      this.initPromise = this.sendSingleMessage('init')
+    }
     return this.initPromise
   }
 
@@ -50,24 +58,38 @@ export class TransportClient {
   }
 
   private handleTransportError = (error: unknown) => {
-    this.logger.error('TransportClient error', error)
+    this.logger.warn(
+      'TransportClient error',
+      JSON.stringify(error, [
+        'message',
+        'arguments',
+        'type',
+        'name',
+        'request_id',
+      ]),
+    )
   }
 
   private handleTransportMessage = (message: TransportMessage) => {
-    const { type, requestId, ...data } = message
+    const { type, request_id, ...data } = message
     if (type === 'log') {
       this.handleLogMessage(message)
     }
+
     const streamCallback =
-      requestId !== undefined ? this.requestCallbacks.get(requestId) : undefined
+      request_id !== undefined
+        ? this.requestCallbacks.get(request_id)
+        : undefined
     // TODO: Handle errors... maybe have another callbacks list for errors?
-    this.logger.debug('TransportClient - handleTransportMessage', message)
     if (streamCallback) {
+      this.logger.debug(
+        'TransportClient - handleTransportMessage - callback',
+        message,
+      )
       streamCallback(data) // {data: something} OR {error: something}
-    } else if (requestId !== undefined) {
+    } else if (request_id !== undefined && type !== 'end') {
       this.logger.warn(
         'TransportClient - handleTransportMessage - received message with no callback',
-        requestId,
         message,
       )
     }
@@ -98,7 +120,7 @@ export class TransportClient {
             requestId,
             response,
           )
-          if (response.data) resolve(response.data)
+          if (response.data !== undefined) resolve(response.data)
           else if (response.error) reject(response.error)
           else
             this.logger.warn(
@@ -218,13 +240,14 @@ export class TransportClient {
     })
     this.transport.postMessage({
       type: 'client_rpc',
-      payload: { clientName, module, method, body },
+      payload: { client_name: clientName, module, method, payload: body },
       requestId,
     })
 
     unsubscribePromise.then(() => {
       this.transport.postMessage({
-        type: 'unsubscribe',
+        type: 'cancel_rpc',
+        payload: { cancel_request_id: requestId },
         requestId,
       })
       this.requestCallbacks.delete(requestId)
@@ -254,7 +277,8 @@ export class TransportClient {
   }
 
   async cleanup() {
-    await this.sendSingleMessage('cleanup')
+    const res = await this.sendSingleMessage('cleanup')
+    this.logger.info('TransportClient - cleanup', res)
     this.requestCounter = 0
     this.initPromise = undefined
     this.requestCallbacks.clear()
