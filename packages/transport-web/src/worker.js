@@ -25,8 +25,9 @@ self.onmessage = async (event) => {
 
   try {
     if (type === 'init') {
-      let RpcHandler = (await import('@fedimint/fedimint-client-wasm-bundler'))
-        .RpcHandler
+      const RpcHandler = (
+        await import('@fedimint/fedimint-client-wasm-bundler')
+      ).RpcHandler
 
       const root = await navigator.storage.getDirectory()
       const dbFileHandle = await root.getFileHandle('fedimint.db', {

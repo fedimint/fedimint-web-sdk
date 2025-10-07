@@ -17,9 +17,9 @@ export const TRANSPORT_MESSAGE_TYPES = [
   'generate_mnemonic',
   'get_mnemonic',
   'set_mnemonic',
-  'parseInviteCode',
-  'parseBolt11Invoice',
-  'previewFederation',
+  'parse_invite_code',
+  'parse_bolt11_invoice',
+  'preview_federation',
 ] as const
 
 export type TransportMessageType = (typeof TRANSPORT_MESSAGE_TYPES)[number]
