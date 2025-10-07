@@ -1,19 +1,13 @@
-import type {
-  Transport,
-  TransportErrorHandler,
-  TransportLogger,
-  TransportMessageHandler,
-  TransportRequest,
-} from '@fedimint/types'
+import type { TransportLogger, TransportRequest } from '@fedimint/types'
+import { Transport } from '@fedimint/types'
 
-export class WasmWorkerTransport implements Transport {
-  private messageHandler: TransportMessageHandler = () => {}
-  private errorHandler: TransportErrorHandler = () => {}
+export class WasmWorkerTransport extends Transport {
   private readonly worker: Worker
 
   logger: TransportLogger = console
 
   constructor() {
+    super()
     this.worker = new Worker(new URL('./worker.js', import.meta.url), {
       type: 'module',
     })
@@ -27,13 +21,5 @@ export class WasmWorkerTransport implements Transport {
 
   postMessage(message: TransportRequest) {
     this.worker.postMessage(message)
-  }
-
-  setMessageHandler(handler: TransportMessageHandler) {
-    this.messageHandler = handler
-  }
-
-  setErrorHandler(handler: TransportErrorHandler) {
-    this.errorHandler = handler
   }
 }
