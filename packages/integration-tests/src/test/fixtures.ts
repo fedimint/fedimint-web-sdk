@@ -16,16 +16,17 @@ export const walletTest = test.extend<{
 }>({
   walletDirector: async ({}, use) => {
     const walletDirector = new TestWalletDirector()
+    // walletDirector.setLogLevel('debug')
     await use(walletDirector)
   },
   wallet: async ({ walletDirector }, use) => {
     const randomTestingId = Math.random().toString(36).substring(2, 15)
-    const wallet = await walletDirector.createTestWallet()
+    const wallet = await walletDirector.createTestWallet(randomTestingId)
+    await walletDirector.generateMnemonic()
+
     expect(wallet).toBeDefined()
     const inviteCode = await wallet.testing.getInviteCode()
-    await expect(
-      wallet.joinFederation(inviteCode, randomTestingId),
-    ).resolves.toBe(true)
+    await expect(wallet.joinFederation(inviteCode)).resolves.toBe(true)
 
     await use(wallet)
 
@@ -33,12 +34,8 @@ export const walletTest = test.extend<{
     await wallet.cleanup()
 
     // remove the wallet db
-    await new Promise((resolve) => {
-      const request = indexedDB.deleteDatabase(randomTestingId)
-      request.onsuccess = resolve
-      request.onerror = resolve
-      request.onblocked = resolve
-    })
+    const root = await navigator.storage.getDirectory()
+    await root.removeEntry(randomTestingId)
   },
 
   fundedWallet: async ({ wallet }, use) => {
@@ -52,8 +49,16 @@ export const walletTest = test.extend<{
     await use(wallet)
   },
   unopenedWallet: async ({ walletDirector }, use) => {
-    const wallet = await walletDirector.createTestWallet()
+    const randomTestingId = Math.random().toString(36).substring(2, 15)
+    const wallet = await walletDirector.createTestWallet(randomTestingId)
     await use(wallet)
+
+    // clear up browser resources
+    await wallet.cleanup()
+
+    // remove the wallet db
+    const root = await navigator.storage.getDirectory()
+    await root.removeEntry(randomTestingId)
   },
 })
 

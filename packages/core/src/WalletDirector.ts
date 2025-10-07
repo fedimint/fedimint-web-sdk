@@ -45,7 +45,7 @@ export class WalletDirector {
     const response = this._client.sendSingleMessage<{
       config: FederationConfig
       federation_id: string
-    }>('previewFederation', { inviteCode })
+    }>('preview_federation', { invite_code: inviteCode })
     return response
   }
 
@@ -83,7 +83,7 @@ export class WalletDirector {
       type: string
       data: JSONValue
       requestId: number
-    }>('parseInviteCode', { inviteCode })
+    }>('parse_invite_code', { inviteCode })
     return response
   }
 
@@ -113,7 +113,7 @@ export class WalletDirector {
       type: string
       data: JSONValue
       requestId: number
-    }>('parseBolt11Invoice', { invoiceStr })
+    }>('parse_bolt11_invoice', { invoiceStr })
     return response
   }
 
