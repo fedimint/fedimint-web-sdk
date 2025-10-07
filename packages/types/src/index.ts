@@ -8,13 +8,11 @@ export type JSONValue =
 
 export const TRANSPORT_MESSAGE_TYPES = [
   'init',
-  'initialized',
   'client_rpc',
-  'log',
   'open_client',
-  'join',
+  'cancel_rpc',
+  'join_federation',
   'error',
-  'unsubscribe',
   'cleanup',
   'generate_mnemonic',
   'get_mnemonic',
