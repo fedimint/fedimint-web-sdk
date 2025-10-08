@@ -1,5 +1,13 @@
 # @fedimint/core-web
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [c04230a]
+- Updated dependencies [6c07908]
+  - @fedimint/core@0.1.3
+
 ## 0.1.2
 
 ### Patch Changes
