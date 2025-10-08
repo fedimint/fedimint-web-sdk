@@ -9,8 +9,5 @@
     "@fedimint/core": "workspace:*",
     "@fedimint/transport-web": "workspace:*",
     "secp256k1": "^5.0.1"
-  },
-  "devDependencies": {
-    "vitest": "^3.2.4"
   }
 }
