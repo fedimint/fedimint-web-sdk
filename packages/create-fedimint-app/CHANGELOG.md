@@ -1,5 +1,11 @@
 # create-fedimint-app
 
+## 0.0.3
+
+### Patch Changes
+
+- 6c07908: Bump all the deps with taze.
+
 ## 0.0.2
 
 ### Patch Changes
