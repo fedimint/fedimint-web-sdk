@@ -1,5 +1,11 @@
 # @fedimint/fedimint-client-wasm-web
 
+## 0.1.1
+
+### Patch Changes
+
+- ba37695: Bump pinned version of fedimint to use opfs and redb
+
 ## 0.1.0
 
 ### Minor Changes
