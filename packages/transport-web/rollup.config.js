@@ -18,7 +18,11 @@ export default [
       sourcemap: true,
     },
     plugins: [typescript(), terser()],
-    external: ['@fedimint/core', '@fedimint/fedimint-client-wasm-bundler'],
+    external: [
+      '@fedimint/core',
+      '@fedimint/fedimint-client-wasm-bundler',
+      '@fedimint/types',
+    ],
   },
   {
     input: './dist/dts/index.d.ts',

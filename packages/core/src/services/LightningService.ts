@@ -11,7 +11,10 @@ import type {
 } from '../types'
 
 export class LightningService {
-  constructor(private client: TransportClient) {}
+  constructor(
+    private client: TransportClient,
+    private clientName: string,
+  ) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
   async createInvoice(
@@ -32,6 +35,7 @@ export class LightningService {
         extra_meta: extraMeta ?? {},
         gateway,
       },
+      this.clientName,
     )
   }
 
@@ -57,6 +61,7 @@ export class LightningService {
         extra_meta: extraMeta ?? {},
         gateway,
       },
+      this.clientName,
     )
   }
 
@@ -74,6 +79,7 @@ export class LightningService {
         indices,
         extra_meta: extraMeta ?? {},
       },
+      this.clientName,
     )
   }
 
@@ -98,6 +104,7 @@ export class LightningService {
         invoice,
         extra_meta: extraMeta ?? {},
       },
+      this.clientName,
     )
   }
 
@@ -151,6 +158,7 @@ export class LightningService {
       'ln',
       'subscribe_internal_pay',
       { operation_id: operation_id },
+      this.clientName,
       onSuccess,
       onError,
     )
@@ -166,6 +174,7 @@ export class LightningService {
       'ln',
       'subscribe_ln_claim',
       { operation_id: operationId },
+      this.clientName,
       onSuccess,
       onError,
     )
@@ -183,6 +192,7 @@ export class LightningService {
       'ln',
       'subscribe_ln_pay',
       { operation_id: operationId },
+      this.clientName,
       onSuccess,
       onError,
     )
@@ -230,6 +240,7 @@ export class LightningService {
       'ln',
       'subscribe_ln_receive',
       { operation_id: operationId },
+      this.clientName,
       onSuccess,
       onError,
     )
@@ -272,6 +283,7 @@ export class LightningService {
         gateway_id: gatewayId,
         force_internal: forceInternal,
       },
+      this.clientName,
     )
   }
 
@@ -280,10 +292,16 @@ export class LightningService {
       'ln',
       'list_gateways',
       {},
+      this.clientName,
     )
   }
 
   async updateGatewayCache() {
-    return await this.client.rpcSingle('ln', 'update_gateway_cache', {})
+    return await this.client.rpcSingle(
+      'ln',
+      'update_gateway_cache',
+      {},
+      this.clientName,
+    )
   }
 }

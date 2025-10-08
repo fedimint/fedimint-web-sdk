@@ -23,8 +23,8 @@ export class Logger {
   }
 
   private coerceLevel(level: string): LogLevel {
-    if (logLevels.includes(level.toLocaleUpperCase() as LogLevel)) {
-      return level.toLocaleUpperCase() as LogLevel
+    if (logLevels.includes(level.toLowerCase() as LogLevel)) {
+      return level.toLowerCase() as LogLevel
     }
     return 'info'
   }

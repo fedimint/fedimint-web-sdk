@@ -45,7 +45,7 @@ export class WalletDirector {
     const response = this._client.sendSingleMessage<{
       config: FederationConfig
       federation_id: string
-    }>('previewFederation', { inviteCode })
+    }>('preview_federation', { invite_code: inviteCode })
     return response
   }
 
@@ -83,7 +83,7 @@ export class WalletDirector {
       type: string
       data: JSONValue
       requestId: number
-    }>('parseInviteCode', { inviteCode })
+    }>('parse_invite_code', { inviteCode })
     return response
   }
 
@@ -113,7 +113,42 @@ export class WalletDirector {
       type: string
       data: JSONValue
       requestId: number
-    }>('parseBolt11Invoice', { invoiceStr })
+    }>('parse_bolt11_invoice', { invoiceStr })
     return response
+  }
+
+  /**
+   * Generates and sets a new mnemonic phrase.
+   * @returns {Promise<string[]>} A promise that resolves to the generated mnemonic phrase.
+   */
+  async generateMnemonic(): Promise<string[]> {
+    const result = await this._client.sendSingleMessage<{ mnemonic: string[] }>(
+      'generate_mnemonic',
+    )
+    return result.mnemonic
+  }
+
+  /**
+   * Retrieves the current mnemonic phrase.
+   * @returns {Promise<string[]>} A promise that resolves to the current mnemonic phrase.
+   */
+  async getMnemonic(): Promise<string[]> {
+    const result = await this._client.sendSingleMessage<{ mnemonic: string[] }>(
+      'get_mnemonic',
+    )
+    return result.mnemonic
+  }
+
+  /**
+   * Sets the mnemonic phrase.
+   * @param {string[]} words - The mnemonic words to set.
+   * @returns {Promise<boolean>} A promise that resolves to true if the mnemonic was set successfully.
+   */
+  async setMnemonic(words: string[]): Promise<boolean> {
+    const result = await this._client.sendSingleMessage<{ success: boolean }>(
+      'set_mnemonic',
+      { words },
+    )
+    return result.success
   }
 }

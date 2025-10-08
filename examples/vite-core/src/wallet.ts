@@ -11,6 +11,8 @@ director.createWallet().then((_wallet) => {
   // Expose the wallet to the global window object for testing
   // @ts-ignore
   globalThis.wallet = wallet
+  // @ts-ignore
+  globalThis.director = director
 })
 
 director.setLogLevel('debug')

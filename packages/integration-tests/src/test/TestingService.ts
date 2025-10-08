@@ -26,10 +26,11 @@ export class TestingService {
 
   async getInviteCode() {
     const res = await fetch(`${import.meta.env.FAUCET}/connect-string`)
+    const text = await res.text()
     if (res.ok) {
-      return await res.text()
+      return text
     } else {
-      throw new Error(`Failed to get invite code: ${await res.text()}`)
+      throw new Error(`Failed to get invite code: ${text}`)
     }
   }
 

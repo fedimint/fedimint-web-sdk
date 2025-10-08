@@ -6,11 +6,19 @@ import { TransportClient } from '../transport'
  * The Balance Service provides methods to interact with the balance of a Fedimint wallet.
  */
 export class BalanceService {
-  constructor(private client: TransportClient) {}
+  constructor(
+    private client: TransportClient,
+    private clientName: string,
+  ) {}
 
   /** https://web.fedimint.org/core/FedimintWallet/BalanceService/getBalance */
   async getBalance() {
-    return await this.client.rpcSingle<number>('', 'get_balance', {})
+    return await this.client.rpcSingle<number>(
+      '',
+      'get_balance',
+      {},
+      this.clientName,
+    )
   }
 
   /** https://web.fedimint.org/core/FedimintWallet/BalanceService/subscribeBalance */
@@ -22,6 +30,7 @@ export class BalanceService {
       '',
       'subscribe_balance_changes',
       {},
+      this.clientName,
       (res) => onSuccess(parseInt(res)),
       onError,
     )

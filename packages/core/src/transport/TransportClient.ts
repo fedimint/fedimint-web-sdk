@@ -38,36 +38,58 @@ export class TransportClient {
   }
 
   // Idempotent setup - Loads the wasm module
-  initialize() {
+  initialize(): Promise<boolean>
+  initialize(testFilename: string): Promise<boolean>
+  initialize(testFilename?: string): Promise<boolean> {
     if (this.initPromise) return this.initPromise
-    this.initPromise = this.sendSingleMessage('init')
+    if (testFilename) {
+      this.initPromise = this.sendSingleMessage('init', {
+        filename: testFilename,
+      })
+    } else {
+      this.initPromise = this.sendSingleMessage('init')
+    }
     return this.initPromise
   }
 
   private handleLogMessage(message: TransportMessage) {
-    const { type, level, message: logMessage, ...data } = message
-    this.logger.info(String(level), String(logMessage), data)
+    const { type, level = 'debug', message: logMessage, ...data } = message
+    this.logger.log(String(level), `Transport Log: ${String(logMessage)}`, data)
   }
 
   private handleTransportError = (error: unknown) => {
-    this.logger.error('TransportClient error', error)
+    this.logger.warn(
+      'TransportClient error',
+      JSON.stringify(error, [
+        'message',
+        'arguments',
+        'type',
+        'name',
+        'request_id',
+      ]),
+    )
   }
 
   private handleTransportMessage = (message: TransportMessage) => {
-    const { type, requestId, ...data } = message
+    const { type, request_id, ...data } = message
     if (type === 'log') {
       this.handleLogMessage(message)
     }
+
     const streamCallback =
-      requestId !== undefined ? this.requestCallbacks.get(requestId) : undefined
+      request_id !== undefined
+        ? this.requestCallbacks.get(request_id)
+        : undefined
     // TODO: Handle errors... maybe have another callbacks list for errors?
-    this.logger.debug('TransportClient - handleTransportMessage', message)
     if (streamCallback) {
+      this.logger.debug(
+        'TransportClient - handleTransportMessage - callback',
+        message,
+      )
       streamCallback(data) // {data: something} OR {error: something}
-    } else if (requestId !== undefined) {
+    } else if (request_id !== undefined && type !== 'end') {
       this.logger.warn(
         'TransportClient - handleTransportMessage - received message with no callback',
-        requestId,
         message,
       )
     }
@@ -98,7 +120,7 @@ export class TransportClient {
             requestId,
             response,
           )
-          if (response.data) resolve(response.data)
+          if (response.data !== undefined) resolve(response.data)
           else if (response.error) reject(response.error)
           else
             this.logger.warn(
@@ -143,6 +165,7 @@ export class TransportClient {
     module: ModuleKind,
     method: string,
     body: Body,
+    clientName: string,
     onSuccess: (res: Response) => void,
     onError: (res: StreamError['error']) => void,
     onEnd: () => void = () => {},
@@ -154,6 +177,7 @@ export class TransportClient {
       module,
       method,
       body,
+      clientName,
     )
     let unsubscribe: (value: void) => void = () => {}
     let isSubscribed = false
@@ -177,6 +201,7 @@ export class TransportClient {
       module,
       method,
       body,
+      clientName,
       onSuccess,
       onError,
       onEnd,
@@ -196,6 +221,7 @@ export class TransportClient {
     module: ModuleKind,
     method: string,
     body: Body,
+    clientName: string,
     onSuccess: (res: Response) => void,
     onError: (res: StreamError['error']) => void,
     onEnd: () => void = () => {},
@@ -213,14 +239,15 @@ export class TransportClient {
       }
     })
     this.transport.postMessage({
-      type: 'rpc',
-      payload: { module, method, body },
+      type: 'client_rpc',
+      payload: { client_name: clientName, module, method, payload: body },
       requestId,
     })
 
     unsubscribePromise.then(() => {
       this.transport.postMessage({
-        type: 'unsubscribe',
+        type: 'cancel_rpc',
+        payload: { cancel_request_id: requestId },
         requestId,
       })
       this.requestCallbacks.delete(requestId)
@@ -230,15 +257,28 @@ export class TransportClient {
   rpcSingle<
     Response extends JSONValue = JSONValue,
     Error extends string = string,
-  >(module: ModuleKind, method: string, body: JSONValue) {
+  >(
+    module: ModuleKind,
+    method: string,
+    body: JSONValue,
+    clientName: string,
+  ): Promise<Response> {
     this.logger.debug('TransportClient - rpcSingle', module, method, body)
     return new Promise<Response>((resolve, reject) => {
-      this.rpcStream<Response>(module, method, body, resolve, reject)
+      this.rpcStream<Response>(
+        module,
+        method,
+        body,
+        clientName,
+        resolve,
+        reject,
+      )
     })
   }
 
   async cleanup() {
-    await this.sendSingleMessage('cleanup')
+    const res = await this.sendSingleMessage('cleanup')
+    this.logger.info('TransportClient - cleanup', res)
     this.requestCounter = 0
     this.initPromise = undefined
     this.requestCallbacks.clear()
