@@ -1,5 +1,12 @@
 # @fedimint/transport-web
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [ba37695]
+  - @fedimint/fedimint-client-wasm-bundler@0.1.1
+
 ## 0.1.1
 
 ### Patch Changes
