@@ -14,6 +14,7 @@ type GatewayInfo = {
   route_hints: RouteHint[]
   fees: FeeToAmount
 }
+
 type LightningGateway = {
   info: GatewayInfo
   vetted: boolean
@@ -35,6 +36,11 @@ type OutgoingLightningPayment = {
 }
 
 type PayType = { lightning: string } | { internal: string }
+
+type GetAvailableGatewayParams = {
+  gateway?: LightningGateway
+  invoice?: string
+}
 
 type LnPayState =
   | 'created'
@@ -295,4 +301,5 @@ export {
   WalletTransaction,
   Transactions,
   WalletDepositState,
+  GetAvailableGatewayParams,
 }
