@@ -28,6 +28,8 @@ walletTest(
   async ({ wallet }) => {
     expect(wallet).toBeDefined()
     expect(wallet.isOpen()).toBe(true)
+    // TODO: @maan2003 Plz help me investigate why we crash without this delay
+    await new Promise((resolve) => setTimeout(resolve, 100))
     const response = await wallet.wallet.generateAddress()
 
     expect(response, 'generateAddress').toEqual({

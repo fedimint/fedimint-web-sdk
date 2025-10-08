@@ -59,7 +59,14 @@ self.onmessage = async (event) => {
       type === 'parse_bolt11_invoice' ||
       type === 'preview_federation'
     ) {
-      console.log('RPC received', requestId, type, payload)
+      self.postMessage({
+        type: 'log',
+        level: 'info',
+        message: `RPC received`,
+        request_type: type,
+        requestId,
+        payload,
+      })
       if (!rpcHandler) {
         self.postMessage({
           type: 'error',

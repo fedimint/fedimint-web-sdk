@@ -16,9 +16,14 @@ export const useOpenWallet = () => {
     if (walletStatus === 'open') return
 
     setWalletStatus('opening')
-    wallet.open().then((res) => {
-      setWalletStatus(res ? 'open' : 'closed')
-    })
+    wallet
+      .open()
+      .then(() => {
+        setWalletStatus('open')
+      })
+      .catch(() => {
+        setWalletStatus('closed')
+      })
   }, [wallet])
 
   const joinFederation = useCallback(

@@ -73,14 +73,17 @@ export class FedimintWallet {
   async open(clientName: string = DEFAULT_CLIENT_NAME) {
     // TODO: Determine if this should be safe or throw
     if (this._isOpen) throw new Error('The FedimintWallet is already open.')
-    const { success } = await this._client.sendSingleMessage<{
-      success: boolean
-    }>('open_client', { clientName })
-    if (success) {
-      this._isOpen = !!success
+    try {
+      await this._client.sendSingleMessage('open_client', {
+        client_name: clientName,
+      })
+      this._isOpen = true
       this._resolveOpen()
+      return true
+    } catch (e) {
+      this._client.logger.error('Error opening client', e)
+      throw e
     }
-    return success
   }
 
   async joinFederation(

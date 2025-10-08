@@ -53,8 +53,8 @@ export class TransportClient {
   }
 
   private handleLogMessage(message: TransportMessage) {
-    const { type, level, message: logMessage, ...data } = message
-    this.logger.info(String(level), String(logMessage), data)
+    const { type, level = 'debug', message: logMessage, ...data } = message
+    this.logger.log(String(level), `Transport Log: ${String(logMessage)}`, data)
   }
 
   private handleTransportError = (error: unknown) => {

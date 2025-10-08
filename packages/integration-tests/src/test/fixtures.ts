@@ -16,7 +16,6 @@ export const walletTest = test.extend<{
 }>({
   walletDirector: async ({}, use) => {
     const walletDirector = new TestWalletDirector()
-    // walletDirector.setLogLevel('debug')
     await use(walletDirector)
   },
   wallet: async ({ walletDirector }, use) => {
@@ -28,7 +27,10 @@ export const walletTest = test.extend<{
     const inviteCode = await wallet.testing.getInviteCode()
     await expect(wallet.joinFederation(inviteCode)).resolves.toBe(true)
 
+    // Uncomment to enable logging in tests.
+    // walletDirector.setLogLevel('debug')
     await use(wallet)
+    // walletDirector.setLogLevel('none')
 
     // clear up browser resources
     await wallet.cleanup()
