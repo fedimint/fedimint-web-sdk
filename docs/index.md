@@ -30,8 +30,8 @@ features:
     title: WebAssembly-powered Client
     details: Exposes the robust, fault-tolerant fedimint-client (built in Rust) via WebAssembly. Lazy-Loads within a web worker for performance.
   - icon: 💰
-    title: eCash Payments
-    details: Includes support for joining federations, sending/receiving eCash, and managing balances.
+    title: Ecash Payments
+    details: Includes support for joining federations, sending/receiving ecash, and managing balances.
   - icon: ⚡
     title: Lightning Payments
     details: Ships with zero-setup Lightning Network payments.

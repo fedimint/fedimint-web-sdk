@@ -14,7 +14,7 @@ The `@fedimint/core` package contains a robust, fault-tolerant fedimint client v
 
 - 🚀 **WebAssembly-powered Client**: Exposes the robust, fault-tolerant fedimint-client (built in Rust) via WebAssembly. Lazy-Loads within a web worker for performance.
 
-- 💰 **eCash Payments**: Includes support for joining federations, sending/receiving eCash, and managing balances.
+- 💰 **Ecash Payments**: Includes support for joining federations, sending/receiving ecash, and managing balances.
 
 - ⚡ **Lightning Payments**: Ships with zero-setup Lightning Network payments.
 
