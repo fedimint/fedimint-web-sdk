@@ -130,7 +130,7 @@ importers:
   examples/vite-core:
     dependencies:
       '@fedimint/core':
-        specifier: ^0.1.3
+        specifier: latest
         version: 0.1.3
       '@fedimint/transport-web':
         specifier: latest
