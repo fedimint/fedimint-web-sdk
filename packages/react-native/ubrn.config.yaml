@@ -1,0 +1,9 @@
+---
+rust:
+  repo: https://github.com/minmoto/fedimint.git
+  ref: v0.9.0-minmo
+  manifestPath: fedimint-client-uniffi/Cargo.toml
+noOverwrite:
+  - '*.podspec'
+  - 'android/cpp-adapter.cpp'
+  - 'android/src/main/java/com/fedimint/reactnative/ReactNativeModule.kt'

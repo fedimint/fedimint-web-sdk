@@ -1,0 +1,30 @@
+# From uniffi-bindgen-react-native
+rust_modules/
+*.a
+*.xcframework
+
+# Generated files
+ios/
+cpp/
+src/
+
+# Android - ignore most files but allow specific patched files
+android/*
+!android/cpp-adapter.cpp
+!android/src/
+android/src/*
+!android/src/main/
+android/src/main/*
+!android/src/main/java/
+android/src/main/java/*
+!android/src/main/java/com/
+android/src/main/java/com/*
+!android/src/main/java/com/fedimint/
+android/src/main/java/com/fedimint/*
+!android/src/main/java/com/fedimint/reactnative/
+android/src/main/java/com/fedimint/reactnative/*
+!android/src/main/java/com/fedimint/reactnative/ReactNativeModule.kt
+
+# Allow our manually patched Android files to be committed:
+# - android/cpp-adapter.cpp (patched for RN 0.76+ compatibility)
+# - android/src/main/java/com/fedimint/reactnative/ReactNativeModule.kt (patched for RN 0.76+ compatibility)

@@ -1,0 +1,68 @@
+{
+  "name": "@fedimint/react-native",
+  "version": "0.2.1",
+  "description": "Fedimint client for React Native via UniFFI",
+  "main": "./src/index.ts",
+  "react-native": "./src/index.ts",
+  "types": "./src/index.ts",
+  "homepage": "https://github.com/fedimint/fedimint-web-sdk",
+  "author": "The Fedimint Developers",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fedimint/fedimint-web-sdk.git",
+    "directory": "packages/react-native"
+  },
+  "keywords": [
+    "fedimint",
+    "bitcoin",
+    "lightning",
+    "react-native",
+    "uniffi",
+    "e-cash"
+  ],
+  "scripts": {
+    "ubrn:checkout": "ubrn checkout",
+    "ubrn:ios": "ubrn build ios --and-generate",
+    "ubrn:android": "ubrn build android --and-generate",
+    "build": "pnpm ubrn:ios && pnpm ubrn:android",
+    "clean": "rm -rf android/ ios/ cpp/ src/generated/ src/NativeReactNative.ts src/index.tsx *.xcframework *.a"
+  },
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "cpp",
+    "*.podspec",
+    "react-native.config.js",
+    "!ios/build",
+    "!android/build",
+    "!android/gradle",
+    "!android/gradlew",
+    "!android/gradlew.bat",
+    "!android/local.properties",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!**/.*"
+  ],
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "dependencies": {
+    "uniffi-bindgen-react-native": "0.29.3-1"
+  },
+  "devDependencies": {
+    "@fedimint/types": "workspace:*"
+  },
+  "codegenConfig": {
+    "name": "ReactNativeSpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.fedimint.reactnative"
+    }
+  }
+}

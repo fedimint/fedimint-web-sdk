@@ -1,0 +1,32 @@
+{
+  "name": "@fedimint/transport-react-native",
+  "version": "0.1.0",
+  "description": "React Native transport layer for Fedimint client",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "author": "The Fedimint Developers",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fedimint/fedimint-web-sdk.git",
+    "directory": "packages/transport-react-native"
+  },
+  "keywords": [
+    "fedimint",
+    "bitcoin",
+    "lightning",
+    "react-native",
+    "transport"
+  ],
+  "optionalDependencies": {
+    "react-native-fs": "^2.20.0",
+    "expo-file-system": "^19.0.17"
+  },
+  "peerDependencies": {
+    "@fedimint/react-native": "workspace:*",
+    "@fedimint/types": "workspace:*"
+  },
+  "files": [
+    "src/"
+  ]
+}
