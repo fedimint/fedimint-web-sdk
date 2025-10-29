@@ -1,6 +1,6 @@
-# Fedimint Web SDK - Webpack Example
+# Fedimint Sdk - Webpack Example
 
-This example demonstrates how to use the Fedimint Web SDK in a Webpack-based project. This will check the connection with the fedimint client, fetch balance, join federations, Generate Invoice, sedn payment via `@fedimint/core`
+This example demonstrates how to use the Fedimint Sdk in a Webpack-based project. This will check the connection with the fedimint client, fetch balance, join federations, Generate Invoice, sedn payment via `@fedimint/core`
 
 ## Prerequisites
 

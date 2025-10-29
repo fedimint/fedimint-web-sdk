@@ -2,13 +2,13 @@
 # https://vitepress.dev/reference/default-theme-home-page
 layout: home
 
-description: Robust, privacy-focused, and WebAssembly-powered
-title: Fedimint Web Sdk
+description: Robust, privacy-focused, powered by Rust
+title: Fedimint Sdk
 titleTemplate: false
 
 hero:
-  name: Fedimint Web Sdk
-  text: Building Ecash into the Web
+  name: Fedimint Sdk
+  text: Building Ecash into Apps
   tagline: Robust, privacy-focused, and WebAssembly-powered
   actions:
     - theme: brand
@@ -19,7 +19,7 @@ hero:
       link: https://fedimint.org
     - theme: alt
       text: View on GitHub
-      link: https://github.com/fedimint/fedimint-web-sdk
+      link: https://github.com/fedimint/fedimint-sdk
 
   image:
     src: /icon.png
@@ -27,8 +27,8 @@ hero:
 
 features:
   - icon: 🚀
-    title: WebAssembly-powered Client
-    details: Exposes the robust, fault-tolerant fedimint-client (built in Rust) via WebAssembly. Lazy-Loads within a web worker for performance.
+    title: Rust-powered Client
+    details: Exposes the robust, fault-tolerant fedimint-client (built in Rust) via WebAssembly/native modules. Lazy loading included for performance.
   - icon: 💰
     title: Ecash Payments
     details: Includes support for joining federations, sending/receiving ecash, and managing balances.
@@ -37,7 +37,7 @@ features:
     details: Ships with zero-setup Lightning Network payments.
   - icon: 🛠️
     title: State Management
-    details: Handles the complex state management and storage challenges for browser wallets.
+    details: Handles the complex state management and storage challenges for browser & mobile wallets.
   - icon: 🤫
     title: Privacy Included
     details: Offers a privacy-centric wallet by default.

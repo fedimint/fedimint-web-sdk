@@ -3,7 +3,7 @@
   <!-- Removes the border below the header tag -->
   <div id="toc"><ul align="center" style="list-style: none;"><summary>
     <h1><b>@fedimint/react</b></h1>
-    <p>Helpful React hooks for building with the Fedimint Web SDK.</p>
+    <p>Helpful React hooks for building with the Fedimint Sdk.</p>
   </summary></ul></div>
 
 # @fedimint/react

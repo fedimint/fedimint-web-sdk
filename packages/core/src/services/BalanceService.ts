@@ -11,7 +11,7 @@ export class BalanceService {
     private clientName: string,
   ) {}
 
-  /** https://web.fedimint.org/core/FedimintWallet/BalanceService/getBalance */
+  /** https://sdk.fedimint.org/core/FedimintWallet/BalanceService/getBalance */
   async getBalance() {
     return await this.client.rpcSingle<number>(
       '',
@@ -21,7 +21,7 @@ export class BalanceService {
     )
   }
 
-  /** https://web.fedimint.org/core/FedimintWallet/BalanceService/subscribeBalance */
+  /** https://sdk.fedimint.org/core/FedimintWallet/BalanceService/subscribeBalance */
   subscribeBalance(
     onSuccess: (balanceMsats: number) => void = () => {},
     onError: (error: string) => void = () => {},

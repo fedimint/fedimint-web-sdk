@@ -1,6 +1,6 @@
 # Fedimint + Vite + React + TypeScript Starter
 
-This template provides a minimal setup to get The Fedimint Web SDK working with Vite + React + TypeScript.
+This template provides a minimal setup to get The Fedimint Sdk working with Vite + React + TypeScript.
 
 ## Technologies Used
 

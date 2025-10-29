@@ -1,7 +1,7 @@
 # Getting Started
 
 ::: danger Disclaimer
-This is very new. Use with caution. [Report bugs](https://github.com/fedimint/fedimint-web-sdk/issues).
+This is very new. Use with caution. [Report bugs](https://github.com/fedimint/fedimint-sdk/issues).
 
 APIs may change.
 :::
@@ -56,7 +56,7 @@ bun create fedimint-app my-fedimint-app --template vite-react-ts
 
 :::
 
-See [create-fedimint-app](https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/create-fedimint-app) for more details on each supported template.
+See [create-fedimint-app](https://github.com/fedimint/fedimint-sdk/tree/main/packages/create-fedimint-app) for more details on each supported template.
 
 You can use `.` for the project name to scaffold in the current directory.
 
@@ -90,7 +90,7 @@ bun add @fedimint/core @fedimint/transport-web
 
 This package relies on a [wasm](https://webassembly.org/) module to be bundled with your application. You will likely need to update your bundler's or framework's configuration to load the wasm file.
 
-See setup guides for some popular choices below. If your tool is not listed or the setup does not work, feel free to [open an issue](https://github.com/fedimint/fedimint-web-sdk/issues/new) or [contribute a guide](https://github.com/fedimint/fedimint-web-sdk/edit/main/docs/core/getting-started.md).
+See setup guides for some popular choices below. If your tool is not listed or the setup does not work, feel free to [open an issue](https://github.com/fedimint/fedimint-sdk/issues/new) or [contribute a guide](https://github.com/fedimint/fedimint-sdk/edit/main/docs/core/getting-started.md).
 
 ### Next.js
 
@@ -118,7 +118,7 @@ const nextConfig = {
 export default nextConfig;
 ```
 
-Check out the [nextjs sample app](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/next-js) for a full working example.
+Check out the [nextjs sample app](https://github.com/fedimint/fedimint-sdk/tree/main/examples/next-js) for a full working example.
 
 :::
 
@@ -140,7 +140,7 @@ TODO: Add setup guide for vanilla js.
 
 Currently requires modifying the library and utilizing the `@fedimint/wasm-web` package directly.
 
-See the [bare-js sample app](https://github.com/fedimint/fedimint-web-sdk/tree/main/examples/bare-js) for a full working example.
+See the [bare-js sample app](https://github.com/fedimint/fedimint-sdk/tree/main/examples/bare-js) for a full working example.
 
 :::
 
@@ -312,7 +312,7 @@ For a list of public federations with invite codes, visit [Bitcoin Mints](https:
 
 <br>
 
-#### To learn more about Web SDK, explore the docs
+#### To learn more about Sdk, explore the docs
 
 - [SDK Overview](overview)
 - [Library Architecture](architecture)

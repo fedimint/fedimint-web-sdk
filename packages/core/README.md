@@ -2,7 +2,7 @@
 
 ### This is early software. Use with caution. Report Bugs.
 
-Check out the [Getting Started Guide](https://web.fedimint.org/core/getting-started.html) for more information.
+Check out the [Getting Started Guide](https://sdk.fedimint.org/core/getting-started.html) for more information.
 
 > Note: `@fedimint/core` now expects a platform-specific transport implementation. For browser usage install `@fedimint/transport-web` and provide a `WasmWorkerTransport` instance when constructing a `WalletDirector`.
 
@@ -10,8 +10,8 @@ Check out the [Getting Started Guide](https://web.fedimint.org/core/getting-star
 
 Also check out the examples for working code
 
-- [Vite + React](https://web.fedimint.org/examples/vite-react)
-- [Bare JS](https://web.fedimint.org/examples/bare-js)
+- [Vite + React](https://sdk.fedimint.org/examples/vite-react)
+- [Bare JS](https://sdk.fedimint.org/examples/bare-js)
 
 ### Resources
 
