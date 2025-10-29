@@ -10,7 +10,7 @@ import { Plugin as VitePressPlugin } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: 'Fedimint Sdk',
-  description: 'Building Fedimint Ecash into the web',
+  description: 'Building Fedimint Ecash into Apps',
   ignoreDeadLinks: false,
   lang: 'en-US',
   lastUpdated: true,
@@ -39,10 +39,10 @@ export default defineConfig({
 
     // Open Graph
     ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:url', content: 'https://web.fedimint.org' }],
-    ['meta', { property: 'og:title', content: 'Fedimint Sdk | Building Ecash into the web' } ],
+    ['meta', { property: 'og:url', content: 'https://sdk.fedimint.org' }],
+    ['meta', { property: 'og:title', content: 'Fedimint Sdk | Building Ecash into Apps' } ],
     ['meta', { property: 'og:site_name', content: 'Fedimint Sdk' }],
-    ['meta', { property: 'og:image', content: 'https://web.fedimint.org/og.png' } ],
+    ['meta', { property: 'og:image', content: 'https://sdk.fedimint.org/og.png' } ],
 
     // Twitter
     ['meta', { name: 'twitter:card', content: 'summary' }],

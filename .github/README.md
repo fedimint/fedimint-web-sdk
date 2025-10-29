@@ -9,14 +9,14 @@
   <p align="center">
     <a href="https://github.com/fedimint/fedimint-sdk/blob/main/LICENSE"><img src="https://img.shields.io/github/license/fedimint/fedimint-sdk?style=plastic&color=blue" alt="GitHub License" /></a>
     <a href="https://github.com/fedimint/fedimint-sdk/actions"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-sdk/.github%2Fworkflows%2Fchangesets.yml?style=plastic&label=CI&color=green" alt="Build Status" /></a>
-    <a href="https://web.fedimint.org"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-sdk/deploy-docs.yml?style=plastic&label=Docs%20Site&color=%2303b1fc" alt="Docs Workflow" /></a>
+    <a href="https://sdk.fedimint.org"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-sdk/deploy-docs.yml?style=plastic&label=Docs%20Site&color=%2303b1fc" alt="Docs Workflow" /></a>
     <a href="https://deepwiki.com/fedimint/fedimint-sdk"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
   </p>
   
   <!-- Removes the border below the header tag -->
   <div id="toc"><ul align="center" style="list-style: none;"><summary>
     <h2>
-        Docs Site: <a href="https://web.fedimint.org">web.fedimint.org</a>
+        Docs Site: <a href="https://sdk.fedimint.org">sdk.fedimint.org</a>
     </h2>
   </summary></ul></div>
 

@@ -16,7 +16,7 @@ export class LightningService {
     private clientName: string,
   ) {}
 
-  /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
+  /** https://sdk.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
   async createInvoice(
     amountMsats: number,
     description: string,
@@ -89,7 +89,7 @@ export class LightningService {
     return gateways[0]?.info
   }
 
-  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
+  /** https://sdk.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
   async payInvoice(
     invoice: string,
     gatewayInfo?: GatewayInfo,
@@ -108,7 +108,7 @@ export class LightningService {
     )
   }
 
-  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoicesync-invoice-string */
+  /** https://sdk.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoicesync-invoice-string */
   async payInvoiceSync(
     invoice: string,
     timeoutMs: number = 10000,
@@ -182,7 +182,7 @@ export class LightningService {
 
   // TODO: Document (for external payments only)
   // TODO: Make this work for BOTH internal and external payments
-  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
+  /** https://sdk.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
   subscribeLnPay(
     operationId: string,
     onSuccess: (state: LnPayState) => void = () => {},
@@ -198,7 +198,7 @@ export class LightningService {
     )
   }
 
-  /** https://web.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
+  /** https://sdk.fedimint.org/core/FedimintWallet/LightningService/payInvoice#lightning-payinvoice-invoice-string */
   async waitForPay(operationId: string) {
     return new Promise<
       | { success: false; error?: string }
@@ -230,7 +230,7 @@ export class LightningService {
     })
   }
 
-  /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
+  /** https://sdk.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
   subscribeLnReceive(
     operationId: string,
     onSuccess: (state: LnReceiveState) => void = () => {},
@@ -246,7 +246,7 @@ export class LightningService {
     )
   }
 
-  /** https://web.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
+  /** https://sdk.fedimint.org/core/FedimintWallet/LightningService/createInvoice#lightning-createinvoice */
   async waitForReceive(operationId: string, timeoutMs: number = 15000) {
     return new Promise<LnReceiveState>((resolve, reject) => {
       let unsubscribe: () => void

@@ -1,1 +1,1 @@
-[View Contributing Guide on our docs page](https://web.fedimint.org/core/dev/contributing)
+[View Contributing Guide on our docs page](https://sdk.fedimint.org/core/dev/contributing)
