@@ -1,5 +1,12 @@
 # @fedimint/react
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [82a1863]
+  - @fedimint/core@0.1.4
+
 ## 0.2.1
 
 ### Patch Changes
