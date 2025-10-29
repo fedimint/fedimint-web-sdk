@@ -7,7 +7,7 @@ const packageManager = packageJson.packageManager
 
 # Contributing
 
-Thanks for your interest in contributing to the Fedimint Web Sdk! Please take a moment to review this document **before submitting a pull request.**
+Thanks for your interest in contributing to the Fedimint Sdk! Please take a moment to review this document **before submitting a pull request.**
 
 ## Overview
 
@@ -25,18 +25,18 @@ This guide is intended to help you get started with contributing. By following t
 To start contributing to the project, clone it to your local machine using git:
 
 ```bash
-git clone https://github.com/fedimint/fedimint-web-sdk.git
+git clone https://github.com/fedimint/fedimint-sdk.git
 ```
 
 Or the [GitHub CLI](https://cli.github.com):
 
 ```bash
-gh repo clone fedimint/fedimint-web-sdk
+gh repo clone fedimint/fedimint-sdk
 ```
 
 ## 2. Installing Node.js and pnpm
 
-Fedimint Web Sdk uses Node.js with [pnpm workspaces](https://pnpm.io/workspaces) to manage multiple projects. You can run the following command in your terminal to check your local Node.js version.
+Fedimint Sdk uses Node.js with [pnpm workspaces](https://pnpm.io/workspaces) to manage multiple projects. You can run the following command in your terminal to check your local Node.js version.
 
 ```bash
 node -v
@@ -81,7 +81,7 @@ See the [testing docs](/core/dev/testing) for more information.
 
 ## 6. Writing documentation
 
-Documentation is crucial to helping developers of all experience levels use Fedimint Web SDK. We use [VitePress](https://vitepress.dev) for the documentation site (located at `./docs`). To start the site in dev mode, run:
+Documentation is crucial to helping developers of all experience levels use Fedimint Sdk. We use [VitePress](https://vitepress.dev) for the documentation site (located at `./docs`). To start the site in dev mode, run:
 
 ```bash
 pnpm docs:dev
@@ -122,7 +122,7 @@ The first time a PR with a changeset is merged after a release, a new PR will au
 
 ### Creating a snapshot release
 
-If a PR has changesets, you can create a [snapshot release](https://github.com/changesets/changesets/blob/main/docs/snapshot-releases.md) by [manually dispatching](https://github.com/fedimint/fedimint-web-sdk/actions/workflows/snapshot.yml) the Snapshot workflow. This publishes a tagged version to npm with the PR branch name and timestamp.
+If a PR has changesets, you can create a [snapshot release](https://github.com/changesets/changesets/blob/main/docs/snapshot-releases.md) by [manually dispatching](https://github.com/fedimint/fedimint-sdk/actions/workflows/snapshot.yml) the Snapshot workflow. This publishes a tagged version to npm with the PR branch name and timestamp.
 
 ## 9. Updating dependencies
 

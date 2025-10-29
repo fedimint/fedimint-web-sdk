@@ -3,11 +3,11 @@
 layout: home
 
 description: Robust, privacy-focused, and WebAssembly-powered
-title: Fedimint Web Sdk
+title: Fedimint Sdk
 titleTemplate: false
 
 hero:
-  name: Fedimint Web Sdk
+  name: Fedimint Sdk
   text: Building Ecash into the Web
   tagline: Robust, privacy-focused, and WebAssembly-powered
   actions:
@@ -19,7 +19,7 @@ hero:
       link: https://fedimint.org
     - theme: alt
       text: View on GitHub
-      link: https://github.com/fedimint/fedimint-web-sdk
+      link: https://github.com/fedimint/fedimint-sdk
 
   image:
     src: /icon.png

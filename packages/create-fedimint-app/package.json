@@ -26,13 +26,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fedimint/fedimint-web-sdk.git",
+    "url": "git+https://github.com/fedimint/fedimint-sdk.git",
     "directory": "packages/create-fedimint"
   },
   "bugs": {
-    "url": "https://github.com/fedimint/fedimint-web-sdk/issues"
+    "url": "https://github.com/fedimint/fedimint-sdk/issues"
   },
-  "homepage": "https://github.com/fedimint/fedimint-web-sdk/tree/main/packages/create-fedimint#readme",
+  "homepage": "https://github.com/fedimint/fedimint-sdk/tree/main/packages/create-fedimint#readme",
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
     "@types/minimist": "^1.2.5",

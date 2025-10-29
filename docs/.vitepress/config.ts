@@ -9,7 +9,7 @@ import { Plugin as VitePressPlugin } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: 'Fedimint Web Sdk',
+  title: 'Fedimint Sdk',
   description: 'Building Fedimint Ecash into the web',
   ignoreDeadLinks: false,
   lang: 'en-US',
@@ -40,8 +40,8 @@ export default defineConfig({
     // Open Graph
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:url', content: 'https://web.fedimint.org' }],
-    ['meta', { property: 'og:title', content: 'Fedimint Web SDK | Building Ecash into the web' } ],
-    ['meta', { property: 'og:site_name', content: 'Fedimint Web SDK' }],
+    ['meta', { property: 'og:title', content: 'Fedimint Sdk | Building Ecash into the web' } ],
+    ['meta', { property: 'og:site_name', content: 'Fedimint Sdk' }],
     ['meta', { property: 'og:image', content: 'https://web.fedimint.org/og.png' } ],
 
     // Twitter
@@ -51,13 +51,12 @@ export default defineConfig({
   ],
   themeConfig: {
     editLink: {
-      pattern:
-        'https://github.com/fedimint/fedimint-web-sdk/edit/main/docs/:path',
+      pattern: 'https://github.com/fedimint/fedimint-sdk/edit/main/docs/:path',
       text: 'Suggest changes to this page',
     },
     footer: {
       message:
-        'Released under the <a href="https://github.com/fedimint/fedimint-web-sdk/blob/main/LICENSE">MIT License</a>.',
+        'Released under the <a href="https://github.com/fedimint/fedimint-sdk/blob/main/LICENSE">MIT License</a>.',
     },
     nav: [
       { text: 'Documentation', link: '/core/getting-started' },
@@ -70,7 +69,7 @@ export default defineConfig({
             link: '/core/dev/contributing',
           },
           {
-            text: 'Awesome Fedimint Web SDK',
+            text: 'Awesome Fedimint Sdk',
             link: '/core/dev/awesome',
           },
           {
@@ -79,7 +78,7 @@ export default defineConfig({
           },
           {
             text: 'Release Notes ',
-            link: 'https://github.com/fedimint/fedimint-web-sdk/releases',
+            link: 'https://github.com/fedimint/fedimint-sdk/releases',
           },
         ],
       },
@@ -94,7 +93,7 @@ export default defineConfig({
     socialLinks: [
       {
         icon: 'github',
-        link: 'https://github.com/fedimint/fedimint-web-sdk',
+        link: 'https://github.com/fedimint/fedimint-sdk',
       },
       {
         icon: 'npm',

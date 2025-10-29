@@ -1,12 +1,12 @@
 # Simple Vite Example
 
-This is an example application demonstrating the usage of Fedimint client in a simple web application. [(demo)](https://fedimint.github.io/fedimint-web-sdk/)
+This is an example application demonstrating the usage of Fedimint client in a simple web application. [(demo)](https://fedimint.github.io/fedimint-sdk/)
 
 ## Deploy preview
 
-You can preview this example live with [StackBlitz](https://stackblitz.com/github/fedimint/fedimint-web-sdk/tree/main/examples/vite-core)
+You can preview this example live with [StackBlitz](https://stackblitz.com/github/fedimint/fedimint-sdk/tree/main/examples/vite-core)
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/fedimint/fedimint-web-sdk/tree/main/examples/vite-core)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/fedimint/fedimint-sdk/tree/main/examples/vite-core)
 
 ## Technologies Used
 

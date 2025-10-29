@@ -1,6 +1,6 @@
 # Architecture
 
-The Fedimint Web SDK **Core Web** library is a modular and extensible JavaScript library designed to interact with the Fedimint client in a web browser. It provides a high-level API for developers to manage federated ecash wallets, perform operations like minting and spending ecash, and interact with the Lightning Network. The library is structured to promote maintainability, scalability, and ease of use, leveraging modern software development practices.
+The Fedimint Sdk **Core Web** library is a modular and extensible JavaScript library designed to interact with the Fedimint client in a web browser. It provides a high-level API for developers to manage federated ecash wallets, perform operations like minting and spending ecash, and interact with the Lightning Network. The library is structured to promote maintainability, scalability, and ease of use, leveraging modern software development practices.
 
 The **Core Web** library is built around a set of composable services and a communication layer that interacts with a Web Worker running WebAssembly (WASM) code.
 
@@ -10,7 +10,7 @@ The **Core Web** library is built around a set of composable services and a comm
 
 The `FedimintWallet` class serves as the main entry point for the library. It orchestrates the various services and the TransportClient.
 
-[Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core/src/FedimintWallet.ts)
+[Code](https://github.com/fedimint/fedimint-sdk/blob/main/packages/core/src/FedimintWallet.ts)
 
 ## **TransportClient**
 
@@ -24,7 +24,7 @@ The `TransportClient` manages all communication between the main js thread and e
 The `TransportClient` should not be used directly by the end user. Instead, the `FedimintWallet` class should be used to interact with the library.
 :::
 
-[Code](https://github.com/fedimint/fedimint-web-sdk/blob/main/packages/core/src/worker/TransportClient.ts)
+[Code](https://github.com/fedimint/fedimint-sdk/blob/main/packages/core/src/worker/TransportClient.ts)
 
 ## Services
 

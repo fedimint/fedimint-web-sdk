@@ -2,15 +2,15 @@
   <img src="../docs/public/icon.png" alt="Fedimint Logo" width="300" />
   <!-- Removes the border below the header tag -->
   <div id="toc"><ul align="center" style="list-style: none;"><summary>
-    <h1><b>Fedimint Web SDK</b></h1>
+    <h1><b>Fedimint Sdk</b></h1>
     <p>A Robust, privacy-focused, and WebAssembly-powered fedimint client for the browser.</p>
   </summary></ul></div>
 
   <p align="center">
-    <a href="https://github.com/fedimint/fedimint-web-sdk/blob/main/LICENSE"><img src="https://img.shields.io/github/license/fedimint/fedimint-web-sdk?style=plastic&color=blue" alt="GitHub License" /></a>
-    <a href="https://github.com/fedimint/fedimint-web-sdk/actions"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-web-sdk/.github%2Fworkflows%2Fchangesets.yml?style=plastic&label=CI&color=green" alt="Build Status" /></a>
-    <a href="https://web.fedimint.org"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-web-sdk/deploy-docs.yml?style=plastic&label=Docs%20Site&color=%2303b1fc" alt="Docs Workflow" /></a>
-    <a href="https://deepwiki.com/fedimint/fedimint-web-sdk"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
+    <a href="https://github.com/fedimint/fedimint-sdk/blob/main/LICENSE"><img src="https://img.shields.io/github/license/fedimint/fedimint-sdk?style=plastic&color=blue" alt="GitHub License" /></a>
+    <a href="https://github.com/fedimint/fedimint-sdk/actions"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-sdk/.github%2Fworkflows%2Fchangesets.yml?style=plastic&label=CI&color=green" alt="Build Status" /></a>
+    <a href="https://web.fedimint.org"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-sdk/deploy-docs.yml?style=plastic&label=Docs%20Site&color=%2303b1fc" alt="Docs Workflow" /></a>
+    <a href="https://deepwiki.com/fedimint/fedimint-sdk"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
   </p>
   
   <!-- Removes the border below the header tag -->
@@ -46,7 +46,7 @@
 This monorepo is structured as a pnpm workspace. There are some helpful scripts in the root `package.json` to help manage the workspace.
 
 ```bash
-fedimint-web-sdk
+fedimint-sdk
 ├── docs
 ├── examples
 │   ├── vite-core
@@ -76,3 +76,7 @@ fedimint-web-sdk
 ### Credit
 
 Used the [wagmi](https://github.com/wevm/wagmi) library as a reference for the repo's structure.
+
+> [!NOTE]
+> In October 2025, this repository was renamed from "Fedimint Web Sdk" to "Fedimint Sdk" as the react-native packages were added.
+> See the [discussion topic](https://github.com/fedimint/fedimint-sdk/discussions/190) for details.

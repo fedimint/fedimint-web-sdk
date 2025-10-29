@@ -1,5 +1,5 @@
 {
-  "name": "@fedimint/fedimint-web-sdk",
+  "name": "@fedimint/fedimint-sdk",
   "private": true,
   "type": "module",
   "scripts": {
