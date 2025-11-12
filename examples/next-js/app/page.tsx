@@ -1,10 +1,10 @@
 'use client'
 
 import { SetStateAction, useCallback, useEffect, useState } from 'react'
-import { wallet } from '@/utils/wallet'
+import { wallet, director } from '@/utils/wallet'
 
 const TESTNET_FEDERATION_CODE =
-  'fed11qgqzc2nhwden5te0vejkg6tdd9h8gepwvejkg6tdd9h8garhduhx6at5d9h8jmn9wshxxmmd9uqqzgxg6s3evnr6m9zdxr6hxkdkukexpcs3mn7mj3g5pc5dfh63l4tj6g9zk4er'
+  'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
 
 // Expose the wallet to the global window object for testing
 // @ts-ignore
@@ -14,7 +14,7 @@ const useIsOpen = () => {
   const [open, setIsOpen] = useState(false)
 
   const checkIsOpen = useCallback(() => {
-    if (open !== wallet.isOpen()) {
+    if (wallet && open !== wallet?.isOpen()) {
       setIsOpen(wallet.isOpen())
     }
   }, [open])
@@ -30,7 +30,7 @@ const useBalance = (checkIsOpen: () => void) => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
-    const unsubscribe = wallet.balance.subscribeBalance(
+    const unsubscribe = wallet?.balance.subscribeBalance(
       (balance: SetStateAction<number>) => {
         checkIsOpen()
         setBalance(balance)
@@ -38,7 +38,7 @@ const useBalance = (checkIsOpen: () => void) => {
     )
 
     return () => {
-      unsubscribe()
+      unsubscribe?.()
     }
   }, [checkIsOpen])
 
@@ -78,12 +78,217 @@ const App = () => {
       </header>
       <main>
         <WalletStatus open={open} checkIsOpen={checkIsOpen} balance={balance} />
+        <MnemonicManager />
         <JoinFederation open={open} checkIsOpen={checkIsOpen} />
         <GenerateLightningInvoice />
         <RedeemEcash />
         <SendLightning />
+        <InviteCodeParser />
+        <ParseLightningInvoice />
+        <Deposit />
+        <SendOnchain />
+        <BackupToFederation />
       </main>
     </>
+  )
+}
+
+const MnemonicManager = () => {
+  const [mnemonicState, setMnemonicState] = useState<string>('')
+  const [inputMnemonic, setInputMnemonic] = useState<string>('')
+  const [activeAction, setActiveAction] = useState<
+    'get' | 'set' | 'generate' | null
+  >(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [message, setMessage] = useState<{
+    text: string
+    type: 'success' | 'error'
+  }>()
+  const [showMnemonic, setShowMnemonic] = useState(false)
+
+  const clearMessage = () => setMessage(undefined)
+
+  // Helper function to extract user-friendly error messages
+  const extractErrorMessage = (error: any): string => {
+    let errorMsg = 'Operation failed'
+
+    if (error instanceof Error) {
+      errorMsg = error.message
+    } else if (typeof error === 'object' && error !== null) {
+      // Handle RPC error objects
+      const rpcError = error as any
+      if (rpcError.error) {
+        errorMsg = rpcError.error
+      } else if (rpcError.message) {
+        errorMsg = rpcError.message
+      }
+    }
+
+    return errorMsg
+  }
+
+  const handleAction = async (action: 'get' | 'set' | 'generate') => {
+    if (activeAction === action) {
+      setActiveAction(null)
+      return
+    }
+    setActiveAction(action)
+    clearMessage()
+
+    if (action === 'get') {
+      await handleGetMnemonic()
+    } else if (action === 'generate') {
+      await handleGenerateMnemonic()
+    }
+  }
+
+  const handleGenerateMnemonic = async () => {
+    setIsLoading(true)
+    try {
+      if (!director) throw new Error('Director unavailable')
+      const newMnemonic = await director.generateMnemonic()
+      setMnemonicState(newMnemonic.join(' '))
+      setMessage({ text: 'New mnemonic generated!', type: 'success' })
+      setShowMnemonic(true)
+    } catch (error) {
+      console.error('Error generating mnemonic:', error)
+      const errorMsg = extractErrorMessage(error)
+      setMessage({ text: errorMsg, type: 'error' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGetMnemonic = async () => {
+    setIsLoading(true)
+    try {
+      if (!director) throw new Error('Director unavailable')
+      const mnemonic = await director.getMnemonic()
+      if (mnemonic && mnemonic.length > 0) {
+        setMnemonicState(mnemonic.join(' '))
+        setMessage({ text: 'Mnemonic retrieved!', type: 'success' })
+        setShowMnemonic(true)
+      } else {
+        setMessage({ text: 'No mnemonic found', type: 'error' })
+      }
+    } catch (error) {
+      console.error('Error getting mnemonic:', error)
+      const errorMsg = extractErrorMessage(error)
+      setMessage({ text: errorMsg, type: 'error' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSetMnemonic = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inputMnemonic.trim()) return
+
+    setIsLoading(true)
+    try {
+      if (!director) throw new Error('Director unavailable')
+      const words = inputMnemonic.trim().split(/\s+/)
+      await director.setMnemonic(words)
+      setMessage({ text: 'Mnemonic set successfully!', type: 'success' })
+      setInputMnemonic('')
+      setMnemonicState(words.join(' '))
+      setActiveAction(null)
+    } catch (error) {
+      console.error('Error setting mnemonic:', error)
+      const errorMsg = extractErrorMessage(error)
+      setMessage({ text: errorMsg, type: 'error' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(mnemonicState)
+      setMessage({ text: 'Copied to clipboard!', type: 'success' })
+    } catch (error) {
+      setMessage({ text: 'Failed to copy', type: 'error' })
+    }
+  }
+
+  return (
+    <div className="section mnemonic-section">
+      <h3>🔑 Mnemonic Manager</h3>
+
+      <div className="mnemonic-buttons">
+        <button
+          onClick={() => handleAction('get')}
+          disabled={isLoading}
+          className={`btn ${activeAction === 'get' ? 'active' : ''}`}
+        >
+          Get
+        </button>
+        <button
+          onClick={() => handleAction('set')}
+          disabled={isLoading}
+          className={`btn ${activeAction === 'set' ? 'active' : ''}`}
+        >
+          Set
+        </button>
+        <button
+          onClick={() => handleAction('generate')}
+          disabled={isLoading}
+          className={`btn ${activeAction === 'generate' ? 'active' : ''}`}
+        >
+          Generate
+        </button>
+      </div>
+
+      {activeAction === 'set' && (
+        <form onSubmit={handleSetMnemonic} className="mnemonic-form">
+          <textarea
+            placeholder="Enter 12 or 24 words separated by spaces"
+            value={inputMnemonic}
+            onChange={(e) => setInputMnemonic(e.target.value)}
+            rows={2}
+            className="mnemonic-input"
+          />
+          <button
+            type="submit"
+            disabled={isLoading || !inputMnemonic.trim()}
+            className="btn btn-primary"
+          >
+            {isLoading ? 'Setting...' : 'Set Mnemonic'}
+          </button>
+        </form>
+      )}
+
+      {mnemonicState && (
+        <div className="mnemonic-display">
+          <div className="mnemonic-output">
+            <span className={showMnemonic ? '' : 'blurred'}>
+              {mnemonicState}
+            </span>
+            <div className="mnemonic-actions">
+              <button
+                onClick={() => setShowMnemonic(!showMnemonic)}
+                className="btn btn-small"
+                title={showMnemonic ? 'Hide mnemonic' : 'Show mnemonic'}
+              >
+                {showMnemonic ? '👁️' : '👁️‍🗨️'}
+              </button>
+              <button
+                onClick={copyToClipboard}
+                className="btn btn-small"
+                disabled={!showMnemonic}
+                title="Copy to clipboard"
+              >
+                📋
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {message && (
+        <div className={`message ${message.type}`}>{message.text}</div>
+      )}
+    </div>
   )
 }
 
@@ -121,9 +326,31 @@ const JoinFederation = ({
   checkIsOpen: () => void
 }) => {
   const [inviteCode, setInviteCode] = useState(TESTNET_FEDERATION_CODE)
+  const [previewData, setPreviewData] = useState<any>(null)
+  const [previewing, setPreviewing] = useState(false)
   const [joinResult, setJoinResult] = useState<string | null>(null)
   const [joinError, setJoinError] = useState('')
   const [joining, setJoining] = useState(false)
+
+  const previewFederationHandler = async () => {
+    if (!inviteCode.trim()) return
+
+    setPreviewing(true)
+    setJoinError('')
+
+    try {
+      if (!director) throw new Error('Director unavailable')
+      const data = await director.previewFederation(inviteCode)
+      setPreviewData(data)
+      console.log('Preview federation:', data)
+    } catch (error) {
+      console.error('Error previewing federation:', error)
+      setJoinError(error instanceof Error ? error.message : String(error))
+      setPreviewData(null)
+    } finally {
+      setPreviewing(false)
+    }
+  }
 
   const joinFederation = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -131,6 +358,7 @@ const JoinFederation = ({
 
     console.log('Joining federation:', inviteCode)
     try {
+      if (!wallet) throw new Error('Wallet unavailable')
       setJoining(true)
       const res = await wallet.joinFederation(inviteCode)
       console.log('join federation res', res)
@@ -154,13 +382,43 @@ const JoinFederation = ({
           placeholder="Invite Code..."
           required
           value={inviteCode}
-          onChange={(e) => setInviteCode(e.target.value)}
+          onChange={(e) => {
+            setInviteCode(e.target.value)
+            setPreviewData(null)
+          }}
           disabled={open}
         />
+        <button
+          type="button"
+          onClick={previewFederationHandler}
+          disabled={previewing || !inviteCode.trim() || open}
+        >
+          {previewing ? 'Previewing...' : 'Preview'}
+        </button>
         <button type="submit" disabled={open || joining}>
-          Join
+          {joining ? 'Joining...' : 'Join'}
         </button>
       </form>
+
+      {previewData && (
+        <div className="preview-result">
+          <h4>Federation Preview:</h4>
+          <div className="preview-info">
+            <div>
+              <strong>Federation ID:</strong> {previewData.federation_id}
+            </div>
+            <div>
+              <strong>Config URL:</strong>{' '}
+              {previewData.config?.meta?.federation_name || 'N/A'}
+            </div>
+            <details>
+              <summary>Full Details</summary>
+              <pre>{JSON.stringify(previewData, null, 2)}</pre>
+            </details>
+          </div>
+        </div>
+      )}
+
       {!joinResult && open && <i>(You've already joined a federation)</i>}
       {joinResult && <div className="success">{joinResult}</div>}
       {joinError && <div className="error">{joinError}</div>}
@@ -312,6 +570,262 @@ const GenerateLightningInvoice = () => {
         </div>
       )}
       {error && <div className="error">{error}</div>}
+    </div>
+  )
+}
+
+const InviteCodeParser = () => {
+  const [inviteCode, setInviteCode] = useState('')
+  const [parseResult, setParseResult] = useState<any>(null)
+  const [parseError, setParseError] = useState('')
+  const [parsingStatus, setParsingStatus] = useState(false)
+
+  const handleParse = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setParseResult(null)
+    setParseError('')
+    setParsingStatus(true)
+
+    try {
+      if (!director) throw new Error('Director unavailable')
+      const result = await director.parseInviteCode(inviteCode)
+      setParseResult(result)
+    } catch (e) {
+      console.error('Error parsing invite code', e)
+      setParseError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setParsingStatus(false)
+    }
+  }
+
+  return (
+    <div className="section">
+      <h3>Parse Invite Code</h3>
+      <form onSubmit={handleParse} className="row">
+        <input
+          placeholder="Enter invite code..."
+          value={inviteCode}
+          onChange={(e) => setInviteCode(e.target.value)}
+          required
+        />
+        <button type="submit" disabled={parsingStatus}>
+          {parsingStatus ? 'Parsing...' : 'Parse'}
+        </button>
+      </form>
+      {parseResult && (
+        <div className="success">
+          <div className="row">
+            <strong>Fed Id:</strong>
+            <div className="id">{parseResult.federation_id}</div>
+          </div>
+          <div className="row">
+            <strong>Fed url:</strong>
+            <div className="url">{parseResult.url}</div>
+          </div>
+        </div>
+      )}
+      {parseError && <div className="error">{parseError}</div>}
+    </div>
+  )
+}
+
+const ParseLightningInvoice = () => {
+  const [invoiceStr, setInvoiceStr] = useState('')
+  const [parseResult, setParseResult] = useState<any>(null)
+  const [parseError, setParseError] = useState('')
+  const [parsingStatus, setParsingStatus] = useState(false)
+
+  const handleParse = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setParseResult(null)
+    setParseError('')
+    setParsingStatus(true)
+
+    try {
+      if (!director) throw new Error('Director unavailable')
+      const result = await director.parseBolt11Invoice(invoiceStr)
+      console.log('result ', result)
+      setParseResult(result)
+    } catch (e) {
+      console.error('Error parsing invite code', e)
+      setParseError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setParsingStatus(false)
+    }
+  }
+
+  return (
+    <div className="section">
+      <h3>Parse Lightning Invoice</h3>
+      <form onSubmit={handleParse} className="row">
+        <input
+          placeholder="Enter invoice..."
+          value={invoiceStr}
+          onChange={(e) => setInvoiceStr(e.target.value)}
+          required
+        />
+        <button type="submit" disabled={parsingStatus}>
+          {parsingStatus ? 'Parsing...' : 'Parse'}
+        </button>
+      </form>
+      {parseResult && (
+        <div className="success">
+          <div className="row">
+            <strong>Amount :</strong>
+            <div className="id">{parseResult.amount}</div>
+            sats
+          </div>
+          <div className="row">
+            <strong>Expiry :</strong>
+            <div className="url">{parseResult.expiry}</div>
+          </div>
+          <div className="row">
+            <strong>Memo :</strong>
+            <div className="url">{parseResult.memo}</div>
+          </div>
+        </div>
+      )}
+      {parseError && <div className="error">{parseError}</div>}
+    </div>
+  )
+}
+
+const Deposit = () => {
+  const [address, setAddress] = useState<string>('')
+  const [addressError, setAddressError] = useState('')
+  const [addressStatus, setAddressStatus] = useState(false)
+
+  const handleGenerateAddress = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setAddressStatus(true)
+    try {
+      if (!wallet) throw new Error('Wallet unavailable')
+      const result = await wallet.wallet.generateAddress()
+      result && setAddress(result.deposit_address)
+    } catch (e) {
+      console.error('Error', e)
+      setAddressError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setAddressStatus(false)
+    }
+  }
+  return (
+    <div className="section">
+      <h3>Generate Deposit Address</h3>
+      <form onSubmit={handleGenerateAddress} className="row">
+        <button type="submit" disabled={addressStatus}>
+          {addressStatus ? 'Generating...' : 'Generate'}
+        </button>
+      </form>
+      {address && (
+        <div className="success">
+          <p>{address}</p>
+        </div>
+      )}
+      {addressError && <div className="error">{addressError}</div>}
+    </div>
+  )
+}
+
+const SendOnchain = () => {
+  const [address, setAddress] = useState('')
+  const [amount, setAmount] = useState(0)
+  const [withdrawalResult, setWithdrawalResult] = useState('')
+  const [withdrawalError, setWithdrawalError] = useState('')
+  const [withdrawalStatus, setWithdrawalStatus] = useState(false)
+
+  const handleWithdraw = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      setWithdrawalStatus(true)
+      if (!wallet) throw new Error('Wallet unavailable')
+      const result = await wallet.wallet.sendOnchain(amount, address)
+      result && setWithdrawalResult(result.operation_id)
+    } catch (e) {
+      console.error('Error ', e)
+      setWithdrawalError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setWithdrawalStatus(false)
+    }
+  }
+  return (
+    <div className="section">
+      <h3>Send Onchain</h3>
+      <form onSubmit={handleWithdraw} className="row">
+        <input
+          placeholder="Enter amount"
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(Number(e.target.value))}
+          required
+        />
+        <input
+          placeholder="Enter onchain address"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          required
+        />
+        <button type="submit" disabled={withdrawalStatus}>
+          {withdrawalStatus ? 'Sending' : 'Send'}
+        </button>
+      </form>
+      {withdrawalResult && (
+        <div className="success">
+          <p>Onchain Send Successful</p>
+        </div>
+      )}
+      {withdrawalError && <div className="error">{withdrawalError}</div>}
+    </div>
+  )
+}
+
+const BackupToFederation = () => {
+  const [backupStatus, setBackupStatus] = useState(false)
+  const [backupResult, setBackupResult] = useState('')
+  const [backupError, setBackupError] = useState('')
+  const [metadata, setMetadata] = useState('')
+
+  const handleBackup = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setBackupStatus(true)
+    setBackupResult('')
+    setBackupError('')
+
+    try {
+      if (!wallet) throw new Error('Wallet unavailable')
+
+      const metadataObj = metadata.trim() ? JSON.parse(metadata) : undefined
+      await wallet.recovery.backupToFederation(metadataObj)
+
+      console.log('Backup successful')
+      setBackupResult('Backup to federation successful!')
+    } catch (error: any) {
+      console.error('Error backing up to federation:', error)
+      setBackupError(error.message || 'Backup failed')
+    } finally {
+      setBackupStatus(false)
+    }
+  }
+
+  return (
+    <div className="section">
+      <h3>Backup to Federation</h3>
+      <form onSubmit={handleBackup} className="row">
+        <input
+          placeholder="Metadata (optional JSON)"
+          value={metadata}
+          onChange={(e) => setMetadata(e.target.value)}
+        />
+        <button type="submit" disabled={backupStatus}>
+          {backupStatus ? 'Backing up...' : 'Backup'}
+        </button>
+      </form>
+      {backupResult && (
+        <div className="success">
+          <p>{backupResult}</p>
+        </div>
+      )}
+      {backupError && <div className="error">{backupError}</div>}
     </div>
   )
 }
