@@ -172,3 +172,63 @@ button[type='submit'] {
   padding: 0.5rem;
   border-radius: 4px;
 }
+
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.preview-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #333;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+
+.preview-result h4 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.preview-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.preview-info > div {
+  line-height: 1.6;
+}
+
+.preview-info strong {
+  color: #4a9eff;
+}
+
+.preview-result details {
+  margin-top: 0.75rem;
+  cursor: pointer;
+}
+
+.preview-result summary {
+  padding: 0.5rem;
+  background-color: #242424;
+  border-radius: 4px;
+  user-select: none;
+}
+
+.preview-result summary:hover {
+  background-color: #2a2a2a;
+}
+
+.preview-result pre {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: #1a1a1a;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}

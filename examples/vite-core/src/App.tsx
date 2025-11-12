@@ -317,9 +317,30 @@ const JoinFederation = ({
   checkIsOpen: () => void
 }) => {
   const [inviteCode, setInviteCode] = useState(TESTNET_FEDERATION_CODE)
+  const [previewData, setPreviewData] = useState<any>(null)
+  const [previewing, setPreviewing] = useState(false)
   const [joinResult, setJoinResult] = useState<string | null>(null)
   const [joinError, setJoinError] = useState('')
   const [joining, setJoining] = useState(false)
+
+  const previewFederationHandler = async () => {
+    if (!inviteCode.trim()) return
+
+    setPreviewing(true)
+    setJoinError('')
+
+    try {
+      const data = await director.previewFederation(inviteCode)
+      setPreviewData(data)
+      console.log('Preview federation:', data)
+    } catch (error) {
+      console.error('Error previewing federation:', error)
+      setJoinError(error instanceof Error ? error.message : String(error))
+      setPreviewData(null)
+    } finally {
+      setPreviewing(false)
+    }
+  }
 
   const joinFederation = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -351,13 +372,43 @@ const JoinFederation = ({
           placeholder="Invite Code..."
           required
           value={inviteCode}
-          onChange={(e) => setInviteCode(e.target.value)}
+          onChange={(e) => {
+            setInviteCode(e.target.value)
+            setPreviewData(null)
+          }}
           disabled={open}
         />
+        <button
+          type="button"
+          onClick={previewFederationHandler}
+          disabled={previewing || !inviteCode.trim() || open}
+        >
+          {previewing ? 'Previewing...' : 'Preview'}
+        </button>
         <button type="submit" disabled={open || joining}>
-          Join
+          {joining ? 'Joining...' : 'Join'}
         </button>
       </form>
+
+      {previewData && (
+        <div className="preview-result">
+          <h4>Federation Preview:</h4>
+          <div className="preview-info">
+            <div>
+              <strong>Federation ID:</strong> {previewData.federation_id}
+            </div>
+            <div>
+              <strong>Config URL:</strong>{' '}
+              {previewData.config?.meta?.federation_name || 'N/A'}
+            </div>
+            <details>
+              <summary>Full Details</summary>
+              <pre>{JSON.stringify(previewData, null, 2)}</pre>
+            </details>
+          </div>
+        </div>
+      )}
+
       {!joinResult && open && <i>(You've already joined a federation)</i>}
       {joinResult && <div className="success">{joinResult}</div>}
       {joinError && <div className="error">{joinError}</div>}
