@@ -1,6 +1,8 @@
 import { JSONValue } from './utils'
 import { JsonClientConfig } from './jsonClientConfig'
 
+export type { JSONValue }
+
 /**
  * Parsed invite code for joining a federation
  */
@@ -12,7 +14,7 @@ export interface ParsedInviteCode extends Record<string, JSONValue> {
 /**
  * Federation preview information
  */
-export interface PreviewFederation {
+export interface PreviewFederation extends Record<string, JSONValue> {
   config: JsonClientConfig
   federation_id: string
 }
