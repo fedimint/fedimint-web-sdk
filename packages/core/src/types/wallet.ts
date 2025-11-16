@@ -3,9 +3,6 @@ import { MSats, Duration, JSONValue, JSONObject } from './utils'
 const MODULE_KINDS = ['', 'ln', 'mint', 'wallet'] as const
 type ModuleKind = (typeof MODULE_KINDS)[number]
 
-// TODO: Define the structure of FederationConfig
-type FederationConfig = JSONObject
-
 type GatewayInfo = {
   gateway_id: string
   api: string
@@ -263,7 +260,6 @@ type GenerateAddressResponse = {
 
 export {
   LightningGateway,
-  FederationConfig,
   RouteHint,
   FeeToAmount,
   OutgoingLightningPayment,

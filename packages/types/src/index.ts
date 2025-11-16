@@ -1,10 +1,30 @@
-export type JSONValue =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: JSONValue }
-  | JSONValue[]
+import { JSONValue } from './utils'
+import { JsonClientConfig } from './jsonClientConfig'
+
+/**
+ * Parsed invite code for joining a federation
+ */
+export interface ParsedInviteCode extends Record<string, JSONValue> {
+  federation_id: string
+  url: string
+}
+
+/**
+ * Federation preview information
+ */
+export interface PreviewFederation {
+  config: JsonClientConfig
+  federation_id: string
+}
+
+/**
+ * Parsed Lightning invoice (Bolt11)
+ */
+export interface ParsedBolt11Invoice extends Record<string, JSONValue> {
+  amount: number // in satoshis
+  expiry: number
+  memo: string
+}
 
 export const TRANSPORT_MESSAGE_TYPES = [
   'init',
