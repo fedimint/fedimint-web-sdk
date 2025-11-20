@@ -6,7 +6,7 @@ export type { JSONValue }
 /**
  * Parsed invite code for joining a federation
  */
-export interface ParsedInviteCode extends Record<string, JSONValue> {
+export type ParsedInviteCode = {
   federation_id: string
   url: string
 }
@@ -14,7 +14,7 @@ export interface ParsedInviteCode extends Record<string, JSONValue> {
 /**
  * Federation preview information
  */
-export interface PreviewFederation extends Record<string, JSONValue> {
+export type PreviewFederation = {
   config: JsonClientConfig
   federation_id: string
 }
@@ -22,7 +22,7 @@ export interface PreviewFederation extends Record<string, JSONValue> {
 /**
  * Parsed Lightning invoice (Bolt11)
  */
-export interface ParsedBolt11Invoice extends Record<string, JSONValue> {
+export type ParsedBolt11Invoice = {
   amount: number // in satoshis
   expiry: number
   memo: string
