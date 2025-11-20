@@ -123,7 +123,7 @@ The parsed invite code data containing `federation_id` and `url`.
 
 #### Defined in
 
-[FedimintWallet.ts:147](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/FedimintWallet.ts#L147)
+[WalletDirector.ts:109](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/WalletDirector.ts#L109)
 
 ---
 
@@ -145,7 +145,7 @@ The parsed invoice data where `amount` is in satoshis.
 
 #### Defined in
 
-[FedimintWallet.ts:157](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/FedimintWallet.ts#L157)
+[WalletDirector.ts:137](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/WalletDirector.ts#L137)
 
 ---
 
@@ -190,7 +190,7 @@ Federation preview information containing:
 
 #### Defined in
 
-[FedimintWallet.ts:141](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/FedimintWallet.ts#L141)
+[WalletDirector.ts:137](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/WalletDirector.ts#L71)
 
 ---
 
