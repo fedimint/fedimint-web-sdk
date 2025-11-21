@@ -1,7 +1,11 @@
 import { TransportClient } from './transport'
 import { type LogLevel } from './utils/logger'
-import { FederationConfig, JSONValue } from './types'
-import { Transport } from '@fedimint/types'
+import {
+  Transport,
+  ParsedInviteCode,
+  ParsedBolt11Invoice,
+  PreviewFederation,
+} from '@fedimint/types'
 import { FedimintWallet } from './FedimintWallet'
 
 export class WalletDirector {
@@ -40,12 +44,36 @@ export class WalletDirector {
     return new FedimintWallet(this._client)
   }
 
-  async previewFederation(inviteCode: string) {
+  /**
+   * Previews a federation by fetching its configuration and identifier.
+   *
+   * It allows you to retrieve a federation's detailed configuration before deciding to join it.
+   * This includes global settings, API endpoints, consensus version, metadata, and module configurations.
+   *
+   * @param {string} inviteCode - The federation invite code to preview.
+   * @returns {Promise<PreviewFederation>}
+   *          A promise that resolves to an object containing:
+   *          - `config`: The federation configuration (JsonClientConfig) with:
+   *            - `global`: Global configuration (API endpoints, consensus version, metadata)
+   *            - `modules`: Module configurations (e.g., "ln", "mint", "wallet")
+   *          - `federation_id`: The unique identifier of the federation
+   *
+   * @throws {Error} If the TransportClient encounters an issue during the preview process,
+   *                 such as network errors or invalid invite code format.
+   *
+   * @example
+   * const inviteCode = "fed11...";
+   * const preview = await director.previewFederation(inviteCode);
+   * console.log(preview.federation_id); // "15db8cb4f1ec..."
+   * console.log(preview.config.global.meta.federation_name); // "My Federation"
+   * console.log(preview.config.global.consensus_version);
+   */
+  async previewFederation(inviteCode: string): Promise<PreviewFederation> {
     await this._client.initialize()
-    const response = this._client.sendSingleMessage<{
-      config: FederationConfig
-      federation_id: string
-    }>('preview_federation', { invite_code: inviteCode })
+    const response = await this._client.sendSingleMessage<PreviewFederation>(
+      'preview_federation',
+      { invite_code: inviteCode },
+    )
     return response
   }
 
@@ -61,59 +89,57 @@ export class WalletDirector {
   /**
    * Parses a federation invite code and retrieves its details.
    *
-   * This method sends the provided invite code to the TransportClient for parsing.
-   * The response includes the federation_id and url.
+   * This method can be called immediately after WalletDirector initialization
+   * without requiring an open wallet or joined federation. It simply parses
+   * the invite code structure to extract information.
    *
    * @param {string} inviteCode - The invite code to be parsed.
-   * @returns {Promise<{ federation_id: string, url: string}>}
+   * @returns {Promise<ParsedInviteCode>}
    *          A promise that resolves to an object containing:
-   *          - `federation_id`: The id of the feder.
-   *          - `url`: One of the apipoints to connect to the federation
+   *          - `federation_id`: The id of the federation
+   *          - `url`: One of the API endpoints to connect to the federation
    *
    * @throws {Error} If the TransportClient encounters an issue during the parsing process.
    *
    * @example
-   * const inviteCode = "example-invite-code";
-   * const parsedCode = await wallet.parseInviteCode(inviteCode);
+   * const inviteCode = "fed11...";
+   * const parsedCode = await director.parseInviteCode(inviteCode);
    * console.log(parsedCode.federation_id, parsedCode.url);
    */
-  async parseInviteCode(inviteCode: string) {
+  async parseInviteCode(inviteCode: string): Promise<ParsedInviteCode> {
     await this._client.initialize()
-    const response = await this._client.sendSingleMessage<{
-      type: string
-      data: JSONValue
-      requestId: number
-    }>('parse_invite_code', { inviteCode })
+    const response = await this._client.sendSingleMessage<ParsedInviteCode>(
+      'parse_invite_code',
+      { invite_code: inviteCode },
+    )
     return response
   }
 
   /**
    * Parses a BOLT11 Lightning invoice and retrieves its details.
    *
-   * This method sends the provided invoice string to the TransportClient for parsing.
-   * The response includes details such as the amount, expiry, and memo.
+   * It simply parses the invoice structure to extract information.
    *
    * @param {string} invoiceStr - The BOLT11 invoice string to be parsed.
-   * @returns {Promise<{ amount: string, expiry: number, memo: string }>}
+   * @returns {Promise<ParsedBolt11Invoice>}
    *          A promise that resolves to an object containing:
-   *          - `amount`: The amount specified in the invoice.
-   *          - `expiry`: The expiry time of the invoice in seconds.
-   *          - `memo`: A description or memo attached to the invoice.
+   *          - `amount`: The amount in satoshis (sats)
+   *          - `expiry`: The expiry time in seconds
+   *          - `memo`: A description or memo attached to the invoice
    *
    * @throws {Error} If the TransportClient encounters an issue during the parsing process.
    *
    * @example
    * const invoiceStr = "lnbc1...";
-   * const parsedInvoice = await wallet.parseBolt11Invoice(invoiceStr);
+   * const parsedInvoice = await director.parseBolt11Invoice(invoiceStr);
    * console.log(parsedInvoice.amount, parsedInvoice.expiry, parsedInvoice.memo);
    */
-  async parseBolt11Invoice(invoiceStr: string) {
+  async parseBolt11Invoice(invoiceStr: string): Promise<ParsedBolt11Invoice> {
     await this._client.initialize()
-    const response = await this._client.sendSingleMessage<{
-      type: string
-      data: JSONValue
-      requestId: number
-    }>('parse_bolt11_invoice', { invoiceStr })
+    const response = await this._client.sendSingleMessage<ParsedBolt11Invoice>(
+      'parse_bolt11_invoice',
+      { invoice: invoiceStr },
+    )
     return response
   }
 

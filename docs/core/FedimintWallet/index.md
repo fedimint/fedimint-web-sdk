@@ -107,7 +107,9 @@ After this call, the FedimintWallet instance should be discarded.
 
 ### parseInviteCode()
 
-> **parseInviteCode**(`inviteCode`): `Promise`\<`{ url: string; federation_id: string }`\>
+> **parseInviteCode**(`inviteCode`): `Promise`\<`ParsedInviteCode`\>
+
+Parses an invite code without requiring an open wallet or joined federation.
 
 #### Parameters
 
@@ -115,17 +117,21 @@ After this call, the FedimintWallet instance should be discarded.
 
 #### Returns
 
-`Promise`\<`{ url: string; federation_id: string }`\>
+`Promise`\<`ParsedInviteCode`\>
+
+The parsed invite code data containing `federation_id` and `url`.
 
 #### Defined in
 
-[FedimintWallet.ts:147](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/FedimintWallet.ts#L147)
+[WalletDirector.ts:109](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/WalletDirector.ts#L109)
 
 ---
 
 ### parseBolt11Invoice()
 
-> **parseBolt11Invoice**(`invoiceStr`): `Promise`\<`{ amount: number; expiry: number; memo: string }`\>
+> **parseBolt11Invoice**(`invoiceStr`): `Promise`\<`ParsedBolt11Invoice`\>
+
+Parses a BOLT11 invoice without requiring an open wallet or joined federation.
 
 #### Parameters
 
@@ -133,11 +139,13 @@ After this call, the FedimintWallet instance should be discarded.
 
 #### Returns
 
-`Promise`\<`{ amount: number; expiry: number; memo: string }`\>
+`Promise`\<`ParsedBolt11Invoice`\>
+
+The parsed invoice data where `amount` is in satoshis.
 
 #### Defined in
 
-[FedimintWallet.ts:157](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/FedimintWallet.ts#157)
+[WalletDirector.ts:137](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/WalletDirector.ts#L137)
 
 ---
 
@@ -163,7 +171,9 @@ After this call, the FedimintWallet instance should be discarded.
 
 ### previewFederation(inviteCode)
 
-> **previewFederation**(`inviteCode`): `Promise`\<`{ config: string; federation_id: string }`\>
+> **previewFederation**(`inviteCode`): `Promise`\<`PreviewFederation`\>
+
+Retrieves federation details before joining a Federation. This allows you to inspect the federation's configuration, endpoints, modules, and metadata.
 
 #### Parameters
 
@@ -171,11 +181,16 @@ After this call, the FedimintWallet instance should be discarded.
 
 #### Returns
 
-`Promise`\<`{ config: string; federation_id: string }`\>
+`Promise`\<`PreviewFederation`\>
+
+Federation preview information containing:
+
+- `config`: Detailed JSON configuration including global settings, API endpoints, consensus version, and module configurations
+- `federation_id`: The unique federation identifier
 
 #### Defined in
 
-[FedimintWallet.ts:141](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/FedimintWallet.ts#L141)
+[WalletDirector.ts:137](https://github.com/fedimint/fedimint-sdk/tree/main/packages/core/src/WalletDirector.ts#L71)
 
 ---
 

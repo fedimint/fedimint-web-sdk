@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { wallet, director } from './wallet'
+import type {
+  ParsedInviteCode,
+  ParsedBolt11Invoice,
+  PreviewFederation,
+} from '@fedimint/core'
 
 const TESTNET_FEDERATION_CODE =
   'fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75'
@@ -317,9 +322,30 @@ const JoinFederation = ({
   checkIsOpen: () => void
 }) => {
   const [inviteCode, setInviteCode] = useState(TESTNET_FEDERATION_CODE)
+  const [previewData, setPreviewData] = useState<PreviewFederation | null>(null)
+  const [previewing, setPreviewing] = useState(false)
   const [joinResult, setJoinResult] = useState<string | null>(null)
   const [joinError, setJoinError] = useState('')
   const [joining, setJoining] = useState(false)
+
+  const previewFederationHandler = async () => {
+    if (!inviteCode.trim()) return
+
+    setPreviewing(true)
+    setJoinError('')
+
+    try {
+      const data = await director.previewFederation(inviteCode)
+      setPreviewData(data)
+      console.log('Preview federation:', data)
+    } catch (error) {
+      console.error('Error previewing federation:', error)
+      setJoinError(error instanceof Error ? error.message : String(error))
+      setPreviewData(null)
+    } finally {
+      setPreviewing(false)
+    }
+  }
 
   const joinFederation = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -351,13 +377,89 @@ const JoinFederation = ({
           placeholder="Invite Code..."
           required
           value={inviteCode}
-          onChange={(e) => setInviteCode(e.target.value)}
+          onChange={(e) => {
+            setInviteCode(e.target.value)
+            setPreviewData(null)
+          }}
           disabled={open}
         />
+        <button
+          type="button"
+          onClick={previewFederationHandler}
+          disabled={previewing || !inviteCode.trim() || open}
+        >
+          {previewing ? 'Previewing...' : 'Preview'}
+        </button>
         <button type="submit" disabled={open || joining}>
-          Join
+          {joining ? 'Joining...' : 'Join'}
         </button>
       </form>
+
+      {previewData && (
+        <div className="preview-result">
+          <h4>Federation Preview</h4>
+          <div className="preview-info">
+            <div className="preview-row">
+              <strong>Federation ID:</strong>
+              <code className="id">{previewData.federation_id}</code>
+            </div>
+            <div className="preview-row">
+              <strong>Name:</strong>
+              <span>
+                {previewData.config.global.meta?.federation_name || 'Unnamed'}
+              </span>
+            </div>
+            <div className="preview-row">
+              <strong>Consensus Version:</strong>
+              <span>
+                {previewData.config.global.consensus_version.major}.
+                {previewData.config.global.consensus_version.minor}
+              </span>
+            </div>
+            <div className="preview-row">
+              <strong>Guardians:</strong>
+              <span>
+                {Object.keys(previewData.config.global.api_endpoints).length}
+              </span>
+            </div>
+
+            <details className="preview-details">
+              <summary>Guardian Endpoints</summary>
+              <div className="guardian-list">
+                {Object.entries(previewData.config.global.api_endpoints).map(
+                  ([id, peer]) => (
+                    <div key={id} className="guardian-item">
+                      <div>
+                        <strong>{peer.name}</strong>
+                      </div>
+                      <div className="url">{peer.url}</div>
+                    </div>
+                  ),
+                )}
+              </div>
+            </details>
+
+            <details className="preview-details">
+              <summary>Module Configuration</summary>
+              <div className="module-list">
+                {Object.entries(previewData.config.modules).map(
+                  ([id, module]) => (
+                    <div key={id} className="module-item">
+                      <strong>{module.kind}</strong>
+                    </div>
+                  ),
+                )}
+              </div>
+            </details>
+
+            <details className="preview-details">
+              <summary>Full JSON</summary>
+              <pre>{JSON.stringify(previewData, null, 2)}</pre>
+            </details>
+          </div>
+        </div>
+      )}
+
       {!joinResult && open && <i>(You've already joined a federation)</i>}
       {joinResult && <div className="success">{joinResult}</div>}
       {joinError && <div className="error">{joinError}</div>}
@@ -472,11 +574,11 @@ const GenerateLightningInvoice = () => {
       <h3>Generate Lightning Invoice</h3>
       <form onSubmit={handleSubmit}>
         <div className="input-group">
-          <label htmlFor="amount">Amount (sats):</label>
+          <label htmlFor="amount">Amount (msats):</label>
           <input
             id="amount"
             type="number"
-            placeholder="Enter amount"
+            placeholder="Enter amount in msats"
             required
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
@@ -518,7 +620,7 @@ const GenerateLightningInvoice = () => {
 
 const InviteCodeParser = () => {
   const [inviteCode, setInviteCode] = useState('')
-  const [parseResult, setParseResult] = useState<any>(null)
+  const [parseResult, setParseResult] = useState<ParsedInviteCode | null>(null)
   const [parseError, setParseError] = useState('')
   const [parsingStatus, setParsingStatus] = useState(false)
 
@@ -572,7 +674,9 @@ const InviteCodeParser = () => {
 
 const ParseLightningInvoice = () => {
   const [invoiceStr, setInvoiceStr] = useState('')
-  const [parseResult, setParseResult] = useState<any>(null)
+  const [parseResult, setParseResult] = useState<ParsedBolt11Invoice | null>(
+    null,
+  )
   const [parseError, setParseError] = useState('')
   const [parsingStatus, setParsingStatus] = useState(false)
 
