@@ -86,6 +86,14 @@ jobs:
           # Run Tests
           nix develop --accept-flake-config --command pnpm test
 
+      - name: Report Size
+        uses: alexlwn123/compressed-size-action@alex/fix-build
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pattern: '{packages/**/dist/**/*.{js,mjs,cjs},packages/**/*.wasm}'
+          install-script: pnpm install
+          build-script: pnpm build
+
   build-docs:
     name: Build Docs
     runs-on: ubuntu-latest
