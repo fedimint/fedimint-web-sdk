@@ -41,7 +41,7 @@ type LightningAddressMetadata = LightningAddressMetadataItem[]
 
 type LightningAddressPayerData = Record<
   string,
-  { mandatory?: boolean } & Record<string, unknown>
+  { mandatory?: boolean } & Record<string, JSONValue>
 >
 
 type LightningAddressPayRequest = {
@@ -74,7 +74,7 @@ type LightningAddressErrorResponse = {
   reason?: string
 }
 
-type LightningAddressVerification = {
+type LightningAddressVerification = JSONObject & {
   address: string
   username: string
   domain: string

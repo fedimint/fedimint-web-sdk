@@ -351,7 +351,6 @@ export class LightningService {
       },
       this.clientName,
     )
-    
   }
 }
 
