@@ -12,6 +12,97 @@ let dbFilename = null
 
 console.log('Worker - init')
 
+self._resolveLightningAddress = async (lightningAddress) => {
+  const [username, domain] = lightningAddress.split('@')
+  if (!username || !domain) {
+    throw new Error('Invalid lightning address format')
+  }
+
+  const lnurl = `https://${domain}/.well-known/lnurlp/${encodeURIComponent(
+    username,
+  )}`
+  const response = await fetch(lnurl)
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch lightning address metadata: ${response.statusText}`,
+    )
+  }
+
+  const payRequest = await response.json()
+  const metadata = JSON.parse(payRequest.metadata)
+
+  return {
+    address: lightningAddress,
+    username,
+    domain,
+    payRequest,
+    metadata,
+  }
+}
+
+self._validateLightningAddressAmount = (payRequest, amountMsats) => {
+  const { minSendable, maxSendable } = payRequest
+  if (amountMsats < minSendable) {
+    throw new Error('Amount is below minimum for lightning address payment')
+  }
+  if (amountMsats > maxSendable) {
+    throw new Error('Amount is above maximum for lightning address payment')
+  }
+}
+
+self._requestLightningAddressInvoice = async (
+  verification,
+  amountMsats,
+  comment,
+) => {
+  self._validateLightningAddressAmount(verification.payRequest, amountMsats)
+  const callbackUrl = new URL(verification.payRequest.callback)
+  callbackUrl.searchParams.set('amount', amountMsats.toString())
+  if (comment) {
+    callbackUrl.searchParams.set('comment', comment)
+  }
+
+  const response = await fetch(callbackUrl.toString())
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch lightning address invoice: ${response.statusText}`,
+    )
+  }
+
+  const invoice = await response.json()
+
+  if (invoice?.status === 'ERROR') {
+    throw new Error(invoice.reason || 'Failed to pay lightning address')
+  }
+
+  return invoice
+}
+
+let rpcCallCounter = 0
+const rpcSingle = (rpcHandler, request, callback) => {
+  return new Promise((resolve, reject) => {
+    const requestId = ++rpcCallCounter
+    const rpcRequest = JSON.stringify({ request_id: requestId, ...request })
+
+    rpcHandler.rpc(rpcRequest, (response) => {
+      const parsed = JSON.parse(response)
+      if (parsed.error !== undefined) {
+        reject(parsed.error)
+        return
+      }
+
+      if (parsed.data !== undefined) {
+        resolve(parsed.data)
+      }
+
+      if (callback && parsed.end !== undefined) {
+        callback()
+      }
+    })
+  })
+}
+
+
 /**
  * Type definitions for the worker messages
  *
@@ -75,6 +166,80 @@ self.onmessage = async (event) => {
         })
         return
       }
+
+      if (
+        type === 'client_rpc' &&
+        payload?.module === 'ln' &&
+        payload?.method === 'verify_lightning_address'
+      ) {
+        try {
+          const verification = await self._resolveLightningAddress(
+            payload.payload?.lightning_address,
+          )
+
+          self.postMessage({
+            type: 'data',
+            request_id: requestId,
+            data: verification,
+          })
+          self.postMessage({ type: 'end', end: 'end', request_id: requestId })
+        } catch (error) {
+          self.postMessage({
+            type: 'error',
+            error: error?.message ?? String(error),
+            request_id: requestId,
+          })
+        }
+        return
+      }
+
+      if (
+        type === 'client_rpc' &&
+        payload?.module === 'ln' &&
+        payload?.method === 'pay_lightning_address'
+      ) {
+        try {
+          const verification = await self._resolveLightningAddress(
+            payload.payload?.lightning_address,
+          )
+          const invoice = await self._requestLightningAddressInvoice(
+            verification,
+            payload.payload?.amount_msats,
+            payload.payload?.comment,
+          )
+
+          const payment = await rpcSingle(rpcHandler, {
+            type,
+            module: 'ln',
+            method: 'pay_bolt11_invoice',
+            client_name: payload?.client_name,
+            payload: {
+              maybe_gateway: payload.payload?.gateway,
+              invoice: invoice.pr,
+              extra_meta: payload.payload?.extra_meta ?? {},
+            },
+          })
+
+          self.postMessage({
+            type: 'data',
+            request_id: requestId,
+            data: {
+              invoice: invoice.pr,
+              payment,
+              successAction: invoice.successAction,
+            },
+          })
+          self.postMessage({ type: 'end', end: 'end', request_id: requestId })
+        } catch (error) {
+          self.postMessage({
+            type: 'error',
+            error: error?.message ?? String(error),
+            request_id: requestId,
+          })
+        }
+        return
+      }
+
       const rpcRequest = JSON.stringify({
         request_id: requestId,
         type,
