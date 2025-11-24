@@ -102,6 +102,7 @@ const rpcSingle = (rpcHandler, request, callback) => {
   })
 }
 
+
 /**
  * Type definitions for the worker messages
  *
