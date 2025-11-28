@@ -1,5 +1,5 @@
 import { getSidebar } from './sidebar'
-import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
+// import { transformerTwoslash } from '@shikijs/vitepress-twoslash' // Temporarily disabled
 import {
   groupIconMdPlugin,
   groupIconVitePlugin,
@@ -15,9 +15,9 @@ export default defineConfig({
   lang: 'en-US',
   lastUpdated: true,
   markdown: {
-    // TODO: Fix version conflicts
+    // TODO: Fix version conflicts - Temporarily disabled Twoslash
     // @ts-ignore
-    codeTransformers: [transformerTwoslash()],
+    // codeTransformers: [transformerTwoslash()],
     config: (md) => {
       // @ts-ignore
       md.use(groupIconMdPlugin)
