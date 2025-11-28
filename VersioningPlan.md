@@ -1,140 +1,107 @@
-# Fedimint SDK Documentation Versioning Strategy
+# Documentation Versioning Strategy
 
-## 🎯 **Problem**
+## The Problem
 
-You need to preserve current documentation before implementing major breaking changes in v2.0.0.
+We're about to introduce breaking changes in v2.0.0. Users still on v1 need access to the old docs, or they'll be lost trying to follow instructions that don't match their version.
 
-## 🚀 **Recommended Solutions** (in priority order)
+## Solutions (Pick What Works for You)
 
-### **Option 1: Git-Based Versioning (⭐ RECOMMENDED - Quick & Simple)**
+### Option 1: Git Branches (Start Here)
 
-**Best for:** Immediate implementation with minimal setup
+This is the simplest approach. Create a branch for v1 docs and deploy it separately.
 
-**Steps:**
+```bash
+git checkout -b docs/v1.0.0
+git push origin docs/v1.0.0
+git tag v1.0.0
+git push origin v1.0.0
+```
 
-1. **Create version branch:**
+Deploy it like this:
+- Main branch → `sdk.fedimint.org` (v2 docs)
+- `docs/v1.0.0` branch → `v1.sdk.fedimint.org` (v1 docs)
 
-   ```bash
-   git checkout -b docs/v1.0.0
-   git push origin docs/v1.0.0
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
+Add a version switcher to the nav:
 
-2. **Deploy strategy:**
-   - Main branch → `sdk.fedimint.org` (v2.0.0)
-   - `docs/v1.0.0` branch → `v1.sdk.fedimint.org` (v1.0.0)
+```typescript
+nav: [
+  {
+    text: 'v2.0.0',
+    items: [
+      { text: 'v1.0.0 (Legacy)', link: 'https://v1.sdk.fedimint.org' },
+      { text: 'v2.0.0 (Current)', link: '/' },
+    ],
+  },
+  // ... rest of nav
+]
+```
 
-3. **Add version switcher to nav:**
-   ```typescript
-   nav: [
-     {
-       text: 'v2.0.0',
-       items: [
-         { text: 'v1.0.0 (Legacy)', link: 'https://v1.sdk.fedimint.org' },
-         { text: 'v2.0.0 (Current)', link: '/' },
-       ],
-     },
-     // ... rest of nav
-   ]
-   ```
+**Good:** Works immediately, no config changes needed, clean separation
 
-**Pros:** ✅ Zero config changes ✅ Works immediately ✅ Clear separation
-**Cons:** ❌ Requires separate subdomain deployment
+**Bad:** Need to set up a subdomain
 
 ---
 
-### **Option 2: Manual Static Versioning (Good for same-domain deployment)**
+### Option 2: Static Versioned Folders
 
-**Best for:** When you want both versions on the same domain
+Keep both versions on the same domain using path-based routing.
 
-**Implementation:**
-
+Run the script:
 ```bash
-# Run the provided script
 ./scripts/create-version.sh
 ```
 
-**Result:**
+Result:
+- `sdk.fedimint.org/` → v2 docs
+- `sdk.fedimint.org/v1/` → v1 docs
 
-- `sdk.fedimint.org/` → v2.0.0 (latest)
-- `sdk.fedimint.org/v1/` → v1.0.0 (legacy)
+**Good:** Single domain, SEO-friendly, simple to maintain
 
-**Pros:** ✅ Same domain ✅ SEO-friendly paths ✅ Easy maintenance
-**Cons:** ❌ Manual process ❌ Requires path configuration
-
----
-
-### **Option 3: VitePress Versioning Plugin (Most Professional)**
-
-**Best for:** Long-term documentation versioning strategy
-
-**Status:** 🚧 Requires more setup due to compatibility issues
-
-**When to use:** Consider this for future versions when you have more time to set up proper versioning infrastructure.
+**Bad:** Manual process, need to configure paths
 
 ---
 
-### **Option 4: GitHub Actions Automation (For CI/CD enthusiasts)**
+### Option 3: VitePress Versioning Plugin
 
-**Best for:** Automated deployment of versioned docs
+This is the "proper" solution but needs more setup time. The plugin handles versioning automatically.
 
-**Features:**
+**Status:** Not ready yet due to compatibility issues
 
-- Automatic deployment on tags
-- Version index page
-- Configurable deployment paths
-
-**Setup:** Use the provided `.github/workflows/deploy-versioned-docs.yml`
+Use this later when you have time to set up proper infrastructure.
 
 ---
 
-## 🎯 **My Strong Recommendation**
+### Option 4: GitHub Actions Automation
 
-**For immediate implementation before your v2.0.0 release:**
+Automated deployment whenever you create a new version tag.
 
-1. **Use Option 1 (Git-based)** - It's the fastest and most reliable
-2. **Create the version branch TODAY:**
-   ```bash
-   git checkout -b docs/v1.0.0
-   git push origin docs/v1.0.0
-   ```
-3. **Set up subdomain deployment** (v1.sdk.fedimint.org)
-4. **Add version notice component** to current docs
-5. **Document the strategy** for your team
+The workflow file is ready at `.github/workflows/deploy-versioned-docs.yml`
 
-**Timeline:** Can be implemented in < 2 hours
+**Good:** Fully automated, great for CI/CD pipelines
 
-## 📋 **Next Steps**
+**Bad:** More complexity upfront
 
-### Immediate (Today):
+---
 
-- [ ] Create `docs/v1.0.0` branch
-- [ ] Push branch to repository
-- [ ] Tag the current state as v1.0.0
+## What I'd Do
 
-### This Week:
+Go with **Option 1** right now. Here's why:
 
-- [ ] Set up subdomain deployment for v1.0.0 docs
-- [ ] Add version switcher to main docs
-- [ ] Test both versions work correctly
+1. You can have it running in under 2 hours
+2. No risky config changes
+3. Easy to understand and maintain
+4. If something breaks, v1 docs are completely isolated
 
-### Future:
+Steps:
 
-- [ ] Consider implementing VitePress Versioning Plugin for v3.0.0+
-- [ ] Set up automated versioning with GitHub Actions
-- [ ] Create migration guides between versions
+1. Create the branch today (commands above)
+2. Deploy to `v1.sdk.fedimint.org`
+3. Add the version switcher
+4. Add a notice banner to v1 docs warning about the legacy version
 
-## 💡 **Additional Benefits**
+## Files You Need
 
-1. **SEO Protection:** Old documentation URLs remain accessible
-2. **User Experience:** Users can reference legacy docs during migration
-3. **Team Productivity:** Developers can work on v2.0.0 docs without breaking current users
-4. **Professional Image:** Shows maturity in handling breaking changes
-
-## 🔗 **Quick Links**
-
-- Version notice component: `docs/.vitepress/theme/VersionNotice.vue`
-- Versioning script: `scripts/create-version.sh`
+- Version banner component: `docs/.vitepress/theme/VersionNotice.vue`
+- Version creation script: `scripts/create-version.sh`
 - GitHub Actions workflow: `.github/workflows/deploy-versioned-docs.yml`
 - This plan: `VERSIONING_PLAN.md`
