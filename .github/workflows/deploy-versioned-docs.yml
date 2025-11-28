@@ -1,0 +1,109 @@
+name: Deploy Versioned Documentation
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  deploy-versioned-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: |
+          cd docs
+          pnpm install
+
+      - name: Extract version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build versioned docs
+        run: |
+          cd docs
+
+          # Update config for versioned deployment
+          sed -i "s/title: 'Fedimint Sdk'/title: 'Fedimint Sdk v${{ steps.version.outputs.version }}'/g" .vitepress/config.ts
+          sed -i "/export default defineConfig({/a\\  base: '/v${{ steps.version.outputs.version }}/'," .vitepress/config.ts
+
+          pnpm docs:build
+
+      - name: Deploy to GitHub Pages (Versioned)
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/.vitepress/dist
+          destination_dir: v${{ steps.version.outputs.version }}
+
+      - name: Create version index
+        run: |
+          mkdir -p version-index
+          cat > version-index/index.html << EOF
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Fedimint SDK Documentation Versions</title>
+            <style>
+              body { font-family: system-ui, sans-serif; padding: 40px; }
+              .version-list { list-style: none; padding: 0; }
+              .version-item { margin: 10px 0; }
+              .version-link { 
+                display: inline-block;
+                padding: 12px 20px;
+                background: #f3f4f6;
+                text-decoration: none;
+                border-radius: 6px;
+                color: #374151;
+                font-weight: 500;
+              }
+              .version-link:hover { background: #e5e7eb; }
+              .latest { background: #10b981; color: white; }
+              .latest:hover { background: #059669; }
+            </style>
+          </head>
+          <body>
+            <h1>Fedimint SDK Documentation</h1>
+            <p>Choose a version to view:</p>
+            <ul class="version-list">
+              <li class="version-item">
+                <a href="/v2/" class="version-link latest">v2.0.0 (Latest)</a>
+              </li>
+              <li class="version-item">
+                <a href="/v${{ steps.version.outputs.version }}/" class="version-link">v${{ steps.version.outputs.version }} (Legacy)</a>
+              </li>
+            </ul>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy version index
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: version-index
+          keep_files: true
