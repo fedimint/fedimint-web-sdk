@@ -5,6 +5,7 @@ import type {
   JSONObject,
   LightningAddressSuccessAction,
   LightningAddressVerification,
+  LightningAddressInvoiceResponse,
   LightningGateway,
   LnInternalPayState,
   LnPayState,
@@ -339,18 +340,30 @@ export class LightningService {
   ): Promise<PayLightningAddressResult> {
     const gateway = options.gatewayInfo ?? (await this._getDefaultGatewayInfo())
 
-    return await this.client.rpcSingle<PayLightningAddressResult>(
-      'ln',
-      'pay_lightning_address',
-      {
-        lightning_address: lightningAddress,
-        amount_msats: amountMsats,
-        comment: options.comment ?? null,
-        extra_meta: options.extraMeta ?? {},
-        gateway,
-      },
-      this.clientName,
+    const invoiceResponse =
+      await this.client.rpcSingle<LightningAddressInvoiceResponse>(
+        'ln',
+        'get_invoice',
+        {
+          lightning_address: lightningAddress,
+          amount_msats: amountMsats,
+          comment: options.comment ?? null,
+          extra_meta: options.extraMeta ?? {},
+        },
+        this.clientName,
+      )
+
+    const payment = await this.payInvoice(
+      invoiceResponse.pr,
+      gateway,
+      options.extraMeta,
     )
+
+    return {
+      invoice: invoiceResponse.pr,
+      payment,
+      successAction: invoiceResponse.successAction,
+    }
   }
 }
 
