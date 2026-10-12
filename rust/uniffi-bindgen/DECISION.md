@@ -16,8 +16,8 @@ this branch.
 **Option A — separate crate.** A `fedimint-sdk-ffi` crate, alongside
 `fedimint-sdk`, that depends on it and re-exports a UniFFI-shaped wrapper API:
 its own `#[uniffi::export]` blocks, its own error enum, its own `Cargo.lock`.
-This is the shape [fedimint-client-uniffi](../fedimint-client-uniffi) already
-uses, and what the `spike/ffi-shape` prototype on
+This is the shape the legacy `fedimint-client-uniffi` crate
+used, and what the `spike/ffi-shape` prototype on
 [fedimint-sdk#380](https://github.com/fedimint/fedimint-sdk/issues/380) built
 and recommended.
 
