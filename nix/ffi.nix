@@ -42,6 +42,9 @@ let
   };
   lib = nixpkgs.lib;
 
+  # The crate's version, for the derivations built from it.
+  sdkVersion = (lib.importTOML ../rust/fedimint-sdk/Cargo.toml).package.version;
+
   # Used only for `libc++_shared.so` (a target-ABI runtime lib the NDK ships;
   # the exact NDK revision barely matters for it). The cross-compile itself
   # runs through flakebox's own bundled Android SDK — see the note below.
@@ -149,7 +152,7 @@ let
         buildInputs = [ pkgs.libiconv ];
       } // {
         inherit src pname;
-        version = "0.1.0-alpha.1";
+        version = sdkVersion;
         cargoExtraArgs = "--locked --target ${rustTarget} --lib --features uniffi";
         CARGO_BUILD_TARGET = rustTarget;
         doCheck = false;
@@ -216,7 +219,7 @@ let
       commonArgs = target.args // {
         inherit src;
         pname = "fedimint-sdk-ios-${rustTarget}";
-        version = "0.1.0-alpha.1";
+        version = sdkVersion;
         cargoExtraArgs = "--locked --target ${rustTarget} --lib --features uniffi";
         CARGO_BUILD_TARGET = rustTarget;
         doCheck = false;

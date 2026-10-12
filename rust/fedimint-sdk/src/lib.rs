@@ -21,11 +21,9 @@
 //!
 //! The surface documented throughout this crate is implemented behind every
 //! facade: [`Ecash`], [`Lightning`], [`Onchain`], [`Meta`], and recovery on
-//! [`Sdk`]. This crate tracks fedimint `master` at one pinned revision, the
-//! same one the repo's `flake.nix` pins for devimint and the wasm client, so
-//! the SDK and the federation its tests run against always come from one
-//! commit. What remains is the language bindings: the Swift, Kotlin and
-//! JavaScript SDKs this surface is meant to generate.
+//! [`Sdk`]. It builds against one fedimint release, which `Cargo.toml`
+//! requires at an exact version. The Kotlin, Swift and JavaScript SDKs are
+//! generated from this surface, behind the `uniffi` feature.
 //!
 //! # A worked example
 //!

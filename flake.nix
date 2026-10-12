@@ -2,21 +2,20 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     fedimint = {
-      # Devimint input. This is no longer a "point it at a release tag when
-      # convenient" pin: rust/fedimint-sdk compiles against fedimint master and
-      # repeats this revision in its Cargo.toml, so the client under test and
-      # the federation it is tested against come from one commit. Move this
-      # input, fedimint-wasm below, and rust/fedimint-sdk/Cargo.toml together —
-      # the pins-agree job in .github/workflows/rust-sdk-ci.yaml fails the build
-      # when they drift.
-      url = "github:fedimint/fedimint?rev=1d3758c3fe3758207671a2d8af1fb564682e2392";
+      # Devimint input, at the fedimint release rust/fedimint-sdk builds against:
+      # its Cargo.toml requires every fedimint crate at exactly this version, so
+      # the client under test and the federation it is tested against come from
+      # one release. Move this input, fedimint-wasm below, and
+      # rust/fedimint-sdk/Cargo.toml together: the pins-agree job in
+      # .github/workflows/rust-sdk-ci.yaml fails the build when they drift.
+      url = "github:fedimint/fedimint/v0.13.0-beta.1";
     };
     fedimint-wasm = {
-      # The wasm client is built from this revision; keep it in sync with the
+      # The wasm client is built from this release; keep it in sync with the
       # devimint input above and with rust/fedimint-sdk/Cargo.toml, so that
       # every client in this repo and the federation they are tested against
-      # come from the same commit.
-      url = "github:fedimint/fedimint?rev=1d3758c3fe3758207671a2d8af1fb564682e2392";
+      # come from the same release.
+      url = "github:fedimint/fedimint/v0.13.0-beta.1";
     };
     nixpkgs-playwright = {
       # Playwright browsers have to match the `playwright` version pnpm-lock.yaml

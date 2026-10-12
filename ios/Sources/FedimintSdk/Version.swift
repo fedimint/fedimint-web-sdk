@@ -35,4 +35,4 @@ public typealias SdkError = FedimintSdk.Error
 ///
 /// Keep in step with `version` in `rust/fedimint-sdk/Cargo.toml` — the same
 /// role `fedimintSdk` plays in `android/gradle/libs.versions.toml`.
-public let fedimintSdkVersion = "0.1.0-alpha.1"
+public let fedimintSdkVersion = "0.1.0-beta.1"
