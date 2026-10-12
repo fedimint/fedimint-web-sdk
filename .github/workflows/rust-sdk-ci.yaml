@@ -128,19 +128,24 @@ jobs:
                       "github:fedimint/fedimint/v$version"
           done
 
-          # `original` is what flake.nix asked for, `locked` what `nix flake lock` resolved it to.
+          # `original` is what flake.nix asked for, `locked` what `nix flake lock` resolved it to
+          # and what Nix fetches, so the repository is checked in both.
           declare -A locked_rev
           for input in fedimint fedimint-wasm; do
             node=$(jq -r --arg name "$input" '
               .nodes[$name] // empty
-              | [.original.owner, .original.repo, .original.ref, .locked.rev]
+              | [.original.owner, .original.repo, .original.ref,
+                 .locked.owner, .locked.repo, .locked.rev]
               | map(. // "-") | join(" ")' flake.lock) \
               || fail "flake.lock could not be read"
             [ -n "$node" ] || fail "flake.lock has no node '$input'"
-            read -r owner repo ref rev <<< "$node"
+            read -r owner repo ref locked_owner locked_repo rev <<< "$node"
             [ "$owner/$repo $ref" = "fedimint/fedimint v$version" ] \
               || fail "flake.lock node '$input' is $owner/$repo at $ref, $manifest requires" \
                       "fedimint/fedimint at v$version"
+            [ "$locked_owner/$locked_repo" = "fedimint/fedimint" ] \
+              || fail "flake.lock node '$input' is locked to $locked_owner/$locked_repo," \
+                      "not to fedimint/fedimint"
             [[ $rev =~ ^[0-9a-f]{40}$ ]] \
               || fail "flake.lock node '$input' has no 40 digit locked rev: $rev"
             locked_rev[$input]=$rev
