@@ -419,6 +419,36 @@ impl Sdk {
         }
     }
 
+    /// Fetches a list of joinable federations from an app-supplied endpoint.
+    ///
+    /// The SDK does not embed any default discovery URL. The application
+    /// supplies the endpoint it wants to query — its own backend, a
+    /// community-maintained list, or any URL that returns the documented
+    /// JSON schema.
+    ///
+    /// The returned [`DiscoveredFederation`] records are *advertisements*,
+    /// not verified federation state. Each entry's invite code has been
+    /// parsed and cross-checked against its declared federation ID, but the
+    /// metadata is unverified. To verify a federation, take its
+    /// [`invite`](DiscoveredFederation::invite) field and feed it to
+    /// [`Sdk::preview`] or [`Sdk::join`].
+    ///
+    /// # Errors
+    ///
+    /// [`Timeout`](crate::ErrorCode::Timeout) when the endpoint does not
+    /// respond within 30 seconds.
+    /// [`InvalidInput`](crate::ErrorCode::InvalidInput) when the URL is
+    /// malformed or the response cannot be parsed as the expected JSON schema.
+    /// [`Internal`](crate::ErrorCode::Internal) when the HTTP request fails
+    /// for other reasons (DNS, TLS, non-2xx status).
+    pub async fn discover_federations(
+        &self,
+        url: &str,
+    ) -> Result<Vec<crate::DiscoveredFederation>> {
+        self.inner.alive()?;
+        crate::discovery::fetch_discovered_federations(url).await
+    }
+
     /// Every federation this instance currently has open.
     ///
     /// "Open" here means [`Running`](FederationStatus::Running) or
