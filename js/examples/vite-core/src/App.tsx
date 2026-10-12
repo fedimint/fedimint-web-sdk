@@ -654,7 +654,7 @@ const WalletStatus = ({
       <div className="row">
         <strong>Balance:</strong>
         <div className="balance">{balance}</div>
-        sats
+        msats
       </div>
     </div>
   )
@@ -910,7 +910,7 @@ const GenerateLightningInvoice = () => {
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
   const [copyFeedback, setCopyFeedback] = useState('')
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>()
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   useEffect(() => {
     return () => clearTimeout(timeoutRef.current)
