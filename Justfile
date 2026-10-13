@@ -45,9 +45,9 @@ test-android-e2e shape="v1": build-android-apk
 test-sdk-release-scripts:
     ./scripts/test-sdk-release-scripts.sh
 
-# Test the React Native scripts: what a valid release tag is, how the packages are packed and
-# checked, when they are published, and how the iOS libraries are built, have their symbols hidden
-# and are assembled into the xcframework. Needs only bash, git and node, no build.
+# Test the React Native scripts: how the packages are packed and checked, when they are published,
+# and how the iOS libraries are built, have their symbols hidden and are assembled into the
+# xcframework. Needs only bash, git and node, no build.
 test-react-native-sdk-scripts:
     ./scripts/test-react-native-sdk-scripts.sh
     ./scripts/test-assemble-rn-ios-xcframework.sh
