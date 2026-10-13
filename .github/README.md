@@ -70,7 +70,9 @@ fedimint-sdk
 │   └── tools
 │       └── create-fedimint-app
 ├── rust
-│   └── fedimint-client-uniffi
+│   ├── fedimint-sdk
+│   ├── ubrn
+│   └── uniffi-bindgen
 ├── nix
 └── scripts
 ```
