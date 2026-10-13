@@ -1,11 +1,6 @@
 name: 'Codex CI Debug'
 
 on:
-  workflow_run:
-    workflows:
-      - 'Changesets'
-      - 'Deploy Docs site to Pages'
-    types: [completed]
   workflow_dispatch:
     inputs:
       run_id:

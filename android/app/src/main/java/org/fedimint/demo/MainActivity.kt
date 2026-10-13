@@ -32,15 +32,15 @@ import org.fedimint.sdk.createFedimintSdk
 // shadow `kotlin.Exception`.
 import org.fedimint.sdk.Exception as SdkException
 
-/** The mutinynet federation js/examples/vite-core pre-fills, so both demos start from the same place. */
+/** The mutinynet federation ios/Demo also pre-fills, so both demos start from the same place. */
 private const val TESTNET_FEDERATION_CODE =
     "fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqqysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75"
 
 /**
- * Every SDK action on one scrolling screen, section by section, mirroring
- * js/examples/vite-core: wallet status, join, generate an invoice, redeem and
- * send ecash, pay lightning, parse an invite code, deposit, send on-chain,
- * recent activity, and looking an operation up by id.
+ * Every SDK action on one scrolling screen, section by section: wallet
+ * status, join, generate an invoice, redeem and send ecash, pay lightning,
+ * parse an invite code, deposit, send on-chain, recent activity, and looking
+ * an operation up by id.
  *
  * The point of this app is to *run* the native library against a real
  * federation, not just link it. Every call here is one this SDK's `uniffi`

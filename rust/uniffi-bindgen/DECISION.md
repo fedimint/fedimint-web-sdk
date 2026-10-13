@@ -57,9 +57,9 @@ The costs above are real but contained; the benefit Option A gives up is not.
   (a legacy Option-A crate) lived with.
 - **The wasm risk is fully contained.** Before this change, the feature was opt-in and off by
   default and nothing in this repo passed `--features uniffi` or `--all-features` together with
-  `--target wasm32-unknown-unknown`: `scripts/build_wasm.sh` builds a different crate entirely
-  (`fedimint-client-wasm` via `nix build .#wasmBundle`), and `fedimint-sdk`'s own wasm layer wasn't
-  wired up yet. The risk was a future contributor running `--all-features` locally or in a
+  `--target wasm32-unknown-unknown`: the only wasm build was of a different crate entirely
+  (fedimint's own `fedimint-client-wasm`), and `fedimint-sdk`'s own wasm layer wasn't wired up
+  yet. The risk was a future contributor running `--all-features` locally or in a
   tightened CI matrix. **Update (2026-09-18):** since this change, the `uniffi` feature compiles
   for `wasm32-unknown-unknown` too (per-target `uniffi`, with `wasm-unstable-single-threaded` in
   place of `tokio` on wasm), so `--all-features` together with the wasm target is now a supported

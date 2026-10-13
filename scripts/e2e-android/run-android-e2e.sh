@@ -41,7 +41,7 @@ if [[ -z "${FM_FEDERATION_BASE_PORT:-}" ]]; then
   cat >&2 <<'MSG'
 No federation in the environment (FM_FEDERATION_BASE_PORT is unset).
 
-This suite runs inside devimint, the same way the wasm one does. Start it with:
+This suite runs inside devimint. Start it with:
 
   just test-android-e2e
 
@@ -476,8 +476,8 @@ echo "Running tests: $TESTS_TO_RUN"
 cd "$PKG_DIR"
 # FAUCET is read by src/faucet/FaucetClient.ts, which runs here on the host,
 # so it keeps the host's own port. js/vitest.config.ts builds the same URL the
-# same way for the wasm suite, including the 15243 fallback devimint used
-# before it started allocating a free port per run.
+# same way for the browser package's tests, including the 15243 fallback
+# devimint used before it started allocating a free port per run.
 PLATFORM=android \
   DEVICE_ID="$DEVICE_ID" \
   BUNDLE_PATH="$APK_PATH" \

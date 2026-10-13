@@ -13,8 +13,7 @@ import {
 // What it covers on the SDK side is `createFedimintSdk` over the app-private
 // directory and `exportMnemonic().words()`: the seed is generated and
 // persisted by the native library, and read back through the generated Kotlin
-// bindings. Named for the SDK capability it tests, not the screen it taps
-// (mirroring js/web/integration-tests/src/services/*.test.ts).
+// bindings. Named for the SDK capability it tests, not the screen it taps.
 export class MnemonicService extends AppiumTestBase {
   // Leaves an open SDK behind. Declaring it is what makes the runner reset
   // the app before any test that wants a fresh install (this one included, if

@@ -8,8 +8,8 @@ import { FaucetClient } from '../faucet/FaucetClient'
 import { Fixture } from './types'
 
 /**
- * Joins the local devimint federation, the way the wasm suite's `wallet`
- * fixture does: ask the faucet for an invite code, then join with it.
+ * Joins the local devimint federation: ask the faucet for an invite code,
+ * then join with it.
  *
  * The invite code names the guardians as `ws://127.0.0.1:<port>` on the
  * *host*. scripts/e2e-android/run-android-e2e.sh has already pointed those

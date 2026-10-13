@@ -5,9 +5,9 @@ import UniformTypeIdentifiers
 import FedimintSdk
 
 /// Every SDK action on one scrolling screen, section by section, mirroring
-/// `android/app`'s `activity_main.xml` and `js/examples/vite-core`: wallet
-/// status, join, generate an invoice, redeem and send ecash, pay lightning,
-/// parse an invite code, deposit, send on-chain, and recent activity.
+/// `android/app`'s `activity_main.xml`: wallet status, join, generate an
+/// invoice, redeem and send ecash, pay lightning, parse an invite code,
+/// deposit, send on-chain, and recent activity.
 struct ContentView: View {
     @StateObject private var model = DemoModel()
 

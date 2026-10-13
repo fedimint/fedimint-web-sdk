@@ -8,7 +8,7 @@ fn main() {
     // entry for a weak undefined symbol to the PLT stub, which is non-NULL,
     // while the JUMP_SLOT stays 0 — so the null check passes and the call
     // jumps to address 0. A strong definition delegating to free() makes both
-    // entries resolve. Same fix, same reason, as rust/fedimint-client-uniffi.
+    // entries resolve.
     //
     // `-u sdallocx` is what keeps it: the stub is in its own archive member
     // that nothing references, so the linker would otherwise drop it. Forcing
