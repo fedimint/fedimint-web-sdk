@@ -219,14 +219,18 @@ impl core::str::FromStr for Notes {
                 notes: NotesInner::V1(notes),
             });
         }
+        // Upstream `OOBNotes` already tolerates whitespace; `decode_prefixed`
+        // does not. The trimmed string is the one stored, so `Display` and
+        // equality see the canonical token.
+        let trimmed = s.trim();
         if let Ok(ecash) = fedimint_core::base32::decode_prefixed::<ECash>(
             fedimint_core::base32::FEDIMINT_PREFIX,
-            s,
+            trimmed,
         ) {
             return Ok(Self {
                 notes: NotesInner::V2 {
                     ecash,
-                    encoded: s.to_string(),
+                    encoded: trimmed.to_string(),
                 },
             });
         }
@@ -286,6 +290,22 @@ mod tests {
         assert_eq!(
             wrapped.parse::<Notes>().expect("a wrapped token"),
             TOKEN.parse::<Notes>().expect("a valid ecash token")
+        );
+    }
+
+    #[test]
+    fn parsing_trims_a_mintv2_token_and_displays_it_canonically() {
+        let encoded = fedimint_core::base32::encode_prefixed(
+            fedimint_core::base32::FEDIMINT_PREFIX,
+            &ECash::new(fedimint_core::config::FederationId::dummy(), vec![]),
+        );
+        let padded = format!("  {encoded}\n");
+        let notes = padded.parse::<Notes>().expect("a padded mintv2 token");
+        assert!(notes.as_mintv2().is_some());
+        assert_eq!(notes.to_string(), encoded);
+        assert_eq!(
+            notes,
+            encoded.parse::<Notes>().expect("a valid mintv2 token")
         );
     }
 
