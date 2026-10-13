@@ -41,7 +41,11 @@ const useIsOpen = (wallet: FedimintWallet | null) => {
   return { open, checkIsOpen }
 }
 
-const useBalance = (wallet: FedimintWallet | null, checkIsOpen: () => void, open: boolean) => {
+const useBalance = (
+  wallet: FedimintWallet | null,
+  checkIsOpen: () => void,
+  open: boolean,
+) => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
