@@ -41,11 +41,15 @@ const useIsOpen = (wallet: FedimintWallet | null) => {
   return { open, checkIsOpen }
 }
 
-const useBalance = (wallet: FedimintWallet | null, checkIsOpen: () => void) => {
+const useBalance = (
+  wallet: FedimintWallet | null,
+  checkIsOpen: () => void,
+  open: boolean,
+) => {
   const [balance, setBalance] = useState(0)
 
   useEffect(() => {
-    if (!wallet) return
+    if (!wallet || !open) return
 
     const unsubscribe = wallet.balance.subscribeBalance((bal) => {
       checkIsOpen()
@@ -55,7 +59,7 @@ const useBalance = (wallet: FedimintWallet | null, checkIsOpen: () => void) => {
     return () => {
       unsubscribe?.()
     }
-  }, [wallet, checkIsOpen])
+  }, [wallet, checkIsOpen, open])
 
   return balance
 }
@@ -155,7 +159,7 @@ const App = () => {
 const AppContent = () => {
   const wallet = useWallet()
   const { open, checkIsOpen } = useIsOpen(wallet)
-  const balance = useBalance(wallet, checkIsOpen)
+  const balance = useBalance(wallet, checkIsOpen, open)
 
   return (
     <>
@@ -654,7 +658,7 @@ const WalletStatus = ({
       <div className="row">
         <strong>Balance:</strong>
         <div className="balance">{balance}</div>
-        sats
+        msats
       </div>
     </div>
   )
@@ -696,7 +700,6 @@ const JoinFederation = ({
 
   const joinFederation = async (e: React.FormEvent) => {
     e.preventDefault()
-    checkIsOpen()
 
     console.log('Joining federation:', inviteCode)
     try {
@@ -704,8 +707,14 @@ const JoinFederation = ({
       setJoining(true)
       const res = await wallet.joinFederation(inviteCode)
       console.log('join federation res', res)
-      setJoinResult('Joined!')
-      setJoinError('')
+      if (res) {
+        setJoinResult('Joined!')
+        setJoinError('')
+        checkIsOpen()
+      } else {
+        setJoinError('Failed to join federation')
+        setJoinResult('')
+      }
     } catch (e: any) {
       console.log('Error joining federation', e)
       setJoinError(typeof e === 'object' ? e.toString() : (e as string))
@@ -904,11 +913,18 @@ const GenerateLightningInvoice = () => {
   const [invoice, setInvoice] = useState('')
   const [error, setError] = useState('')
   const [generating, setGenerating] = useState(false)
+  const [copyFeedback, setCopyFeedback] = useState('')
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  useEffect(() => {
+    return () => clearTimeout(timeoutRef.current)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setInvoice('')
     setError('')
+    setCopyFeedback('')
     setGenerating(true)
     try {
       if (!wallet) throw new Error('Wallet unavailable')
@@ -964,8 +980,19 @@ const GenerateLightningInvoice = () => {
         <div className="success">
           <strong>Generated Invoice:</strong>
           <pre className="invoice-wrap">{invoice}</pre>
-          <button onClick={() => navigator.clipboard.writeText(invoice)}>
-            Copy
+          <button
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(invoice)
+                setCopyFeedback('Copied!')
+              } catch (err) {
+                setCopyFeedback('Failed to copy')
+              }
+              clearTimeout(timeoutRef.current)
+              timeoutRef.current = setTimeout(() => setCopyFeedback(''), 2000)
+            }}
+          >
+            {copyFeedback || 'Copy'}
           </button>
         </div>
       )}
@@ -1077,7 +1104,10 @@ const ParseLightningInvoice = () => {
           </div>
           <div className="row">
             <strong>Expiry :</strong>
-            <div className="url">{parseResult.expiry}</div>
+            <div className="url">
+              {parseResult.expiry} ({Math.floor(parseResult.expiry / 60)}{' '}
+              minutes)
+            </div>
           </div>
           <div className="row">
             <strong>Memo :</strong>
