@@ -421,8 +421,9 @@ pub use sdk::{FederationInfo, FederationStatus, FederationStatusUpdates, Sdk, Sd
 pub use ffi::create_fedimint_sdk;
 pub use storage::Storage;
 pub use types::{
-    Address, Amount, Bolt11Invoice, Cursor, FederationId, FederationPreview, GatewayId, InviteCode,
-    Mnemonic, Network, Notes, OperationId, Preimage, Sats, Timestamp, Txid,
+    Address, Amount, Bolt11Invoice, Cursor, DiscoveredFederation, DiscoverySource, FederationId,
+    FederationPreview, GatewayId, InviteCode, Mnemonic, Network, Notes, OperationId, Preimage,
+    Sats, Timestamp, Txid, dev_federation,
 };
 
 // The `async-compat` dependency in Cargo.toml is never named in the source: it is there only to
