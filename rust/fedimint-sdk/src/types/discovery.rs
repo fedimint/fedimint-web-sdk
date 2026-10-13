@@ -118,11 +118,9 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
     type Error = &'static str;
 
     fn try_from(raw: RawNip87Event) -> std::result::Result<Self, Self::Error> {
-        // 1. Verify event kind if present
-        if let Some(kind) = raw.kind {
-            if kind != 38173 {
-                return Err("unsupported event kind: expected 38173");
-            }
+        // 1. Verify event kind
+        if raw.kind != Some(38173) {
+            return Err("missing or unsupported event kind: expected 38173");
         }
 
         // 2. Extract federation ID from 'd' tag
@@ -188,7 +186,7 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
             }
         }
 
-        // Verified event publisher pubkey
+        // Event envelope publisher pubkey (unverified advertisement metadata)
         if let Some(pk) = raw.pubkey {
             metadata.insert("publisher_pubkey".to_string(), pk);
         }
@@ -307,6 +305,20 @@ mod tests {
         let json = format!(
             r#"{{
                 "kind": 1,
+                "tags": [
+                    ["d", "{CODE_FEDERATION_ID}"],
+                    ["u", "{CODE}"]
+                ]
+            }}"#
+        );
+        let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
+        assert!(DiscoveredFederation::try_from(raw).is_err());
+    }
+
+    #[test]
+    fn drops_event_with_missing_kind() {
+        let json = format!(
+            r#"{{
                 "tags": [
                     ["d", "{CODE_FEDERATION_ID}"],
                     ["u", "{CODE}"]
