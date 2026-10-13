@@ -25,10 +25,15 @@ async fn main() -> fedimint_sdk::Result<()> {
     let (data_dir, source) = match args.as_slice() {
         [data_dir] => (data_dir.as_str(), DiscoverySource::Dev),
         [data_dir, mode] if mode == "dev" => (data_dir.as_str(), DiscoverySource::Dev),
-        [data_dir, mode] if mode == "nostr" => (data_dir.as_str(), DiscoverySource::nostr_default()),
-        [data_dir, mode, relays @ ..] if mode == "nostr" => {
-            (data_dir.as_str(), DiscoverySource::Nostr { relays: relays.to_vec() })
+        [data_dir, mode] if mode == "nostr" => {
+            (data_dir.as_str(), DiscoverySource::nostr_default())
         }
+        [data_dir, mode, relays @ ..] if mode == "nostr" => (
+            data_dir.as_str(),
+            DiscoverySource::Nostr {
+                relays: relays.to_vec(),
+            },
+        ),
         _ => common::usage(usage),
     };
 
@@ -62,4 +67,3 @@ async fn main() -> fedimint_sdk::Result<()> {
 
     Ok(())
 }
-

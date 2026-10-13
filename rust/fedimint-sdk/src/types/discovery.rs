@@ -84,14 +84,21 @@ pub fn dev_federation() -> DiscoveredFederation {
     )
     .expect("valid dev invite code");
     let mut metadata = BTreeMap::new();
-    metadata.insert("federation_name".to_string(), "Dev Test Federation".to_string());
+    metadata.insert(
+        "federation_name".to_string(),
+        "Dev Test Federation".to_string(),
+    );
     metadata.insert("network".to_string(), "regtest".to_string());
     metadata.insert("modules".to_string(), "lightning,wallet,mint".to_string());
-    DiscoveredFederation { id, invite, metadata }
+    DiscoveredFederation {
+        id,
+        invite,
+        metadata,
+    }
 }
 
 /// Raw representation of a Nostr NIP-87 `kind:38173` event.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct RawNip87Event {
     #[serde(default)]
     pub id: Option<String>,
@@ -124,12 +131,22 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
             .iter()
             .find(|t| t.first().map(String::as_str) == Some("d"))
             .ok_or("missing d tag (federation id)")?;
-        let id_str = d_tag.get(1).map(String::as_str).map(str::trim).ok_or("empty d tag value")?;
-        let id: FederationId = id_str.parse().map_err(|_| "invalid federation id in d tag")?;
+        let id_str = d_tag
+            .get(1)
+            .map(String::as_str)
+            .map(str::trim)
+            .ok_or("empty d tag value")?;
+        let id: FederationId = id_str
+            .parse()
+            .map_err(|_| "invalid federation id in d tag")?;
 
         // 3. Find first matching invite code from 'u' tags
         let mut invite_opt = None;
-        for tag in raw.tags.iter().filter(|t| t.first().map(String::as_str) == Some("u")) {
+        for tag in raw
+            .tags
+            .iter()
+            .filter(|t| t.first().map(String::as_str) == Some("u"))
+        {
             if let Some(val) = tag.get(1).map(String::as_str).map(str::trim) {
                 if let Ok(parsed) = InviteCode::parse(val.to_string()) {
                     if parsed.federation_id() == id {
@@ -139,7 +156,8 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
                 }
             }
         }
-        let invite = invite_opt.ok_or("no matching invite code in u tags for declared federation id")?;
+        let invite =
+            invite_opt.ok_or("no matching invite code in u tags for declared federation id")?;
 
         // 4. Build metadata map
         let mut metadata = BTreeMap::new();
@@ -148,7 +166,9 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
         // Skip reserved protocol keys so untrusted content cannot spoof verified event metadata.
         let content_trimmed = raw.content.trim();
         if !content_trimmed.is_empty() {
-            if let Ok(serde_json::Value::Object(map)) = serde_json::from_str::<serde_json::Value>(content_trimmed) {
+            if let Ok(serde_json::Value::Object(map)) =
+                serde_json::from_str::<serde_json::Value>(content_trimmed)
+            {
                 for (k, v) in map {
                     if matches!(k.as_str(), "publisher_pubkey" | "modules" | "network") {
                         continue;
@@ -190,7 +210,11 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
             }
         }
 
-        Ok(DiscoveredFederation { id, invite, metadata })
+        Ok(DiscoveredFederation {
+            id,
+            invite,
+            metadata,
+        })
     }
 }
 
@@ -198,8 +222,7 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
 mod tests {
     use super::*;
 
-    const CODE: &str =
-        "fed11qgqpqrnhwden5te0vehk7tnzv9ez7qqpyq4z52329g4z52329g4z52329g4z52329g4z52329g4z52329g4z5wa8phk";
+    const CODE: &str = "fed11qgqpqrnhwden5te0vehk7tnzv9ez7qqpyq4z52329g4z52329g4z52329g4z52329g4z52329g4z52329g4z5wa8phk";
     const CODE_FEDERATION_ID: &str =
         "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a";
 
@@ -223,10 +246,19 @@ mod tests {
         assert_eq!(fed.id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
         assert_eq!(fed.invite, CODE.parse::<InviteCode>().unwrap());
         assert_eq!(fed.metadata.get("name").unwrap(), "Test Fed");
-        assert_eq!(fed.metadata.get("picture").unwrap(), "https://example.com/logo.png");
-        assert_eq!(fed.metadata.get("modules").unwrap(), "lightning,wallet,mint");
+        assert_eq!(
+            fed.metadata.get("picture").unwrap(),
+            "https://example.com/logo.png"
+        );
+        assert_eq!(
+            fed.metadata.get("modules").unwrap(),
+            "lightning,wallet,mint"
+        );
         assert_eq!(fed.metadata.get("network").unwrap(), "signet");
-        assert_eq!(fed.metadata.get("publisher_pubkey").unwrap(), "deadbeef1234");
+        assert_eq!(
+            fed.metadata.get("publisher_pubkey").unwrap(),
+            "deadbeef1234"
+        );
     }
 
     #[test]
@@ -244,7 +276,8 @@ mod tests {
             }}"#
         );
         let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
-        let fed = DiscoveredFederation::try_from(raw).expect("should pick valid matching invite code");
+        let fed =
+            DiscoveredFederation::try_from(raw).expect("should pick valid matching invite code");
         assert_eq!(fed.id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
         assert_eq!(fed.invite, CODE.parse::<InviteCode>().unwrap());
     }
@@ -339,7 +372,10 @@ mod tests {
         let dev = dev_federation();
         assert_eq!(dev.id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
         assert_eq!(dev.invite, CODE.parse::<InviteCode>().unwrap());
-        assert_eq!(dev.metadata.get("federation_name").unwrap(), "Dev Test Federation");
+        assert_eq!(
+            dev.metadata.get("federation_name").unwrap(),
+            "Dev Test Federation"
+        );
         assert_eq!(dev.metadata.get("network").unwrap(), "regtest");
     }
 
@@ -360,10 +396,32 @@ mod tests {
         );
         let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
         let fed = DiscoveredFederation::try_from(raw).unwrap();
-        assert_eq!(fed.metadata.get("publisher_pubkey").unwrap(), "real_pubkey_123");
+        assert_eq!(
+            fed.metadata.get("publisher_pubkey").unwrap(),
+            "real_pubkey_123"
+        );
         assert_eq!(fed.metadata.get("modules").unwrap(), "mint,wallet");
         assert_eq!(fed.metadata.get("network").unwrap(), "signet");
         assert_eq!(fed.metadata.get("custom_attr").unwrap(), "ok");
     }
-}
 
+    #[test]
+    fn test_reserved_metadata_keys_rejected_from_content_when_tags_absent() {
+        let json = format!(
+            r#"{{
+                "kind": 38173,
+                "content": "{{\"publisher_pubkey\": \"spoofed_pubkey\", \"modules\": \"spoofed_module\", \"network\": \"spoofed_net\", \"custom_attr\": \"ok\"}}",
+                "tags": [
+                    ["d", "{CODE_FEDERATION_ID}"],
+                    ["u", "{CODE}"]
+                ]
+            }}"#
+        );
+        let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
+        let fed = DiscoveredFederation::try_from(raw).unwrap();
+        assert!(fed.metadata.get("publisher_pubkey").is_none());
+        assert!(fed.metadata.get("modules").is_none());
+        assert!(fed.metadata.get("network").is_none());
+        assert_eq!(fed.metadata.get("custom_attr").unwrap(), "ok");
+    }
+}

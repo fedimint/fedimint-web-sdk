@@ -8,9 +8,7 @@ use crate::types::discovery::{DiscoverySource, RawNip87Event};
 use crate::{DiscoveredFederation, Error, ErrorCode, FederationId, Result};
 
 /// Discovers federations from the requested source (Dev fixture or Nostr relays).
-pub async fn discover_federations(
-    source: DiscoverySource,
-) -> Result<Vec<DiscoveredFederation>> {
+pub async fn discover_federations(source: DiscoverySource) -> Result<Vec<DiscoveredFederation>> {
     match source {
         DiscoverySource::Dev => Ok(vec![crate::types::dev_federation()]),
         DiscoverySource::Nostr { relays } => fetch_from_nostr(relays).await,
@@ -46,7 +44,7 @@ async fn fetch_from_nostr(relays: Vec<String>) -> Result<Vec<DiscoveredFederatio
                 }
             }
             Err(e) => {
-                tracing::warn!("Failed to query Nostr relay: {e}");
+                tracing::warn!(target: "fedimint_sdk", error = %e, "Failed to query Nostr relay");
             }
         }
     }
@@ -135,6 +133,7 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
             })?;
 
         let mut events = Vec::new();
+        let mut received_eose = false;
         while let Some(msg_result) = ws_stream.next().await {
             match msg_result {
                 Ok(Message::Text(text)) => match parse_relay_message(&text) {
@@ -144,12 +143,15 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
                             break;
                         }
                     }
-                    RelayAction::Eose => break,
+                    RelayAction::Eose => {
+                        received_eose = true;
+                        break;
+                    }
                     RelayAction::Ignore => {}
                 },
                 Ok(Message::Close(_)) => break,
                 Err(e) => {
-                    tracing::warn!("Relay {relay_url} stream error: {e}");
+                    tracing::warn!(target: "fedimint_sdk", relay_url = %relay_url, error = %e, "Relay stream error");
                     break;
                 }
                 _ => {}
@@ -157,6 +159,14 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
         }
 
         let _ = ws_stream.send(Message::text(make_close_message())).await;
+
+        if !received_eose && events.len() < MAX_EVENTS {
+            return Err(Error::new(
+                ErrorCode::FederationUnreachable,
+                format!("Discovery error: relay {relay_url} terminated connection without EOSE"),
+            ));
+        }
+
         Ok(events)
     })
     .await
@@ -171,8 +181,8 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
 #[cfg(target_family = "wasm")]
 async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
     use futures::{SinkExt, StreamExt};
-    use gloo_net::websocket::futures::WebSocket;
     use gloo_net::websocket::Message;
+    use gloo_net::websocket::futures::WebSocket;
 
     let mut ws = WebSocket::open(&relay_url).map_err(|e| {
         Error::new(
@@ -181,22 +191,33 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
         )
     })?;
 
-    ws.send(Message::Text(make_req_message()))
-        .await
-        .map_err(|e| {
-            Error::new(
-                ErrorCode::Internal,
-                format!("Discovery error: failed to send REQ to {relay_url}: {e}"),
-            )
-        })?;
-
-    let mut events = Vec::new();
-    let mut timeout_expired = false;
-
     let (tx, mut rx) = futures::channel::oneshot::channel();
     let timeout = gloo_timers::callback::Timeout::new(5000, move || {
         let _ = tx.send(());
     });
+
+    tokio::select! {
+        res = ws.send(Message::Text(make_req_message())) => {
+            if let Err(e) = res {
+                timeout.cancel();
+                return Err(Error::new(
+                    ErrorCode::Internal,
+                    format!("Discovery error: failed to send REQ to {relay_url}: {e}"),
+                ));
+            }
+        }
+        _ = &mut rx => {
+            timeout.cancel();
+            return Err(Error::new(
+                ErrorCode::FederationUnreachable,
+                format!("Discovery error: relay {relay_url} timed out on WASM"),
+            ));
+        }
+    }
+
+    let mut events = Vec::new();
+    let mut received_eose = false;
+    let mut timeout_expired = false;
 
     loop {
         tokio::select! {
@@ -209,7 +230,10 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
                                 break;
                             }
                         }
-                        RelayAction::Eose => break,
+                        RelayAction::Eose => {
+                            received_eose = true;
+                            break;
+                        }
                         RelayAction::Ignore => {}
                     },
                     Some(Ok(Message::Bytes(_))) => {}
@@ -217,7 +241,7 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
                 }
             }
             _ = &mut rx => {
-                tracing::warn!("Relay {relay_url} timed out on WASM");
+                tracing::warn!(target: "fedimint_sdk", relay_url = %relay_url, "Relay timed out on WASM");
                 timeout_expired = true;
                 break;
             }
@@ -232,6 +256,12 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
             format!("Discovery error: relay {relay_url} timed out on WASM"),
         ));
     }
+    if !received_eose && events.len() < MAX_EVENTS {
+        return Err(Error::new(
+            ErrorCode::FederationUnreachable,
+            format!("Discovery error: relay {relay_url} terminated connection without EOSE"),
+        ));
+    }
     Ok(events)
 }
 
@@ -239,8 +269,7 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
 mod tests {
     use super::*;
 
-    const CODE: &str =
-        "fed11qgqpqrnhwden5te0vehk7tnzv9ez7qqpyq4z52329g4z52329g4z52329g4z52329g4z52329g4z52329g4z5wa8phk";
+    const CODE: &str = "fed11qgqpqrnhwden5te0vehk7tnzv9ez7qqpyq4z52329g4z52329g4z52329g4z52329g4z52329g4z52329g4z5wa8phk";
     const CODE_FEDERATION_ID: &str =
         "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a";
 
@@ -250,8 +279,14 @@ mod tests {
             .await
             .expect("dev mode should succeed");
         assert_eq!(feds.len(), 1);
-        assert_eq!(feds[0].id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
-        assert_eq!(feds[0].metadata.get("federation_name").unwrap(), "Dev Test Federation");
+        assert_eq!(
+            feds[0].id,
+            CODE_FEDERATION_ID.parse::<FederationId>().unwrap()
+        );
+        assert_eq!(
+            feds[0].metadata.get("federation_name").unwrap(),
+            "Dev Test Federation"
+        );
     }
 
     #[tokio::test]
@@ -309,4 +344,3 @@ mod tests {
         assert_eq!(arr[2]["limit"], MAX_EVENTS);
     }
 }
-

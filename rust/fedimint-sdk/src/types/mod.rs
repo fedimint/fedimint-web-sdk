@@ -21,7 +21,7 @@
 
 mod address;
 mod amount;
-mod discovery;
+pub(crate) mod discovery;
 mod ids;
 mod invite;
 mod invoice;
