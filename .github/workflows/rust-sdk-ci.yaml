@@ -49,7 +49,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: "Compare the crate's fedimint version with the flake input pins"
+      - name: "Compare the crate's fedimint version with the flake's fedimint input"
         # The SDK compiles against fedimint's crates from crates.io and the
         # flake runs devimint from fedimint's repository. If the crates'
         # version and the flake's release tag drift apart, the client under
@@ -118,43 +118,34 @@ jobs:
             || fail "$lock has a package from the fedimint git repository, $manifest requires" \
                     "crates.io releases: $git_source"
 
-          for input in fedimint fedimint-wasm; do
-            urls=$(flake_urls "$input") \
-              || fail "flake.nix input '$input' is not in the expected \`name = { ... };\` shape"
-            [ "$(printf '%s\n' "$urls" | grep -c .)" -eq 1 ] \
-              || fail "flake.nix input '$input' does not have exactly one url"
-            [ "$urls" = "github:fedimint/fedimint/v$version" ] \
-              || fail "flake.nix input '$input' has url $urls, $manifest requires" \
-                      "github:fedimint/fedimint/v$version"
-          done
+          urls=$(flake_urls fedimint) \
+            || fail "flake.nix input 'fedimint' is not in the expected \`name = { ... };\` shape"
+          [ "$(printf '%s\n' "$urls" | grep -c .)" -eq 1 ] \
+            || fail "flake.nix input 'fedimint' does not have exactly one url"
+          [ "$urls" = "github:fedimint/fedimint/v$version" ] \
+            || fail "flake.nix input 'fedimint' has url $urls, $manifest requires" \
+                    "github:fedimint/fedimint/v$version"
 
           # `original` is what flake.nix asked for, `locked` what `nix flake lock` resolved it to
           # and what Nix fetches, so the repository is checked in both.
-          declare -A locked_rev
-          for input in fedimint fedimint-wasm; do
-            node=$(jq -r --arg name "$input" '
-              .nodes[$name] // empty
-              | [.original.owner, .original.repo, .original.ref,
-                 .locked.owner, .locked.repo, .locked.rev]
-              | map(. // "-") | join(" ")' flake.lock) \
-              || fail "flake.lock could not be read"
-            [ -n "$node" ] || fail "flake.lock has no node '$input'"
-            read -r owner repo ref locked_owner locked_repo rev <<< "$node"
-            [ "$owner/$repo $ref" = "fedimint/fedimint v$version" ] \
-              || fail "flake.lock node '$input' is $owner/$repo at $ref, $manifest requires" \
-                      "fedimint/fedimint at v$version"
-            [ "$locked_owner/$locked_repo" = "fedimint/fedimint" ] \
-              || fail "flake.lock node '$input' is locked to $locked_owner/$locked_repo," \
-                      "not to fedimint/fedimint"
-            [[ $rev =~ ^[0-9a-f]{40}$ ]] \
-              || fail "flake.lock node '$input' has no 40 digit locked rev: $rev"
-            locked_rev[$input]=$rev
-          done
-          [ "${locked_rev[fedimint]}" = "${locked_rev[fedimint-wasm]}" ] \
-            || fail "flake.lock nodes disagree: fedimint is locked at ${locked_rev[fedimint]}," \
-                    "fedimint-wasm at ${locked_rev[fedimint-wasm]}"
+          node=$(jq -r '
+            .nodes.fedimint // empty
+            | [.original.owner, .original.repo, .original.ref,
+               .locked.owner, .locked.repo, .locked.rev]
+            | map(. // "-") | join(" ")' flake.lock) \
+            || fail "flake.lock could not be read"
+          [ -n "$node" ] || fail "flake.lock has no node 'fedimint'"
+          read -r owner repo ref locked_owner locked_repo rev <<< "$node"
+          [ "$owner/$repo $ref" = "fedimint/fedimint v$version" ] \
+            || fail "flake.lock node 'fedimint' is $owner/$repo at $ref, $manifest requires" \
+                    "fedimint/fedimint at v$version"
+          [ "$locked_owner/$locked_repo" = "fedimint/fedimint" ] \
+            || fail "flake.lock node 'fedimint' is locked to $locked_owner/$locked_repo," \
+                    "not to fedimint/fedimint"
+          [[ $rev =~ ^[0-9a-f]{40}$ ]] \
+            || fail "flake.lock node 'fedimint' has no 40 digit locked rev: $rev"
 
-          echo "fedimint pins agree: $version (fedimint/fedimint at ${locked_rev[fedimint]})"
+          echo "fedimint pins agree: $version (fedimint/fedimint at $rev)"
 
   test:
     name: 'Run tests'

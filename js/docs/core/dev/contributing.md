@@ -36,7 +36,7 @@ To call Rust side functions, this SDK depends on a WASM binary built from the `f
 
 If you have made changes to the Rust side (in the `fedimint` repo) and need to update the WASM binary used by this SDK:
 
-1. Point the `fedimint-wasm` input in [flake.nix](https://github.com/fedimint/fedimint-sdk/blob/main/flake.nix) at the fedimint release to build from. It has to be the release `rust/fedimint-sdk/Cargo.toml` requires, and the `fedimint` input moves with it: CI checks that the three agree.
+1. Point the `fedimint` input in [flake.nix](https://github.com/fedimint/fedimint-sdk/blob/main/flake.nix) at the fedimint release to build from. It has to be the release `rust/fedimint-sdk/Cargo.toml` requires: CI checks that the two agree.
 2. Build the WASM binary (see instructions below).
 
 ## Set up Nix

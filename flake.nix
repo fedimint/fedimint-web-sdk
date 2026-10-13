@@ -2,19 +2,14 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     fedimint = {
-      # Devimint input, at the fedimint release rust/fedimint-sdk builds against:
-      # its Cargo.toml requires every fedimint crate at exactly this version, so
-      # the client under test and the federation it is tested against come from
-      # one release. Move this input, fedimint-wasm below, and
-      # rust/fedimint-sdk/Cargo.toml together: the pins-agree job in
-      # .github/workflows/rust-sdk-ci.yaml fails the build when they drift.
-      url = "github:fedimint/fedimint/v0.13.0-beta.1";
-    };
-    fedimint-wasm = {
-      # The wasm client is built from this release; keep it in sync with the
-      # devimint input above and with rust/fedimint-sdk/Cargo.toml, so that
-      # every client in this repo and the federation they are tested against
-      # come from the same release.
+      # The fedimint release rust/fedimint-sdk builds against: its Cargo.toml
+      # requires every fedimint crate at exactly this version. Devimint and the
+      # federation it runs for the tests are built from this input, and so is
+      # the wasm client of the web packages (`wasmBundle` below), so every
+      # client in this repo and the federation it is tested against come from
+      # one release. Move this input and rust/fedimint-sdk/Cargo.toml together:
+      # the pins-agree job in .github/workflows/rust-sdk-ci.yaml fails the
+      # build when they drift.
       url = "github:fedimint/fedimint/v0.13.0-beta.1";
     };
     nixpkgs-playwright = {
@@ -54,7 +49,6 @@
       self,
       flake-utils,
       fedimint,
-      fedimint-wasm,
       nixpkgs,
       nixpkgs-playwright,
       fenix,
@@ -599,7 +593,7 @@
               ;
           }
           // {
-            wasmBundle = fedimint-wasm.packages.${system}.wasmBundle;
+            wasmBundle = fedimint.packages.${system}.wasmBundle;
             # The wasm2 binding generator and the wasm-bindgen version it shells out to.
             # See nix/web-bindgen.nix.
             ubrn = webBindgen.ubrn;

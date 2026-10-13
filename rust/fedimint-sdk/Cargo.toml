@@ -39,11 +39,11 @@ uniffi = ["dep:uniffi", "dep:async-compat", "dep:uniffi-runtime-wasm"]
 [dependencies]
 # Every fedimint crate below is required at one exact version, the same for
 # all of them: fedimint's crates require each other with `=`, so they only
-# resolve as a set. The repo's flake.nix pins its `fedimint` and
-# `fedimint-wasm` inputs to the release tag of that version: the client under
-# test and the federation the tests run it against have to come from the same
-# release. Bump the version here and both inputs together; the `pins-agree`
-# job in .github/workflows/rust-sdk-ci.yaml fails the build when they drift.
+# resolve as a set. The repo's flake.nix pins its `fedimint` input to the
+# release tag of that version: the client under test and the federation the
+# tests run it against have to come from the same release. Bump the version
+# here and that input together; the `pins-agree` job in
+# .github/workflows/rust-sdk-ci.yaml fails the build when they drift.
 #
 # No foreign error-type crate may ever appear here: the public error surface
 # is crate-owned, and fedimint's own typed errors (fedimint/fedimint#8821) are
