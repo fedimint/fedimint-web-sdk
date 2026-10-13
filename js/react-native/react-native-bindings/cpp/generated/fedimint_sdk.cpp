@@ -133,6 +133,10 @@ RustBuffer uniffi_fedimint_sdk_fn_method_error_details(
     /*handle*/ uint64_t ptr, RustCallStatus *uniffi_out_err);
 RustBuffer uniffi_fedimint_sdk_fn_method_error_reason(
     /*handle*/ uint64_t ptr, RustCallStatus *uniffi_out_err);
+RustBuffer uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug(
+    /*handle*/ uint64_t ptr, RustCallStatus *uniffi_out_err);
+RustBuffer uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display(
+    /*handle*/ uint64_t ptr, RustCallStatus *uniffi_out_err);
 /*handle*/ uint64_t uniffi_fedimint_sdk_fn_clone_balanceupdates(
     /*handle*/ uint64_t handle, RustCallStatus *uniffi_out_err);
 void uniffi_fedimint_sdk_fn_free_balanceupdates(
@@ -2354,6 +2358,32 @@ NativeFedimintSdk::NativeFedimintSdk(
                  const jsi::Value *args, size_t count) -> jsi::Value {
             return this->cpp_uniffi_fedimint_sdk_fn_method_error_reason(
                 rt, thisVal, args, count);
+          });
+  props["ubrn_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug"] =
+      jsi::Function::createFromHostFunction(
+          rt,
+          jsi::PropNameID::forAscii(
+              rt,
+              "ubrn_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug"),
+          1,
+          [this](jsi::Runtime &rt, const jsi::Value &thisVal,
+                 const jsi::Value *args, size_t count) -> jsi::Value {
+            return this
+                ->cpp_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug(
+                    rt, thisVal, args, count);
+          });
+  props["ubrn_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display"] =
+      jsi::Function::createFromHostFunction(
+          rt,
+          jsi::PropNameID::forAscii(
+              rt,
+              "ubrn_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display"),
+          1,
+          [this](jsi::Runtime &rt, const jsi::Value &thisVal,
+                 const jsi::Value *args, size_t count) -> jsi::Value {
+            return this
+                ->cpp_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display(
+                    rt, thisVal, args, count);
           });
   props["ubrn_uniffi_fedimint_sdk_fn_clone_balanceupdates"] =
       jsi::Function::createFromHostFunction(
@@ -7730,6 +7760,38 @@ jsi::Value NativeFedimintSdk::cpp_uniffi_fedimint_sdk_fn_method_error_reason(
   RustCallStatus status =
       uniffi::fedimint_sdk::Bridging<RustCallStatus>::rustSuccess(rt);
   auto value = uniffi_fedimint_sdk_fn_method_error_reason(
+      uniffi_jsi::Bridging</*handle*/ uint64_t>::fromJs(rt, callInvoker,
+                                                        args[0]),
+      &status);
+  uniffi::fedimint_sdk::Bridging<RustCallStatus>::copyIntoJs(
+      rt, callInvoker, status, args[count - 1]);
+
+  return uniffi::fedimint_sdk::Bridging<RustBuffer>::toJs(rt, callInvoker,
+                                                          value);
+}
+jsi::Value
+NativeFedimintSdk::cpp_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug(
+    jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
+    size_t count) {
+  RustCallStatus status =
+      uniffi::fedimint_sdk::Bridging<RustCallStatus>::rustSuccess(rt);
+  auto value = uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug(
+      uniffi_jsi::Bridging</*handle*/ uint64_t>::fromJs(rt, callInvoker,
+                                                        args[0]),
+      &status);
+  uniffi::fedimint_sdk::Bridging<RustCallStatus>::copyIntoJs(
+      rt, callInvoker, status, args[count - 1]);
+
+  return uniffi::fedimint_sdk::Bridging<RustBuffer>::toJs(rt, callInvoker,
+                                                          value);
+}
+jsi::Value
+NativeFedimintSdk::cpp_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display(
+    jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
+    size_t count) {
+  RustCallStatus status =
+      uniffi::fedimint_sdk::Bridging<RustCallStatus>::rustSuccess(rt);
+  auto value = uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display(
       uniffi_jsi::Bridging</*handle*/ uint64_t>::fromJs(rt, callInvoker,
                                                         args[0]),
       &status);

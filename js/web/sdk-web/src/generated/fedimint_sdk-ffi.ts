@@ -870,6 +870,16 @@ const DEFINITIONS = {
       ret: FfiType.RustBuffer,
       hasRustCallStatus: true,
     },
+    uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug: {
+      args: [FfiType.Handle],
+      ret: FfiType.RustBuffer,
+      hasRustCallStatus: true,
+    },
+    uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display: {
+      args: [FfiType.Handle],
+      ret: FfiType.RustBuffer,
+      hasRustCallStatus: true,
+    },
     uniffi_fedimint_sdk_fn_method_federation_activity: {
       args: [FfiType.Handle, FfiType.RustBuffer, FfiType.UInt16],
       ret: FfiType.Handle,
@@ -2201,6 +2211,14 @@ interface NativeModuleInterface {
     uniffi_out_err: UniffiRustCallStatus,
   ): Uint8Array
   uniffi_fedimint_sdk_fn_method_error_reason(
+    uniffiSelf: bigint,
+    uniffi_out_err: UniffiRustCallStatus,
+  ): Uint8Array
+  uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug(
+    uniffiSelf: bigint,
+    uniffi_out_err: UniffiRustCallStatus,
+  ): Uint8Array
+  uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display(
     uniffiSelf: bigint,
     uniffi_out_err: UniffiRustCallStatus,
   ): Uint8Array
