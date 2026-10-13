@@ -73,7 +73,16 @@ pub struct DiscoveredFederation {
     pub metadata: BTreeMap<String, String>,
 }
 
+impl DiscoveredFederation {
+    /// Returns the hardcoded test federation for dev/offline mode.
+    pub fn dev() -> Self {
+        dev_federation()
+    }
+}
+
 /// Returns the hardcoded test federation for dev/offline mode.
+///
+/// See [`DiscoveredFederation::dev`].
 pub fn dev_federation() -> DiscoveredFederation {
     let id: FederationId = "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
         .parse()
@@ -382,6 +391,7 @@ mod tests {
     #[test]
     fn test_dev_federation_fixture() {
         let dev = dev_federation();
+        assert_eq!(dev, DiscoveredFederation::dev());
         assert_eq!(dev.id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
         assert_eq!(dev.invite, CODE.parse::<InviteCode>().unwrap());
         assert_eq!(
