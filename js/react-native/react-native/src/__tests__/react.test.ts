@@ -69,9 +69,20 @@ function renderBalance(
 }
 
 describe('useBalance', () => {
-  it('is undefined without a federation and opens nothing', () => {
+  it('is undefined without a federation', () => {
     const { seen } = renderBalance(undefined)
     expect(seen).toEqual([undefined])
+  })
+
+  it('stops and opens nothing new when the federation goes away', async () => {
+    const c = cursor<bigint>()
+    const fed = federation('fed-a', c)
+    const { seen, rerender } = renderBalance(fed)
+    await c.push(1_000n)
+    rerender(undefined)
+    expect(c.signals[0]?.aborted).toBe(true)
+    expect(fed.balanceUpdates).toHaveBeenCalledTimes(1)
+    expect(seen.at(-1)).toBeUndefined()
   })
 
   it('renders each balance the cursor yields', async () => {
