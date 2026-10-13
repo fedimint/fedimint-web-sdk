@@ -1,5 +1,5 @@
 <resources>
-    <!-- One card per SDK action, the way js/examples/vite-core lays out its sections. -->
+    <!-- One card per SDK action. -->
     <style name="Section">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

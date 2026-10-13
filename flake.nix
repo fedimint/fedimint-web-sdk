@@ -4,12 +4,11 @@
     fedimint = {
       # The fedimint release rust/fedimint-sdk builds against: its Cargo.toml
       # requires every fedimint crate at exactly this version. Devimint and the
-      # federation it runs for the tests are built from this input, and so is
-      # the wasm client of the web packages (`wasmBundle` below), so every
-      # client in this repo and the federation it is tested against come from
-      # one release. Move this input and rust/fedimint-sdk/Cargo.toml together:
-      # the pins-agree job in .github/workflows/rust-sdk-ci.yaml fails the
-      # build when they drift.
+      # federation it runs for the tests are built from this input, so the SDK
+      # and the federation it is tested against come from one release. Move
+      # this input and rust/fedimint-sdk/Cargo.toml together: the pins-agree
+      # job in .github/workflows/rust-sdk-ci.yaml fails the build when they
+      # drift.
       url = "github:fedimint/fedimint/v0.13.0-beta.1";
     };
     nixpkgs-playwright = {
@@ -593,7 +592,6 @@
               ;
           }
           // {
-            wasmBundle = fedimint.packages.${system}.wasmBundle;
             # The wasm2 binding generator and the wasm-bindgen version it shells out to.
             # See nix/web-bindgen.nix.
             ubrn = webBindgen.ubrn;

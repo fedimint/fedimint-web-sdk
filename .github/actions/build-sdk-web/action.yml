@@ -13,7 +13,9 @@ runs:
       run: nix build -L .#fedimint-sdk-wasm -o sdk-wasm
 
     - name: Push the module to Cachix
-      # See build-wasm/action.yml for why this is explicit.
+      # cachix-action's post-run hook only pushes paths this job built, so on a runner with a
+      # persistent /nix/store a module that was already there is never pushed and its cache
+      # entry can expire. Push it explicitly.
       shell: bash
       continue-on-error: true
       run: readlink -f sdk-wasm | cachix push fedimint

@@ -8,8 +8,8 @@
 #
 # Only the module set lives here, so that every harness that stands up devimint agrees on what a
 # shape means: scripts/devimint-shape.sh adds the Rust harness's own settings on top (a single
-# guardian, no Iroh), while scripts/setup_test_shell.sh (the wasm and Android suites) keeps
-# devimint's defaults for everything else.
+# guardian, no Iroh), while scripts/setup_test_shell.sh (the browser package's tests and the
+# Android suite) keeps devimint's defaults for everything else.
 
 shape="${1:-v1}"
 

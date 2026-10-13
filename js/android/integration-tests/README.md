@@ -7,12 +7,16 @@ against the example app in [`android/app`](../../../android).
 every export of `rust/fedimint-sdk`'s `uniffi` feature through the generated Kotlin bindings
 — it has no product surface of its own. What these tests add over `android-sdk.yaml`, which
 compiles the same app, is a running device: the bindings are loaded, the native `.so` is
-mapped, and the calls actually execute. Tests here are organized by SDK capability, mirroring
-the naming in `js/web/integration-tests/src/services/*.test.ts` (the WASM/browser
-equivalent), not by UI flow.
+mapped, and the calls actually execute. Tests here are organized by SDK capability (one
+`src/services/<Name>Service.test.ts` each), not by UI flow.
 
-Why Appium and not Detox/Maestro: see the "Android E2E (Appium)" section of
-[`docs/core/dev/testing.md`](../../docs/core/dev/testing.md).
+**Why Appium and not Espresso/Maestro:** Espresso runs inside the app process and is Android
+only, so a test written against it can never be reused for another platform this SDK is
+driven from. Appium/UiAutomator2 drives the Android accessibility tree from outside the app,
+the same way regardless of what produced the view, and covers iOS under the same tool if that
+is ever revisited. Maestro is a legitimate lighter alternative (less boilerplate, YAML flows)
+but has less programmatic flexibility for the state/fixture logic this harness uses, and a
+smaller ecosystem. iOS is out of scope for this suite.
 
 ## Running
 
@@ -99,7 +103,7 @@ The federation runs one generation of the mint, wallet and lightning modules. `F
 picks it, and `scripts/setup_test_shell.sh` turns it into the `FM_ENABLE_MODULE_*` flags devimint
 starts fedimintd with (through `scripts/devimint-modules.sh`, which the Rust integration tests'
 `scripts/devimint-shape.sh` shares, so a shape means the same modules everywhere). It defaults to
-`v1`, which is what the wasm suite runs through the same script.
+`v1`, which is what the browser package's tests (`js/web/sdk-web`) run through the same script.
 
 | shape   | modules                      | Android E2E | CI (`android-e2e.yml` matrix) |
 | ------- | ---------------------------- | ----------- | ----------------------------- |
@@ -183,12 +187,12 @@ federation, and a matrix of devices or API levels (CI runs one `android-34` emul
 
 ## The federation
 
-`scripts/setup_test_shell.sh` is the same entry point the wasm suite uses
-(`js/package.json`'s `test:setup`): it execs the run inside
-`devimint wasm-test-setup`, which stands up bitcoind, four guardians and two
-gateways, and exports their ports. Tests reach the faucet through
-`src/faucet/FaucetClient.ts` over `FAUCET`, exactly as
-`js/web/integration-tests/src/test/TestingService.ts` does.
+`scripts/setup_test_shell.sh` is the same entry point the browser
+package's tests (`js/web/sdk-web`) run through (`js/package.json`'s
+`test:setup`): it execs the run inside `devimint wasm-test-setup`, which
+stands up bitcoind, four guardians and two gateways, and exports their
+ports. Tests reach the faucet through `src/faucet/FaucetClient.ts` over
+`FAUCET`.
 
 The app reaching that federation is the part with a twist. devimint binds
 everything to `127.0.0.1` on the host and the invite code carries those URLs

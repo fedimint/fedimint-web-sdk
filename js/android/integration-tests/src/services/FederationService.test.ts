@@ -8,9 +8,7 @@ import { currentShape, EXPECTED_MODULES, Shape } from '../shape'
 
 // The first test that needs a federation: the join itself happens in the
 // `joinedFederation` fixture, and this asserts what the SDK reports about the
-// federation it joined. The devimint counterpart of the wasm suite's
-// FederationService/BalanceService tests, which likewise assert the join
-// succeeded and that a fresh wallet holds nothing.
+// federation it joined, and that a fresh wallet holds nothing.
 //
 // Only reachable under devimint — see the fixture.
 export class FederationService extends AppiumTestBase {
@@ -46,8 +44,7 @@ export class FederationService extends AppiumTestBase {
 
     await this.assertModuleKinds(currentShape())
 
-    // A freshly joined wallet holds nothing, the same thing the wasm suite's
-    // BalanceService asserts first.
+    // A freshly joined wallet holds nothing.
     const balance = await readBalanceMsats(this)
     if (balance !== 0) {
       throw new Error(`Expected an empty wallet, got ${balance} msat`)

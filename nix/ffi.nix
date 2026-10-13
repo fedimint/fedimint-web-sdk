@@ -24,8 +24,7 @@
 # scripts/generate-android-bindings.sh being the one that exists today.
 #
 # Ported from the fedimint-sdk-ffi repo's flake.nix (rev 6873aa3); the crane +
-# flakebox cross-compile scaffold is unchanged, retargeted from
-# fedimint-client-uniffi to fedimint-sdk.
+# flakebox cross-compile scaffold is unchanged, retargeted to fedimint-sdk.
 {
   system,
   nixpkgs,

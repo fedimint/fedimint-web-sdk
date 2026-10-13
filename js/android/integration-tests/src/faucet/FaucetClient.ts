@@ -1,9 +1,8 @@
-// Node-side port of js/web/integration-tests/src/test/TestingService.ts's
-// faucet HTTP calls — that version reads `import.meta.env.FAUCET` (Vite-only),
-// this one reads `process.env.FAUCET` since the Appium runner is a plain
-// ts-node CLI process. Same devimint faucet API underneath
-// (see scripts/setup_test_shell.sh), so any test here can join the same
-// local regtest federation the WASM integration tests use.
+// HTTP calls to devimint's faucet from Node. The URL comes from
+// `process.env.FAUCET` since the Appium runner is a plain ts-node CLI
+// process. The faucet belongs to the local regtest federation that
+// scripts/setup_test_shell.sh stands up, so any test here can join that
+// federation.
 //
 export class FaucetClient {
   private readonly baseUrl: string

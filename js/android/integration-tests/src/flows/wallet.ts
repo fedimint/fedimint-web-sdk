@@ -9,8 +9,7 @@ import {
 import { FaucetClient } from '../faucet/FaucetClient'
 
 // Shared ways of driving the example app, used by both fixtures and tests so the
-// two can never disagree about what "funded" means. The wasm suite keeps the
-// same thing in TestFedimintWallet (`fundWallet`).
+// two can never disagree about what "funded" means.
 
 /**
  * Reads the balance line as millisatoshis.
@@ -228,8 +227,7 @@ export async function waitForBalanceAbove(
  * The funding path, end to end: the app issues an invoice, the devimint
  * faucet pays it, and the balance rises.
  *
- * Mirrors the wasm suite's `fundWallet`, with the app standing in for direct
- * SDK calls. Returns the balance once the receive has settled.
+ * Returns the balance once the receive has settled.
  */
 export async function receiveOverLightning(
   t: AppiumTestBase,
@@ -276,11 +274,9 @@ export async function receiveOverLightning(
  * to pick the LDK gateway, the faucet would be paying an invoice its own node
  * issued, which lightning does not do.
  *
- * The wasm suite sidesteps this by naming the gateway when it creates the
- * invoice (`createInvoice(..., info)` with the faucet's advertised LND
- * gateway). An app driven through its UI cannot, so pay from the other node
- * instead: devimint exports a ready-made `lncli` invocation, and exactly one
- * of the two payers is never the issuer.
+ * The app cannot name a gateway when it creates the invoice, so pay from the
+ * other node instead: devimint exports a ready-made `lncli` invocation, and
+ * exactly one of the two payers is never the issuer.
  */
 export async function payFromOutside(invoice: string): Promise<void> {
   try {

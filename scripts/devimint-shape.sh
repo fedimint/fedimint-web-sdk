@@ -21,6 +21,6 @@ export FM_IROH_NEXT_ENABLE=false
 
 # One guardian rather than devimint's default of four (devimint/src/cli.rs:53).
 # DKG and every per-guardian admin call scale with this, and upstream runs
-# `devimint -n 1` for its own CLI tests. Override to 4 to match the JS suite's
-# federation.
+# `devimint -n 1` for its own CLI tests. Override to 4 to match the federation
+# the browser package's tests run against.
 export FM_FED_SIZE="${FM_FED_SIZE:-1}"

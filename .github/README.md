@@ -1,88 +1,74 @@
 <p align="center">
-  <img src="../js/docs/public/icon.png" alt="Fedimint Logo" width="300" />
+  <img src="icon.png" alt="Fedimint Logo" width="300" />
   <!-- Removes the border below the header tag -->
   <div id="toc"><ul align="center" style="list-style: none;"><summary>
     <h1><b>Fedimint Sdk</b></h1>
-    <p>A Robust, privacy-focused, and WebAssembly-powered fedimint client for the browser.</p>
+    <p>One Rust SDK for wallets and apps on Fedimint, and the Kotlin, Swift, React Native and browser SDKs generated from it.</p>
   </summary></ul></div>
 
   <p align="center">
     <a href="https://github.com/fedimint/fedimint-sdk/blob/main/LICENSE"><img src="https://img.shields.io/github/license/fedimint/fedimint-sdk?style=plastic&color=blue" alt="GitHub License" /></a>
-    <a href="https://github.com/fedimint/fedimint-sdk/actions"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-sdk/.github%2Fworkflows%2Fchangesets.yml?style=plastic&label=CI&color=green" alt="Build Status" /></a>
-    <a href="https://sdk.fedimint.org"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-sdk/deploy-docs.yml?style=plastic&label=Docs%20Site&color=%2303b1fc" alt="Docs Workflow" /></a>
+    <a href="https://github.com/fedimint/fedimint-sdk/actions/workflows/pull-request.yml"><img src="https://img.shields.io/github/actions/workflow/status/fedimint/fedimint-sdk/pull-request.yml?branch=main&style=plastic&label=CI&color=green" alt="Build Status" /></a>
     <a href="https://deepwiki.com/fedimint/fedimint-sdk"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
   </p>
-  
-  <!-- Removes the border below the header tag -->
-  <div id="toc"><ul align="center" style="list-style: none;"><summary>
-    <h2>
-        Docs Site: <a href="https://sdk.fedimint.org">sdk.fedimint.org</a>
-    </h2>
-  </summary></ul></div>
 
-## Packages 📦
+## Components 📦
 
-### Public packages
+[`fedimint-sdk`](../rust/fedimint-sdk) is a Rust crate: one API for wallets and apps to join
+federations, hold ecash, and send and receive over Lightning and on-chain. The SDKs for the other
+languages are generated from it with [UniFFI](https://mozilla.github.io/uniffi-rs/), so each of
+them is a view of that API and not a copy of it.
 
-| Package                                                                            | Version                                                                                                                                                                         | Description                                                                                      |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| [`@fedimint/core`](https://www.npmjs.com/package/@fedimint/core)                   | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Fcore?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fcore>)                   | Core Fedimint client for JavaScript runtimes (Wasm bindings, high-level API, testing utilities). |
-| [`@fedimint/react`](https://www.npmjs.com/package/@fedimint/react)                 | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Freact?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Freact>)                 | React hooks and context for working with Fedimint clients in React applications.                 |
-| [`@fedimint/transport-web`](https://www.npmjs.com/package/@fedimint/transport-web) | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ftransport-web?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Ftransport-web>) | Web worker transport that hosts the Wasm client and communicates with `@fedimint/core`.          |
-| [`create-fedimint-app`](https://www.npmjs.com/package/create-fedimint-app)         | ![NPM Version (latest)](<https://img.shields.io/npm/v/create-fedimint-app?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=create-fedimint-app>)                 | CLI tool for scaffolding a Fedimint starter app with Vite, React, and TypeScript.                |
+| Component            | Source                                      | Published as                                                                                                                                                                                   |
+| -------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rust SDK             | [`rust/fedimint-sdk`](../rust/fedimint-sdk) | Not published yet                                                                                                                                                                              |
+| Android SDK (Kotlin) | [`android`](../android)                     | [`org.fedimint:sdk`](https://central.sonatype.com/artifact/org.fedimint/sdk) on Maven Central                                                                                                  |
+| iOS SDK (Swift)      | [`ios`](../ios)                             | Not published yet                                                                                                                                                                              |
+| React Native         | [`js/react-native`](../js/react-native)     | [`@fedimint/react-native`](https://www.npmjs.com/package/@fedimint/react-native) and [`@fedimint/react-native-bindings`](https://www.npmjs.com/package/@fedimint/react-native-bindings) on npm |
+| Browser SDK          | [`js/web/sdk-web`](../js/web/sdk-web)       | Not published yet                                                                                                                                                                              |
 
-### Internal & legacy
-
-| Package                                                                               | Version                                                                                                                                                                                                       | Description                                                                                                                 |
-| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| [`@fedimint/core-web`](https://www.npmjs.com/package/@fedimint/core-web) (deprecated) | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Fcore-web?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Fcore-web>)                                         | Legacy shim that re-exports `@fedimint/core`; new projects should depend on `@fedimint/core` directly.                      |
-| [`@fedimint/fedimint-client-wasm-web`](../js/web/wasm-web/README.md)                  | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ffedimint-client-wasm-web?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Ffedimint-client-wasm-web>)         | Not intended for direct use. Wasm-pack build targeting web environments; consumed by `@fedimint/transport-web`.             |
-| [`@fedimint/fedimint-client-wasm-bundler`](../js/web/wasm-bundler/README.md)          | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ffedimint-client-wasm-bundler?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Ffedimint-client-wasm-bundler>) | Not intended for direct use. Wasm-pack build targeting bundler environments; used when bundling custom transports or hosts. |
-| [`@fedimint/types`](https://www.npmjs.com/package/@fedimint/types)                    | ![NPM Version (latest)](<https://img.shields.io/npm/v/%40fedimint%2Ftypes?style=plastic&logo=npm&logoColor=rgb(187%2C%2054%2C%2057)&label=%40fedimint%2Ftypes>)                                               | Shared TypeScript interfaces for transports and other Fedimint client implementations.                                      |
-| [`@fedimint/integration-tests`](../js/web/integration-tests/README.md) (private)      | —                                                                                                                                                                                                             | Internal Vitest harness for exercising the SDK against embedded nodes.                                                      |
+The README in each of these directories has the details for its component.
 
 ## Structure 🛠️
 
-This monorepo is structured as a pnpm workspace rooted at `js/`, alongside the Rust crates in `rust/`. There are some helpful scripts in `js/package.json` to help manage the workspace.
+The Rust crates are in `rust/`, the Android and iOS SDKs in `android/` and `ios/`, and the
+JavaScript packages in a pnpm workspace rooted at `js/`.
 
 ```bash
 fedimint-sdk
-├── js
-│   ├── docs
-│   ├── examples
-│   │   ├── vite-core
-│   │   ├── bare-js
-│   │   ├── next-js
-│   │   └── webpack-app
-│   ├── shared
-│   │   ├── core
-│   │   └── types
-│   ├── web
-│   │   ├── core-web
-│   │   ├── integration-tests
-│   │   ├── react
-│   │   ├── transport-web
-│   │   ├── wasm-bundler
-│   │   └── wasm-web
-│   ├── react-native
-│   │   ├── react-native
-│   │   └── react-native-bindings
-│   └── tools
-│       └── create-fedimint-app
 ├── rust
 │   ├── fedimint-sdk
 │   ├── ubrn
 │   └── uniffi-bindgen
+├── android
+├── ios
+├── js
+│   ├── android
+│   │   └── integration-tests
+│   ├── examples
+│   │   ├── expo-app
+│   │   └── react-native
+│   ├── react-native
+│   │   ├── react-native
+│   │   └── react-native-bindings
+│   └── web
+│       └── sdk-web
 ├── nix
 └── scripts
 ```
 
 ### Examples
 
-- [`vite-core`](../js/examples/vite-core/README.md): React + Vite starter focused on `@fedimint/core` primitives.
-- [`next-js`](../js/examples/next-js/README.md): Example configuration for a Next.js application.
-- [`webpack-app`](../js/examples/webpack-app/README.md): Demonstrates configuring webpack for Fedimint applications.
-- [`bare-js`](../js/examples/bare-js/README.md): Minimal usage of `@fedimint/core` without a bundler.
+- [`rust/fedimint-sdk/examples`](../rust/fedimint-sdk/examples): command-line programs that send
+  and receive ecash, Lightning and on-chain payments.
+- [`android/app`](../android/app): an Android app that calls the SDK through the Kotlin bindings.
+- [`ios/Demo`](../ios/Demo): the same app for iOS, in SwiftUI.
+- [`react-native`](../js/examples/react-native/README.md) and
+  [`expo-app`](../js/examples/expo-app/README.md): React Native apps, without and with Expo.
+
+### Contributing
+
+See the [contributing guide](CONTRIBUTING.md).
 
 ### Developer Calls
 
@@ -97,3 +83,11 @@ Used the [wagmi](https://github.com/wevm/wagmi) library as a reference for the r
 > [!NOTE]
 > In October 2025, this repository was renamed from "Fedimint Web Sdk" to "Fedimint Sdk" as the react-native packages were added.
 > See the [discussion topic](https://github.com/fedimint/fedimint-sdk/discussions/190) for details.
+
+> [!NOTE]
+> The TypeScript SDK that this repository published to npm is no longer developed, and no further
+> versions of it are released: `@fedimint/core`, `@fedimint/core-web`, `@fedimint/react`,
+> `@fedimint/transport-web`, `@fedimint/types`, `@fedimint/fedimint-client-wasm-bundler`,
+> `@fedimint/fedimint-client-wasm-web` and `create-fedimint-app`. Its source is in this
+> repository's history, for example at commit
+> [`e4c7c59`](https://github.com/fedimint/fedimint-sdk/tree/e4c7c59b526aa2cb6e85854efeeb44f6ceddf6b7/js).
