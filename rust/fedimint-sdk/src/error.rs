@@ -52,7 +52,14 @@ use crate::{Amount, Network, Timestamp};
 // `code()` / `reason()` (exported from `ffi/error.rs`) rather than the fields,
 // which stay `pub` for in-crate use and are invisible over FFI. The Kotlin backend maps the name to
 // `Exception` (it does that to every `*Error`); a binding imports it aliased.
+//
+// `Debug` and `Display` are exported too, so the foreign object reads as more than its class
+// name. `Display` (`QuoteExpired: <reason>`) becomes `toString()` in Kotlin and TypeScript and
+// `description` in Swift. `Debug` becomes `toDebugString()` in TypeScript, which is what the
+// thrown wrapper's `message` is built from, so an uncaught failure logs its code and reason.
+// Neither string shows anything `code()`, `reason()` and `details()` do not already return.
 #[cfg_attr(feature = "uniffi", derive(uniffi::Object))]
+#[cfg_attr(feature = "uniffi", uniffi::export(Debug, Display))]
 #[non_exhaustive]
 pub struct Error {
     /// Stable, machine-readable failure category. Safe to match on, and the
