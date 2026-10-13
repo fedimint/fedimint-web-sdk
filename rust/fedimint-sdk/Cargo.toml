@@ -1,12 +1,16 @@
 [package]
 name = "fedimint-sdk"
-version = "0.1.0-alpha.1"
+version = "0.1.0-beta.1"
 edition = "2024"
 license = "MIT"
 authors = ["The Fedimint Developers"]
 description = "High-level Fedimint client SDK: one ergonomic API over fedimint-client, and the single surface every binding generates from"
 repository = "https://github.com/fedimint/fedimint-sdk"
-publish = false   # flip when the name is reserved and the API settles
+homepage = "https://fedimint.org"
+keywords = ["bitcoin", "lightning", "e-cash", "fedimint", "wallet"]
+categories = ["cryptography::cryptocurrencies"]
+# What a build of the published crate does not need.
+exclude = ["/AGENTS.md"]
 
 [lib]
 # `cdylib` is the shared library a mobile host loads, and the file
@@ -33,14 +37,13 @@ crate-type = ["lib", "cdylib", "staticlib"]
 uniffi = ["dep:uniffi", "dep:async-compat", "dep:uniffi-runtime-wasm"]
 
 [dependencies]
-# The SDK tracks fedimint `master`, not a published release. Every fedimint
-# crate below is a git dependency pinned to one revision, and that revision
-# must equal the one the repo's flake.nix pins for its `fedimint` and
-# `fedimint-wasm` inputs: the client under test and the federation the tests
-# run it against have to come from the same commit. Bump all three together;
-# the `pins-agree` job in .github/workflows/rust-sdk-ci.yaml fails the build
-# when they drift. Git dependencies also mean this crate cannot go to
-# crates.io, which is what `publish = false` above already says.
+# Every fedimint crate below is required at one exact version, the same for
+# all of them: fedimint's crates require each other with `=`, so they only
+# resolve as a set. The repo's flake.nix pins its `fedimint` input to the
+# release tag of that version: the client under test and the federation the
+# tests run it against have to come from the same release. Bump the version
+# here and that input together; the `pins-agree` job in
+# .github/workflows/rust-sdk-ci.yaml fails the build when they drift.
 #
 # No foreign error-type crate may ever appear here: the public error surface
 # is crate-owned, and fedimint's own typed errors (fedimint/fedimint#8821) are
@@ -48,43 +51,43 @@ uniffi = ["dep:uniffi", "dep:async-compat", "dep:uniffi-runtime-wasm"]
 
 # Named only for `FederationError`: a module reports a failed federation request to the client
 # boxed inside its own error, and telling that apart from the module's other failures means
-# naming the type. Already resolved at the identical revision as a dependency of
+# naming the type. Already resolved at the identical version as a dependency of
 # `fedimint-client`.
-fedimint-api-client = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-bip39 = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-client = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-client-module = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-connectors = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-core = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
+fedimint-api-client = "=0.13.0-beta.1"
+fedimint-bip39 = "=0.13.0-beta.1"
+fedimint-client = "=0.13.0-beta.1"
+fedimint-client-module = "=0.13.0-beta.1"
+fedimint-connectors = "=0.13.0-beta.1"
+fedimint-core = "=0.13.0-beta.1"
 # `EventLogId` and the client's `get_event_log`/`log_event_added_rx` read positions in it, needed
 # to scan for a walletv2 deposit's `ReceivePaymentEvent`; nothing already listed here re-exports
 # it (`fedimint-client` only re-exports `EventHandlerError` from this crate).
-fedimint-eventlog = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-ln-client = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-ln-common = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-lnv2-client = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-lnv2-common = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-meta-client = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-meta-common = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-mint-client = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
+fedimint-eventlog = "=0.13.0-beta.1"
+fedimint-ln-client = "=0.13.0-beta.1"
+fedimint-ln-common = "=0.13.0-beta.1"
+fedimint-lnv2-client = "=0.13.0-beta.1"
+fedimint-lnv2-common = "=0.13.0-beta.1"
+fedimint-meta-client = "=0.13.0-beta.1"
+fedimint-meta-common = "=0.13.0-beta.1"
+fedimint-mint-client = "=0.13.0-beta.1"
 # `MintClientModule` keeps its `MintClientConfig` (and the `FeeConsensus`/denomination
 # rounding on it) private, and re-exports nothing that names the type from
 # `fedimint-mint-client` itself, so reading the fee schedule at all means naming
 # `MintClientConfig` at its own defining crate. Already resolved at the identical
-# revision as a transitive dependency of `fedimint-mint-client`; this only makes it
+# version as a transitive dependency of `fedimint-mint-client`; this only makes it
 # directly nameable, it does not change what's compiled.
-fedimint-mint-common = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-mintv2-client = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
+fedimint-mint-common = "=0.13.0-beta.1"
+fedimint-mintv2-client = "=0.13.0-beta.1"
 # Named directly for the same reason as `fedimint-mint-common` above: a claim transaction's
 # output amount is read off the concrete `mintv2_common::MintOutput` the client's own state
 # store holds, and `MintClientConfig::fee_consensus` is only nameable through this crate.
-# Already resolved at the identical revision as a transitive dependency of
+# Already resolved at the identical version as a transitive dependency of
 # `fedimint-mintv2-client`.
-fedimint-mintv2-common = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-wallet-client = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-wallet-common = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-walletv2-client = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
-fedimint-walletv2-common = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
+fedimint-mintv2-common = "=0.13.0-beta.1"
+fedimint-wallet-client = "=0.13.0-beta.1"
+fedimint-wallet-common = "=0.13.0-beta.1"
+fedimint-walletv2-client = "=0.13.0-beta.1"
+fedimint-walletv2-common = "=0.13.0-beta.1"
 
 # `bip39` is named directly only to switch its `zeroize` feature on, which
 # `fedimint-bip39` does not: features are unioned, so this is the same single
@@ -132,7 +135,7 @@ async-trait = "0.1.92"
 # lock: this one is the SDK's single-opener claim, and it has to give up after a
 # bounded retry on contention rather than block. See src/storage.rs.
 fd-lock = "4"
-fedimint-rocksdb = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
+fedimint-rocksdb = "=0.13.0-beta.1"
 tokio = { version = "1.48.0", features = [
     "rt",
     "rt-multi-thread",
@@ -189,7 +192,7 @@ uniffi = { version = "0.32.0", optional = true, features = ["wasm-unstable-singl
 # Exports `__ubrn_alloc`/`__ubrn_free` and the panic hook the wasm player installs before any
 # SDK code runs. Nothing here calls it, so `src/lib.rs` force-links it with `extern crate`.
 uniffi-runtime-wasm = { version = "0.31.0-6", optional = true }
-fedimint-cursed-redb = { git = "https://github.com/fedimint/fedimint", rev = "1d3758c3fe3758207671a2d8af1fb564682e2392" }
+fedimint-cursed-redb = "=0.13.0-beta.1"
 js-sys = "0.3.83"
 # `macros` is not about tests here: `tokio::select!` lives behind it, and both
 # subscription types select a stream against a shutdown watch on every target.

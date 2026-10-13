@@ -50,7 +50,7 @@ override.
   system, which the browser grants to one tab, worker or iframe at a time. A refused handle is
   reported as `StorageInUse`.
 - The handle lives inside the store, but the store does not close it when dropped:
-  `fedimint-cursed-redb` at the pinned revision never closes it. It is released when the worker
+  `fedimint-cursed-redb` at the pinned version never closes it. It is released when the worker
   that opened it ends. The web package hosts the SDK in a dedicated worker and terminates that
   worker on `close()`, which is what hands a location back in a browser.
 
