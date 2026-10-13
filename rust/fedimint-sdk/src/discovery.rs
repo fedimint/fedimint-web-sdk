@@ -64,8 +64,11 @@ async fn fetch_from_nostr(relays: Vec<String>) -> Result<Vec<DiscoveredFederatio
 /// The Nostr subscription identifier sent to relays.
 const SUB_ID: &str = "fedimint_discovery";
 
+/// The maximum number of events to request from a relay or accept in one query.
+const MAX_EVENTS: usize = 100;
+
 fn make_req_message() -> String {
-    serde_json::json!(["REQ", SUB_ID, { "kinds": [38173] }]).to_string()
+    serde_json::json!(["REQ", SUB_ID, { "kinds": [38173], "limit": MAX_EVENTS }]).to_string()
 }
 
 fn make_close_message() -> String {
@@ -135,7 +138,12 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
         while let Some(msg_result) = ws_stream.next().await {
             match msg_result {
                 Ok(Message::Text(text)) => match parse_relay_message(&text) {
-                    RelayAction::Event(ev) => events.push(ev),
+                    RelayAction::Event(ev) => {
+                        events.push(ev);
+                        if events.len() >= MAX_EVENTS {
+                            break;
+                        }
+                    }
                     RelayAction::Eose => break,
                     RelayAction::Ignore => {}
                 },
@@ -152,10 +160,12 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
         Ok(events)
     })
     .await
-    .unwrap_or_else(|_| {
-        tracing::warn!("Relay {relay_url} timed out after 5s");
-        Ok(Vec::new())
-    })
+    .map_err(|_| {
+        Error::new(
+            ErrorCode::FederationUnreachable,
+            format!("Discovery error: relay {relay_url} timed out after 5s"),
+        )
+    })?
 }
 
 #[cfg(target_family = "wasm")]
@@ -181,6 +191,7 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
         })?;
 
     let mut events = Vec::new();
+    let mut timeout_expired = false;
 
     let (tx, mut rx) = futures::channel::oneshot::channel();
     let timeout = gloo_timers::callback::Timeout::new(5000, move || {
@@ -192,7 +203,12 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
             msg = ws.next() => {
                 match msg {
                     Some(Ok(Message::Text(text))) => match parse_relay_message(&text) {
-                        RelayAction::Event(ev) => events.push(ev),
+                        RelayAction::Event(ev) => {
+                            events.push(ev);
+                            if events.len() >= MAX_EVENTS {
+                                break;
+                            }
+                        }
                         RelayAction::Eose => break,
                         RelayAction::Ignore => {}
                     },
@@ -202,6 +218,7 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
             }
             _ = &mut rx => {
                 tracing::warn!("Relay {relay_url} timed out on WASM");
+                timeout_expired = true;
                 break;
             }
         }
@@ -209,6 +226,12 @@ async fn query_single_relay(relay_url: String) -> Result<Vec<RawNip87Event>> {
 
     timeout.cancel();
     let _ = ws.send(Message::Text(make_close_message())).await;
+    if timeout_expired {
+        return Err(Error::new(
+            ErrorCode::FederationUnreachable,
+            format!("Discovery error: relay {relay_url} timed out on WASM"),
+        ));
+    }
     Ok(events)
 }
 
@@ -274,4 +297,16 @@ mod tests {
         let garbage_msg = r#"not json"#;
         assert_eq!(parse_relay_message(garbage_msg), RelayAction::Ignore);
     }
+
+    #[test]
+    fn test_make_req_message_includes_limit() {
+        let req_str = make_req_message();
+        let val: serde_json::Value = serde_json::from_str(&req_str).unwrap();
+        let arr = val.as_array().unwrap();
+        assert_eq!(arr[0], "REQ");
+        assert_eq!(arr[1], SUB_ID);
+        assert_eq!(arr[2]["kinds"].as_array().unwrap()[0], 38173);
+        assert_eq!(arr[2]["limit"], MAX_EVENTS);
+    }
 }
+

@@ -143,15 +143,16 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
 
         // 4. Build metadata map
         let mut metadata = BTreeMap::new();
-        if let Some(pk) = raw.pubkey {
-            metadata.insert("publisher_pubkey".to_string(), pk);
-        }
 
-        // Parse content: kind:0-style JSON metadata or plain description
+        // Parse content: kind:0-style JSON metadata or plain description.
+        // Skip reserved protocol keys so untrusted content cannot spoof verified event metadata.
         let content_trimmed = raw.content.trim();
         if !content_trimmed.is_empty() {
             if let Ok(serde_json::Value::Object(map)) = serde_json::from_str::<serde_json::Value>(content_trimmed) {
                 for (k, v) in map {
+                    if matches!(k.as_str(), "publisher_pubkey" | "modules" | "network") {
+                        continue;
+                    }
                     match v {
                         serde_json::Value::Null => {}
                         serde_json::Value::String(s) => {
@@ -167,7 +168,12 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
             }
         }
 
-        // Extract known NIP-87 tags
+        // Verified event publisher pubkey
+        if let Some(pk) = raw.pubkey {
+            metadata.insert("publisher_pubkey".to_string(), pk);
+        }
+
+        // Extract verified NIP-87 tags
         for tag in &raw.tags {
             match tag.first().map(String::as_str) {
                 Some("modules") => {
@@ -336,4 +342,28 @@ mod tests {
         assert_eq!(dev.metadata.get("federation_name").unwrap(), "Dev Test Federation");
         assert_eq!(dev.metadata.get("network").unwrap(), "regtest");
     }
+
+    #[test]
+    fn test_content_does_not_overwrite_reserved_metadata_keys() {
+        let json = format!(
+            r#"{{
+                "kind": 38173,
+                "pubkey": "real_pubkey_123",
+                "content": "{{\"publisher_pubkey\": \"spoofed_pubkey\", \"modules\": \"spoofed_module\", \"network\": \"mainnet\", \"custom_attr\": \"ok\"}}",
+                "tags": [
+                    ["d", "{CODE_FEDERATION_ID}"],
+                    ["u", "{CODE}"],
+                    ["modules", "mint,wallet"],
+                    ["n", "signet"]
+                ]
+            }}"#
+        );
+        let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
+        let fed = DiscoveredFederation::try_from(raw).unwrap();
+        assert_eq!(fed.metadata.get("publisher_pubkey").unwrap(), "real_pubkey_123");
+        assert_eq!(fed.metadata.get("modules").unwrap(), "mint,wallet");
+        assert_eq!(fed.metadata.get("network").unwrap(), "signet");
+        assert_eq!(fed.metadata.get("custom_attr").unwrap(), "ok");
+    }
 }
+
