@@ -1,30 +1,50 @@
-//! Queries an app-supplied discovery URL and prints every valid federation found.
+//! Queries Nostr relays (NIP-87) or a dev fixture to discover federations.
 //!
-//! Usage: `cargo run --example discovery <data-dir> <url>`
+//! Usage: `cargo run --example discovery <data-dir> [dev | nostr [relay...]]`
 //!
-//! Example:
+//! Examples:
 //! ```bash
-//! cargo run --example discovery /tmp/fedimint-test http://127.0.0.1:8000/federations.json
+//! # Dev mode (returns hardcoded local federation without network queries)
+//! cargo run --example discovery /tmp/fedimint-test dev
+//!
+//! # Nostr production mode with default relays
+//! cargo run --example discovery /tmp/fedimint-test nostr
+//!
+//! # Nostr mode with custom relay(s)
+//! cargo run --example discovery /tmp/fedimint-test nostr wss://relay.damus.io wss://nos.lol
 //! ```
 
 mod common;
 
+use fedimint_sdk::DiscoverySource;
+
 #[tokio::main]
 async fn main() -> fedimint_sdk::Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let usage = "usage: discovery <data-dir> <url>";
-    let (data_dir, url) = match args.as_slice() {
-        [data_dir, url] => (data_dir.as_str(), url.as_str()),
+    let usage = "usage: discovery <data-dir> [dev | nostr [relay...]]";
+    let (data_dir, source) = match args.as_slice() {
+        [data_dir] => (data_dir.as_str(), DiscoverySource::Dev),
+        [data_dir, mode] if mode == "dev" => (data_dir.as_str(), DiscoverySource::Dev),
+        [data_dir, mode] if mode == "nostr" => (data_dir.as_str(), DiscoverySource::nostr_default()),
+        [data_dir, mode, relays @ ..] if mode == "nostr" => {
+            (data_dir.as_str(), DiscoverySource::Nostr { relays: relays.to_vec() })
+        }
         _ => common::usage(usage),
     };
 
     let sdk = common::build(data_dir).await?;
 
-    println!("Querying discovery endpoint at {url}...\n");
-    let federations = sdk.discover_federations(url).await?;
+    match &source {
+        DiscoverySource::Dev => println!("Discovering federations using dev source...\n"),
+        DiscoverySource::Nostr { relays } => {
+            println!("Querying Nostr NIP-87 relays: {}...\n", relays.join(", "))
+        }
+    }
+
+    let federations = sdk.discover_federations(source).await?;
 
     if federations.is_empty() {
-        println!("No federations found (empty list or entries were expired/filtered).");
+        println!("No federations found.");
         return Ok(());
     }
 
@@ -42,3 +62,4 @@ async fn main() -> fedimint_sdk::Result<()> {
 
     Ok(())
 }
+

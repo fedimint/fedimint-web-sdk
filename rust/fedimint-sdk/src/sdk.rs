@@ -419,12 +419,14 @@ impl Sdk {
         }
     }
 
-    /// Fetches a list of joinable federations from an app-supplied endpoint.
+    /// Discovers joinable federations from Nostr NIP-87 (`kind:38173`) announcements
+    /// or a local dev mock.
     ///
-    /// The SDK does not embed any default discovery URL. The application
-    /// supplies the endpoint it wants to query — its own backend, a
-    /// community-maintained list, or any URL that returns the documented
-    /// JSON schema.
+    /// In [`DiscoverySource::Dev`](crate::DiscoverySource::Dev) mode, returns a
+    /// deterministic hardcoded test federation without any network queries.
+    ///
+    /// In [`DiscoverySource::Nostr`](crate::DiscoverySource::Nostr) mode, queries
+    /// the provided Nostr relay WebSockets for NIP-87 federation announcements.
     ///
     /// The returned [`DiscoveredFederation`] records are *advertisements*,
     /// not verified federation state. Each entry's invite code has been
@@ -435,18 +437,17 @@ impl Sdk {
     ///
     /// # Errors
     ///
-    /// [`Timeout`](crate::ErrorCode::Timeout) when the endpoint does not
-    /// respond within 30 seconds.
-    /// [`InvalidInput`](crate::ErrorCode::InvalidInput) when the URL is
-    /// malformed or the response cannot be parsed as the expected JSON schema.
-    /// [`Internal`](crate::ErrorCode::Internal) when the HTTP request fails
-    /// for other reasons (DNS, TLS, non-2xx status).
+    /// [`InvalidInput`](crate::ErrorCode::InvalidInput) when no Nostr relays are provided.
+    /// [`FederationUnreachable`](crate::ErrorCode::FederationUnreachable) when all
+    /// specified relays fail to respond.
+    /// [`FederationClosed`](crate::ErrorCode::FederationClosed) if the SDK instance
+    /// has shut down.
     pub async fn discover_federations(
         &self,
-        url: &str,
+        source: crate::DiscoverySource,
     ) -> Result<Vec<crate::DiscoveredFederation>> {
         self.inner.alive()?;
-        crate::discovery::fetch_discovered_federations(url).await
+        crate::discovery::discover_federations(source).await
     }
 
     /// Every federation this instance currently has open.

@@ -1,11 +1,9 @@
-//! Federation discovery types for app-supplied discovery endpoints.
+//! Federation discovery types for Nostr NIP-87 announcements and local dev fixtures.
 //!
-//! A [`DiscoveredFederation`] is a lightweight record returned by an
-//! app-supplied federation index or discovery endpoint. It carries typed,
-//! validated identifiers: a [`FederationId`] and an [`InviteCode`] that has
-//! been verified to match the declared federation ID. Any additional
-//! publisher-supplied fields (such as `federation_name`, `federation_icon_url`,
-//! `welcome_message`, `popup_end_timestamp`) are collected into a metadata map.
+//! A [`DiscoveredFederation`] is a lightweight record representing a joinable
+//! federation discovered either from a local dev mock ([`DiscoverySource::Dev`])
+//! or from Nostr NIP-87 (`kind:38173`) federation announcement events
+//! ([`DiscoverySource::Nostr`]).
 //!
 //! Discovered entries are *advertisements*, not proven federation configuration.
 //! To verify a federation, feed its [`invite`](DiscoveredFederation::invite)
@@ -17,11 +15,45 @@ use serde::Deserialize;
 
 use crate::{FederationId, InviteCode};
 
-/// One federation entry from an app-supplied discovery endpoint.
+/// Specifies the source for discovering federations.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DiscoverySource {
+    /// Dev mode: returns a hardcoded local/test federation without network queries.
+    Dev,
+    /// Production mode: queries Nostr relays for NIP-87 (`kind:38173`) federation announcements.
+    Nostr {
+        /// Nostr relay websocket URLs (e.g. `["wss://relay.damus.io"]`).
+        relays: Vec<String>,
+    },
+}
+
+impl Default for DiscoverySource {
+    fn default() -> Self {
+        Self::Dev
+    }
+}
+
+impl DiscoverySource {
+    /// Default relays to query in production mode when none are explicitly provided.
+    pub const DEFAULT_RELAYS: &'static [&'static str] = &[
+        "wss://relay.damus.io",
+        "wss://nos.lol",
+        "wss://relay.primal.net",
+    ];
+
+    /// Convenient constructor for production mode using default community relays.
+    pub fn nostr_default() -> Self {
+        Self::Nostr {
+            relays: Self::DEFAULT_RELAYS.iter().map(|s| s.to_string()).collect(),
+        }
+    }
+}
+
+/// One federation entry discovered from Nostr NIP-87 or a dev fixture.
 ///
 /// This is an *advertisement*, not verified federation state. The `invite`
 /// field has been parsed and its embedded federation ID cross-checked against
-/// `id`, but the metadata is whatever the list publisher claims — not what
+/// `id`, but the metadata is whatever the publisher claims — not what
 /// the guardians serve. Use [`Sdk::preview`](crate::Sdk::preview) or
 /// [`Sdk::join`](crate::Sdk::join) to verify.
 ///
@@ -36,73 +68,121 @@ pub struct DiscoveredFederation {
     pub invite: InviteCode,
     /// Publisher-supplied metadata for the entry.
     ///
-    /// Key names follow the same conventions as
-    /// [`FederationPreview::meta`](crate::FederationPreview) (e.g.
-    /// `federation_name`, `federation_icon_url`, `welcome_message`,
-    /// `popup_end_timestamp`), but this data is unverified: it is what the
-    /// list publisher states, not what the guardians serve.
+    /// Extracted from NIP-87 event tags (e.g. `modules`, `network`, `publisher_pubkey`)
+    /// and event content (e.g. `name`, `picture`, `about` / `description`).
     pub metadata: BTreeMap<String, String>,
 }
 
-/// The raw JSON shape an app-supplied discovery endpoint returns per entry.
-///
-/// `id` and `invite` are extracted as typed fields; every other key lands
-/// in `metadata` via `#[serde(flatten)]`.
-#[derive(Deserialize)]
-pub(crate) struct RawDiscoveredFederation {
+/// Returns the hardcoded test federation for dev/offline mode.
+pub fn dev_federation() -> DiscoveredFederation {
+    let id: FederationId = "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
+        .parse()
+        .expect("valid dev federation id");
+    let invite = InviteCode::parse(
+        "fed11qgqpqrnhwden5te0vehk7tnzv9ez7qqpyq4z52329g4z52329g4z52329g4z52329g4z52329g4z52329g4z5wa8phk"
+            .to_string(),
+    )
+    .expect("valid dev invite code");
+    let mut metadata = BTreeMap::new();
+    metadata.insert("federation_name".to_string(), "Dev Test Federation".to_string());
+    metadata.insert("network".to_string(), "regtest".to_string());
+    metadata.insert("modules".to_string(), "lightning,wallet,mint".to_string());
+    DiscoveredFederation { id, invite, metadata }
+}
+
+/// Raw representation of a Nostr NIP-87 `kind:38173` event.
+#[derive(Debug, Clone, Deserialize)]
+pub struct RawNip87Event {
     #[serde(default)]
     pub id: Option<String>,
     #[serde(default)]
-    pub invite: Option<String>,
-    /// All remaining JSON keys become metadata entries.
-    #[serde(flatten)]
-    pub metadata: BTreeMap<String, serde_json::Value>,
+    pub pubkey: Option<String>,
+    #[serde(default)]
+    pub created_at: Option<u64>,
+    #[serde(default)]
+    pub kind: Option<u64>,
+    #[serde(default)]
+    pub tags: Vec<Vec<String>>,
+    #[serde(default)]
+    pub content: String,
 }
 
-impl std::convert::TryFrom<RawDiscoveredFederation> for DiscoveredFederation {
+impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
     type Error = &'static str;
 
-    fn try_from(raw: RawDiscoveredFederation) -> std::result::Result<Self, Self::Error> {
-        // 1. Both id and invite must be present (trimmed of whitespace)
-        let id_str = raw.id.as_deref().map(str::trim).ok_or("missing id")?;
-        let invite_str = raw.invite.as_deref().map(str::trim).ok_or("missing invite")?;
-
-        // 2. Parse id into FederationId
-        let id: FederationId = id_str.parse().map_err(|_| "invalid federation id")?;
-
-        // 3. Parse invite into InviteCode
-        let invite = InviteCode::parse(invite_str.to_string()).map_err(|_| "invalid invite code")?;
-
-        // 4. Cross-check: invite's embedded federation ID must match the declared id
-        if invite.federation_id() != id {
-            return Err("invite code federation id does not match declared id");
-        }
-
-        // 5. Check popup_end_timestamp expiry (if present)
-        if let Some(ts_val) = raw.metadata.get("popup_end_timestamp") {
-            let ts_opt = match ts_val {
-                serde_json::Value::Number(n) => n.as_u64(),
-                serde_json::Value::String(s) => s.parse::<u64>().ok(),
-                _ => None,
-            };
-            if let Some(ts) = ts_opt {
-                let now = fedimint_core::time::duration_since_epoch().as_secs();
-                if ts < now {
-                    return Err("entry expired (popup_end_timestamp in the past)");
-                }
+    fn try_from(raw: RawNip87Event) -> std::result::Result<Self, Self::Error> {
+        // 1. Verify event kind if present
+        if let Some(kind) = raw.kind {
+            if kind != 38173 {
+                return Err("unsupported event kind: expected 38173");
             }
         }
 
-        // 6. Convert remaining metadata values to strings, dropping explicit nulls
-        let metadata: BTreeMap<String, String> = raw
-            .metadata
-            .into_iter()
-            .filter_map(|(k, v)| match v {
-                serde_json::Value::Null => None,
-                serde_json::Value::String(s) => Some((k, s)),
-                other => Some((k, other.to_string())),
-            })
-            .collect();
+        // 2. Extract federation ID from 'd' tag
+        let d_tag = raw
+            .tags
+            .iter()
+            .find(|t| t.first().map(String::as_str) == Some("d"))
+            .ok_or("missing d tag (federation id)")?;
+        let id_str = d_tag.get(1).map(String::as_str).map(str::trim).ok_or("empty d tag value")?;
+        let id: FederationId = id_str.parse().map_err(|_| "invalid federation id in d tag")?;
+
+        // 3. Find first matching invite code from 'u' tags
+        let mut invite_opt = None;
+        for tag in raw.tags.iter().filter(|t| t.first().map(String::as_str) == Some("u")) {
+            if let Some(val) = tag.get(1).map(String::as_str).map(str::trim) {
+                if let Ok(parsed) = InviteCode::parse(val.to_string()) {
+                    if parsed.federation_id() == id {
+                        invite_opt = Some(parsed);
+                        break;
+                    }
+                }
+            }
+        }
+        let invite = invite_opt.ok_or("no matching invite code in u tags for declared federation id")?;
+
+        // 4. Build metadata map
+        let mut metadata = BTreeMap::new();
+        if let Some(pk) = raw.pubkey {
+            metadata.insert("publisher_pubkey".to_string(), pk);
+        }
+
+        // Parse content: kind:0-style JSON metadata or plain description
+        let content_trimmed = raw.content.trim();
+        if !content_trimmed.is_empty() {
+            if let Ok(serde_json::Value::Object(map)) = serde_json::from_str::<serde_json::Value>(content_trimmed) {
+                for (k, v) in map {
+                    match v {
+                        serde_json::Value::Null => {}
+                        serde_json::Value::String(s) => {
+                            metadata.insert(k, s);
+                        }
+                        other => {
+                            metadata.insert(k, other.to_string());
+                        }
+                    }
+                }
+            } else {
+                metadata.insert("description".to_string(), content_trimmed.to_string());
+            }
+        }
+
+        // Extract known NIP-87 tags
+        for tag in &raw.tags {
+            match tag.first().map(String::as_str) {
+                Some("modules") => {
+                    if let Some(val) = tag.get(1) {
+                        metadata.insert("modules".to_string(), val.trim().to_string());
+                    }
+                }
+                Some("n") => {
+                    if let Some(val) = tag.get(1) {
+                        metadata.insert("network".to_string(), val.trim().to_string());
+                    }
+                }
+                _ => {}
+            }
+        }
 
         Ok(DiscoveredFederation { id, invite, metadata })
     }
@@ -118,164 +198,142 @@ mod tests {
         "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a";
 
     #[test]
-    fn parses_a_minimal_valid_entry() {
-        let json = format!(r#"{{"id":"{CODE_FEDERATION_ID}","invite":"{CODE}"}}"#);
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
-        let fed = DiscoveredFederation::try_from(raw).expect("Failed to parse");
-        assert_eq!(fed.id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
-        assert_eq!(fed.invite, CODE.parse::<InviteCode>().unwrap());
-        assert!(fed.metadata.is_empty());
-    }
-
-    #[test]
-    fn parses_entry_with_metadata() {
+    fn parses_valid_nip87_event() {
         let json = format!(
             r#"{{
-                "id": "{CODE_FEDERATION_ID}",
-                "invite": "{CODE}",
-                "federation_name": "Test Federation",
-                "custom_metric": 42,
-                "is_active": true
+                "kind": 38173,
+                "pubkey": "deadbeef1234",
+                "content": "{{\"name\": \"Test Fed\", \"picture\": \"https://example.com/logo.png\"}}",
+                "tags": [
+                    ["d", "{CODE_FEDERATION_ID}"],
+                    ["u", "{CODE}"],
+                    ["modules", "lightning,wallet,mint"],
+                    ["n", "signet"]
+                ]
             }}"#
         );
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
-        let fed = DiscoveredFederation::try_from(raw).expect("Failed to parse");
+        let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
+        let fed = DiscoveredFederation::try_from(raw).expect("should parse");
         assert_eq!(fed.id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
-        assert_eq!(fed.metadata.get("federation_name").unwrap(), "Test Federation");
-        assert_eq!(fed.metadata.get("custom_metric").unwrap(), "42");
-        assert_eq!(fed.metadata.get("is_active").unwrap(), "true");
+        assert_eq!(fed.invite, CODE.parse::<InviteCode>().unwrap());
+        assert_eq!(fed.metadata.get("name").unwrap(), "Test Fed");
+        assert_eq!(fed.metadata.get("picture").unwrap(), "https://example.com/logo.png");
+        assert_eq!(fed.metadata.get("modules").unwrap(), "lightning,wallet,mint");
+        assert_eq!(fed.metadata.get("network").unwrap(), "signet");
+        assert_eq!(fed.metadata.get("publisher_pubkey").unwrap(), "deadbeef1234");
     }
 
     #[test]
-    fn drops_entry_with_missing_id() {
-        let json = format!(r#"{{"invite":"{CODE}"}}"#);
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
+    fn parses_nip87_event_with_multiple_u_tags() {
+        let invalid_code = "fed11invalidinvitecodethatfails";
+        let other_valid_code = "fed11qgqpqrnhwden5te0vehk7tnzv9ez7qqpyq4z52329g4z52329g4z52329g4z52329g4z52329g4z52329g4z5wa8phk";
+        let json = format!(
+            r#"{{
+                "kind": 38173,
+                "tags": [
+                    ["d", "{CODE_FEDERATION_ID}"],
+                    ["u", "{invalid_code}"],
+                    ["u", "{other_valid_code}"]
+                ]
+            }}"#
+        );
+        let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
+        let fed = DiscoveredFederation::try_from(raw).expect("should pick valid matching invite code");
+        assert_eq!(fed.id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
+        assert_eq!(fed.invite, CODE.parse::<InviteCode>().unwrap());
+    }
+
+    #[test]
+    fn parses_nip87_event_with_plain_text_content() {
+        let json = format!(
+            r#"{{
+                "kind": 38173,
+                "content": "This is a plain text community mint description",
+                "tags": [
+                    ["d", "{CODE_FEDERATION_ID}"],
+                    ["u", "{CODE}"]
+                ]
+            }}"#
+        );
+        let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
+        let fed = DiscoveredFederation::try_from(raw).expect("should parse");
+        assert_eq!(
+            fed.metadata.get("description").unwrap(),
+            "This is a plain text community mint description"
+        );
+    }
+
+    #[test]
+    fn drops_event_with_wrong_kind() {
+        let json = format!(
+            r#"{{
+                "kind": 1,
+                "tags": [
+                    ["d", "{CODE_FEDERATION_ID}"],
+                    ["u", "{CODE}"]
+                ]
+            }}"#
+        );
+        let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
         assert!(DiscoveredFederation::try_from(raw).is_err());
     }
 
     #[test]
-    fn drops_entry_with_missing_invite() {
-        let json = format!(r#"{{"id":"{CODE_FEDERATION_ID}"}}"#);
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
+    fn drops_event_with_missing_d_tag() {
+        let json = format!(
+            r#"{{
+                "kind": 38173,
+                "tags": [
+                    ["u", "{CODE}"]
+                ]
+            }}"#
+        );
+        let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
         assert!(DiscoveredFederation::try_from(raw).is_err());
     }
 
     #[test]
-    fn drops_entry_with_invalid_id() {
-        let json = format!(r#"{{"id":"not-a-valid-hex-id","invite":"{CODE}"}}"#);
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
+    fn drops_event_with_invalid_federation_id() {
+        let json = format!(
+            r#"{{
+                "kind": 38173,
+                "tags": [
+                    ["d", "not-a-valid-hex-id"],
+                    ["u", "{CODE}"]
+                ]
+            }}"#
+        );
+        let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
         assert!(DiscoveredFederation::try_from(raw).is_err());
     }
 
     #[test]
-    fn drops_entry_with_invalid_invite() {
-        let json = format!(r#"{{"id":"{CODE_FEDERATION_ID}","invite":"fed1invalid"}}"#);
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
-        assert!(DiscoveredFederation::try_from(raw).is_err());
-    }
-
-    #[test]
-    fn drops_entry_with_id_mismatch() {
+    fn drops_event_with_id_mismatch() {
         let other_id = "1111111111111111111111111111111111111111111111111111111111111111";
-        let json = format!(r#"{{"id":"{other_id}","invite":"{CODE}"}}"#);
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
+        let json = format!(
+            r#"{{
+                "kind": 38173,
+                "tags": [
+                    ["d", "{other_id}"],
+                    ["u", "{CODE}"]
+                ]
+            }}"#
+        );
+        let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
         let res = DiscoveredFederation::try_from(raw);
         assert!(res.is_err());
         assert_eq!(
             res.unwrap_err(),
-            "invite code federation id does not match declared id"
+            "no matching invite code in u tags for declared federation id"
         );
     }
 
     #[test]
-    fn drops_expired_entry_by_numeric_timestamp() {
-        let json = format!(
-            r#"{{
-                "id": "{CODE_FEDERATION_ID}",
-                "invite": "{CODE}",
-                "popup_end_timestamp": 1000
-            }}"#
-        );
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
-        let res = DiscoveredFederation::try_from(raw);
-        assert!(res.is_err());
-        assert_eq!(
-            res.unwrap_err(),
-            "entry expired (popup_end_timestamp in the past)"
-        );
-    }
-
-    #[test]
-    fn drops_expired_entry_by_string_timestamp() {
-        let json = format!(
-            r#"{{
-                "id": "{CODE_FEDERATION_ID}",
-                "invite": "{CODE}",
-                "popup_end_timestamp": "1000"
-            }}"#
-        );
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
-        let res = DiscoveredFederation::try_from(raw);
-        assert!(res.is_err());
-        assert_eq!(
-            res.unwrap_err(),
-            "entry expired (popup_end_timestamp in the past)"
-        );
-    }
-
-    #[test]
-    fn accepts_future_timestamp() {
-        // Far in the future
-        let future_ts = 4102444800u64;
-        let json = format!(
-            r#"{{
-                "id": "{CODE_FEDERATION_ID}",
-                "invite": "{CODE}",
-                "popup_end_timestamp": {future_ts}
-            }}"#
-        );
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
-        let fed = DiscoveredFederation::try_from(raw).expect("should parse");
-        assert_eq!(
-            fed.metadata.get("popup_end_timestamp").unwrap(),
-            &future_ts.to_string()
-        );
-    }
-
-    #[test]
-    fn drops_empty_object() {
-        let json = r#"{}"#;
-        let raw: RawDiscoveredFederation = serde_json::from_str(json).unwrap();
-        assert!(DiscoveredFederation::try_from(raw).is_err());
-    }
-
-    #[test]
-    fn drops_null_metadata_values() {
-        let json = format!(
-            r#"{{
-                "id": "{CODE_FEDERATION_ID}",
-                "invite": "{CODE}",
-                "federation_name": "Valid Name",
-                "null_field": null
-            }}"#
-        );
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
-        let fed = DiscoveredFederation::try_from(raw).expect("should parse");
-        assert_eq!(fed.metadata.get("federation_name").unwrap(), "Valid Name");
-        assert!(fed.metadata.get("null_field").is_none());
-    }
-
-    #[test]
-    fn trims_whitespace_on_id_and_invite() {
-        let json = format!(
-            r#"{{
-                "id": "   {CODE_FEDERATION_ID}   ",
-                "invite": "   {CODE}   "
-            }}"#
-        );
-        let raw: RawDiscoveredFederation = serde_json::from_str(&json).unwrap();
-        let fed = DiscoveredFederation::try_from(raw).expect("should parse");
-        assert_eq!(fed.id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
-        assert_eq!(fed.invite, CODE.parse::<InviteCode>().unwrap());
+    fn test_dev_federation_fixture() {
+        let dev = dev_federation();
+        assert_eq!(dev.id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
+        assert_eq!(dev.invite, CODE.parse::<InviteCode>().unwrap());
+        assert_eq!(dev.metadata.get("federation_name").unwrap(), "Dev Test Federation");
+        assert_eq!(dev.metadata.get("network").unwrap(), "regtest");
     }
 }
