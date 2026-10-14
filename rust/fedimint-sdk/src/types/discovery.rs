@@ -16,21 +16,16 @@ use serde::Deserialize;
 use crate::{FederationId, InviteCode};
 
 /// Specifies the source for discovering federations.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum DiscoverySource {
     /// Dev mode: returns a hardcoded local/test federation without network queries.
+    #[default]
     Dev,
     /// Production mode: queries Nostr relays for NIP-87 (`kind:38173`) federation announcements.
     Nostr {
         /// Nostr relay websocket URLs (e.g. `["wss://relay.damus.io"]`).
         relays: Vec<String>,
     },
-}
-
-impl Default for DiscoverySource {
-    fn default() -> Self {
-        Self::Dev
-    }
 }
 
 impl DiscoverySource {
@@ -148,23 +143,14 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
             .map_err(|_| "invalid federation id in d tag")?;
 
         // 3. Find first matching invite code from 'u' tags
-        let mut invite_opt = None;
-        for tag in raw
+        let invite = raw
             .tags
             .iter()
             .filter(|t| t.first().map(String::as_str) == Some("u"))
-        {
-            if let Some(val) = tag.get(1).map(String::as_str).map(str::trim) {
-                if let Ok(parsed) = InviteCode::parse(val.to_string()) {
-                    if parsed.federation_id() == id {
-                        invite_opt = Some(parsed);
-                        break;
-                    }
-                }
-            }
-        }
-        let invite =
-            invite_opt.ok_or("no matching invite code in u tags for declared federation id")?;
+            .filter_map(|tag| tag.get(1).map(String::as_str).map(str::trim))
+            .filter_map(|val| InviteCode::parse(val.to_string()).ok())
+            .find(|parsed| parsed.federation_id() == id)
+            .ok_or("no matching invite code in u tags for declared federation id")?;
 
         // 4. Build metadata map
         let mut metadata = BTreeMap::new();
@@ -441,9 +427,9 @@ mod tests {
         );
         let raw: RawNip87Event = serde_json::from_str(&json).unwrap();
         let fed = DiscoveredFederation::try_from(raw).unwrap();
-        assert!(fed.metadata.get("publisher_pubkey").is_none());
-        assert!(fed.metadata.get("modules").is_none());
-        assert!(fed.metadata.get("network").is_none());
+        assert!(!fed.metadata.contains_key("publisher_pubkey"));
+        assert!(!fed.metadata.contains_key("modules"));
+        assert!(!fed.metadata.contains_key("network"));
         assert_eq!(fed.metadata.get("custom_attr").unwrap(), "ok");
     }
 }
