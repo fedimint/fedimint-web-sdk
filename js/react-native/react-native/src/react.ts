@@ -78,7 +78,11 @@ function useUpdates<Source extends { id(): string }, T>(
       }
     }
     void pull()
-    return () => controller.abort()
+    return () => {
+      controller.abort()
+      // Without this, the same id coming back would show the old value until its cursor yields.
+      setLatest(undefined)
+    }
   }, [key])
 
   return latest !== undefined && latest.key === key ? latest.value : undefined

@@ -82,7 +82,19 @@ describe('useBalance', () => {
     rerender(undefined)
     expect(c.signals[0]?.aborted).toBe(true)
     expect(fed.balanceUpdates).toHaveBeenCalledTimes(1)
-    expect(seen.at(-1)).toBeUndefined()
+    expect(seen[seen.length - 1]).toBeUndefined()
+  })
+
+  it('does not show the old balance when the same id comes back', async () => {
+    const first = cursor<bigint>()
+    const { seen, rerender } = renderBalance(federation('fed-a', first))
+    await first.push(1_000n)
+    rerender(undefined)
+    const second = cursor<bigint>()
+    rerender(federation('fed-a', second))
+    expect(seen[seen.length - 1]).toBeUndefined()
+    await second.push(2_000n)
+    expect(seen[seen.length - 1]).toBe(2_000n)
   })
 
   it('renders each balance the cursor yields', async () => {
