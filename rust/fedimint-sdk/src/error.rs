@@ -1501,6 +1501,20 @@ mod tests {
     }
 
     #[test]
+    fn error_debug_names_the_code_and_the_reason() {
+        // `Debug` is `toDebugString()` in TypeScript, and ubrn's thrown wrapper builds its
+        // `message` from it (the generated `toString()` is not an own property, so it is skipped).
+        // An uncaught failure in a React Native app reads as this string.
+        let err = Error::new(
+            ErrorCode::InsufficientBalance,
+            "need 1000 msat, have 500 msat",
+        );
+        let debug = format!("{err:?}");
+        assert!(debug.contains("InsufficientBalance"), "{debug}");
+        assert!(debug.contains("need 1000 msat, have 500 msat"), "{debug}");
+    }
+
+    #[test]
     fn new_builds_an_error_from_a_code_and_message() {
         // The constructor a binding layer uses; it must accept anything
         // string-shaped and preserve both fields verbatim.
