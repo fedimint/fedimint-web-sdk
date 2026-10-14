@@ -295,6 +295,11 @@ impl Meta {
             return Ok(None);
         }
 
+        // This relies on the client's meta service being fedimint-client's default,
+        // `LegacyMetaSource`, whose cache holds configuration metadata with the override document
+        // laid over it and nothing else. The SDK never calls `ClientBuilder::with_meta_service`.
+        // Installing `MetaModuleMetaSourceWithFallback` there would put consensus values in this
+        // cache, so they would read as overrides here: read the override some other way first.
         let entries = fedimint_core::runtime::timeout(
             CONSENSUS_FETCH_TIMEOUT,
             client.meta_service().entries(client.db()),
