@@ -1,4 +1,4 @@
-import { createElement } from 'react'
+import { createElement, startTransition, Suspense } from 'react'
 import { act, create, type ReactTestRenderer } from 'react-test-renderer'
 import { describe, expect, it, vi } from 'vitest'
 import type { FederationLike } from '@fedimint/react-native-bindings'
@@ -20,6 +20,7 @@ function cursor<T>() {
   }
   return {
     signals,
+    uniffiDestroy: vi.fn(),
     push: (value: T | undefined) => act(async () => step({ value })),
     fail: (error: unknown) => act(async () => step({ error })),
     next: vi.fn(({ signal }: { signal: AbortSignal }) => {
@@ -150,6 +151,91 @@ describe('useBalance', () => {
     expect(c.next).toHaveBeenCalledTimes(1)
   })
 
+  it('destroys the cursor once on unmount', async () => {
+    const c = cursor<bigint>()
+    const { root } = renderBalance(federation('fed-a', c))
+    await act(async () => {})
+    await act(async () => root.unmount())
+    expect(c.uniffiDestroy).toHaveBeenCalledTimes(1)
+  })
+
+  it('destroys the old cursor and keeps the new one when the id changes', async () => {
+    const a = cursor<bigint>()
+    const b = cursor<bigint>()
+    const { rerender } = renderBalance(federation('fed-a', a))
+    await act(async () => {})
+    await act(async () => rerender(federation('fed-b', b)))
+    expect(a.uniffiDestroy).toHaveBeenCalledTimes(1)
+    expect(b.uniffiDestroy).not.toHaveBeenCalled()
+  })
+
+  it('destroys the cursor when the federation goes away', async () => {
+    const c = cursor<bigint>()
+    const { rerender } = renderBalance(federation('fed-a', c))
+    await act(async () => {})
+    await act(async () => rerender(undefined))
+    expect(c.uniffiDestroy).toHaveBeenCalledTimes(1)
+  })
+
+  it('destroys the cursor once after a failure is reported', async () => {
+    const c = cursor<bigint>()
+    const onError = vi.fn()
+    renderBalance(federation('fed-a', c), onError)
+    await c.fail(new Error('FederationClosed'))
+    await act(async () => {})
+    expect(onError).toHaveBeenCalledOnce()
+    expect(c.uniffiDestroy).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not destroy the cursor for a new handle with the same id', async () => {
+    const c = cursor<bigint>()
+    const { rerender } = renderBalance(federation('fed-a', c))
+    await act(async () => {})
+    await act(async () => rerender(federation('fed-a', cursor<bigint>())))
+    expect(c.uniffiDestroy).not.toHaveBeenCalled()
+  })
+
+  it('reports a failure to the committed onError, not one from an abandoned render', async () => {
+    const c = cursor<bigint>()
+    const committed = vi.fn()
+    const abandoned = vi.fn()
+    const fed = federation('fed-a', c)
+    const never = new Promise<never>(() => {})
+    const Suspender = ({ on }: { on: boolean }) => {
+      if (on) throw never
+      return null
+    }
+    const Probe = ({ onError }: { onError: (e: unknown) => void }) => {
+      useBalance(fed, onError)
+      return null
+    }
+    const tree = (onError: (e: unknown) => void, suspend: boolean) =>
+      createElement(
+        Suspense,
+        { fallback: null },
+        createElement(Probe, { onError }),
+        createElement(Suspender, { on: suspend }),
+      )
+    // A transition can only be abandoned on a concurrent root. The runtime reads this option,
+    // but `@types/react-test-renderer` does not declare it.
+    const concurrent = {
+      createNodeMock: () => null,
+      unstable_isConcurrent: true,
+    }
+    let root!: ReactTestRenderer
+    act(() => {
+      root = create(tree(committed, false), concurrent)
+    })
+    await act(async () => {
+      startTransition(() => root.update(tree(abandoned, true)))
+    })
+    const closed = new Error('FederationClosed')
+    await c.fail(closed)
+    await act(async () => {})
+    expect(abandoned).not.toHaveBeenCalled()
+    expect(committed).toHaveBeenCalledExactlyOnceWith(closed)
+  })
+
   it('does not report the abort it causes', async () => {
     const c = cursor<bigint>()
     const onError = vi.fn()
@@ -179,5 +265,6 @@ describe('useOperation', () => {
     expect(seen).toEqual([undefined, { tag: 'Pending' }, { tag: 'Success' }])
     expect(c.next).toHaveBeenCalledTimes(3)
     expect(op.updates).toHaveBeenCalledTimes(1)
+    expect(c.uniffiDestroy).toHaveBeenCalledTimes(1)
   })
 })

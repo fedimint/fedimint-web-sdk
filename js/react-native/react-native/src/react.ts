@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { Amount, FederationLike } from '@fedimint/react-native-bindings'
 
 /** The pull cursor every generated `…Updates` object has. */
 interface Updates<T> {
   next(asyncOpts_?: { signal: AbortSignal }): Promise<T | undefined>
+  /** On every generated cursor, but absent from the `…Like` interfaces. */
+  uniffiDestroy?(): void
 }
 
 /** Any generated operation (`EcashSendOperationLike`, `LnReceiveOperationLike`, …). */
@@ -54,20 +56,22 @@ function useUpdates<Source extends { id(): string }, T>(
 ): T | undefined {
   const key = source?.id()
   const [latest, setLatest] = useState<{ key: string; value: T }>()
-  // Read when the subscription starts or fails, so new objects each render do not resubscribe.
-  const sourceRef = useRef(source)
-  sourceRef.current = source
+  // Read when a failure arrives. Set at commit, so a render React abandons cannot replace it.
   const onErrorRef = useRef(onError)
-  onErrorRef.current = onError
+  useLayoutEffect(() => {
+    onErrorRef.current = onError
+  })
 
   useEffect(() => {
-    const current = sourceRef.current
+    // The committed source. Keyed on its id, so a new handle each render does not resubscribe.
+    const current = source
     if (key === undefined || current === undefined) return
     const controller = new AbortController()
     const { signal } = controller
     const pull = async () => {
+      let updates: Updates<T> | undefined
       try {
-        const updates = open(current)
+        updates = open(current)
         for (;;) {
           const value = await updates.next({ signal })
           if (signal.aborted || value === undefined) return
@@ -75,6 +79,9 @@ function useUpdates<Source extends { id(): string }, T>(
         }
       } catch (err) {
         if (!signal.aborted) onErrorRef.current?.(err)
+      } finally {
+        // The cursor holds the federation and its storage claim; do not wait for GC to free it.
+        updates?.uniffiDestroy?.()
       }
     }
     void pull()
