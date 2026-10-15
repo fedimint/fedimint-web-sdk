@@ -220,18 +220,19 @@ impl core::str::FromStr for Notes {
             });
         }
         // Upstream `OOBNotes` already tolerates whitespace; `decode_prefixed`
-        // does not. The trimmed string is the one stored, so `Display` and
-        // equality see the canonical token.
-        let trimmed = s.trim();
+        // does not, and it accepts any case. Re-encoding the decoded notes
+        // stores the canonical token, so `Display` and equality do not
+        // depend on how the input was written.
         if let Ok(ecash) = fedimint_core::base32::decode_prefixed::<ECash>(
             fedimint_core::base32::FEDIMINT_PREFIX,
-            trimmed,
+            s.trim(),
         ) {
+            let encoded = fedimint_core::base32::encode_prefixed(
+                fedimint_core::base32::FEDIMINT_PREFIX,
+                &ecash,
+            );
             return Ok(Self {
-                notes: NotesInner::V2 {
-                    ecash,
-                    encoded: trimmed.to_string(),
-                },
+                notes: NotesInner::V2 { ecash, encoded },
             });
         }
         Err(Error::new(ErrorCode::InvalidInput, "invalid ecash notes"))
@@ -302,6 +303,23 @@ mod tests {
         let padded = format!("  {encoded}\n");
         let notes = padded.parse::<Notes>().expect("a padded mintv2 token");
         assert!(notes.as_mintv2().is_some());
+        assert_eq!(notes.to_string(), encoded);
+        assert_eq!(
+            notes,
+            encoded.parse::<Notes>().expect("a valid mintv2 token")
+        );
+    }
+
+    #[test]
+    fn parsing_an_uppercase_mintv2_token_stores_the_canonical_one() {
+        let encoded = fedimint_core::base32::encode_prefixed(
+            fedimint_core::base32::FEDIMINT_PREFIX,
+            &ECash::new(fedimint_core::config::FederationId::dummy(), vec![]),
+        );
+        let notes = encoded
+            .to_uppercase()
+            .parse::<Notes>()
+            .expect("an uppercase mintv2 token");
         assert_eq!(notes.to_string(), encoded);
         assert_eq!(
             notes,
