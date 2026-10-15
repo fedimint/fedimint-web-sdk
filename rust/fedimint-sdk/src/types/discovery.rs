@@ -156,7 +156,7 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
         let mut metadata = BTreeMap::new();
 
         // Parse content: kind:0-style JSON metadata or plain description.
-        // Skip reserved protocol keys so untrusted content cannot spoof verified event metadata.
+        // Skip reserved protocol keys so untrusted content cannot spoof advertised event metadata.
         let content_trimmed = raw.content.trim();
         if !content_trimmed.is_empty() {
             if let Ok(serde_json::Value::Object(map)) =
@@ -186,7 +186,7 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
             metadata.insert("publisher_pubkey".to_string(), pk);
         }
 
-        // Extract verified NIP-87 tags
+        // Extract advertised NIP-87 tags
         for tag in &raw.tags {
             match tag.first().map(String::as_str) {
                 Some("modules") => {
