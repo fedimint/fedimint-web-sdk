@@ -89,6 +89,12 @@ protected:
   jsi::Value cpp_uniffi_fedimint_sdk_fn_method_error_reason(
       jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
       size_t count);
+  jsi::Value cpp_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug(
+      jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
+      size_t count);
+  jsi::Value cpp_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display(
+      jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
+      size_t count);
   jsi::Value cpp_uniffi_fedimint_sdk_fn_clone_balanceupdates(
       jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
       size_t count);
