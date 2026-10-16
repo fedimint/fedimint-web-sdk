@@ -66,7 +66,12 @@ impl Notes {
         }
     }
 
-    /// Parses and validates ecash notes from their canonical string form.
+    /// Parses and validates ecash notes from their string form.
+    ///
+    /// Whitespace anywhere in the input is ignored, so a token wrapped across
+    /// lines still parses, and a mintv2 token is accepted in any case. The
+    /// result stores the canonical token: [`Notes::display`] returns that,
+    /// not the input as written.
     ///
     /// # Errors
     ///
@@ -98,8 +103,11 @@ impl Notes {
         }
     }
 
-    /// Wraps already-decoded mintv2 out-of-band ecash notes.
-    pub(crate) fn from_mintv2(ecash: ECash, encoded: String) -> Self {
+    /// Wraps already-decoded mintv2 out-of-band ecash notes, storing their
+    /// canonical encoding so the token always matches `ecash`.
+    pub(crate) fn from_mintv2(ecash: ECash) -> Self {
+        let encoded =
+            fedimint_core::base32::encode_prefixed(fedimint_core::base32::FEDIMINT_PREFIX, &ecash);
         Self {
             notes: NotesInner::V2 { ecash, encoded },
         }
@@ -210,7 +218,8 @@ impl core::fmt::Display for Notes {
 impl core::str::FromStr for Notes {
     type Err = crate::Error;
 
-    /// Parses ecash notes from their canonical string form. Returns
+    /// Parses ecash notes from their string form, ignoring whitespace and,
+    /// for a mintv2 token, case (see [`Notes::parse`]). Returns
     /// [`ErrorCode::InvalidInput`](crate::ErrorCode::InvalidInput) for a
     /// malformed value.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -219,21 +228,16 @@ impl core::str::FromStr for Notes {
                 notes: NotesInner::V1(notes),
             });
         }
-        // Upstream `OOBNotes` already tolerates whitespace; `decode_prefixed`
-        // does not, and it accepts any case. Re-encoding the decoded notes
-        // stores the canonical token, so `Display` and equality do not
-        // depend on how the input was written.
+        // Upstream `OOBNotes` drops all whitespace, so a token wrapped by a
+        // chat or email client still parses; `decode_prefixed` does not, so
+        // this does the same. `from_mintv2` re-encodes the decoded notes, so
+        // `Display` and equality do not depend on how the input was written.
+        let compact: String = s.chars().filter(|c| !c.is_whitespace()).collect();
         if let Ok(ecash) = fedimint_core::base32::decode_prefixed::<ECash>(
             fedimint_core::base32::FEDIMINT_PREFIX,
-            s.trim(),
+            &compact,
         ) {
-            let encoded = fedimint_core::base32::encode_prefixed(
-                fedimint_core::base32::FEDIMINT_PREFIX,
-                &ecash,
-            );
-            return Ok(Self {
-                notes: NotesInner::V2 { ecash, encoded },
-            });
+            return Ok(Self::from_mintv2(ecash));
         }
         Err(Error::new(ErrorCode::InvalidInput, "invalid ecash notes"))
     }
@@ -311,6 +315,18 @@ mod tests {
     }
 
     #[test]
+    fn parsing_tolerates_a_wrapped_mintv2_token() {
+        let encoded = fedimint_core::base32::encode_prefixed(
+            fedimint_core::base32::FEDIMINT_PREFIX,
+            &ECash::new(fedimint_core::config::FederationId::dummy(), vec![]),
+        );
+        let (head, tail) = encoded.split_at(encoded.len() / 2);
+        let wrapped = format!("{head}\r\n {tail}");
+        let notes = wrapped.parse::<Notes>().expect("a wrapped mintv2 token");
+        assert_eq!(notes.to_string(), encoded);
+    }
+
+    #[test]
     fn parsing_an_uppercase_mintv2_token_stores_the_canonical_one() {
         let encoded = fedimint_core::base32::encode_prefixed(
             fedimint_core::base32::FEDIMINT_PREFIX,
@@ -379,8 +395,9 @@ mod tests {
     fn mintv2_notes_accessors() {
         let federation_id = fedimint_core::config::FederationId::dummy();
         let ecash = fedimint_mintv2_client::ECash::new(federation_id, vec![]);
-        let encoded = "fake-encoded".to_string();
-        let notes = Notes::from_mintv2(ecash, encoded.clone());
+        let encoded =
+            fedimint_core::base32::encode_prefixed(fedimint_core::base32::FEDIMINT_PREFIX, &ecash);
+        let notes = Notes::from_mintv2(ecash);
         assert!(notes.as_upstream().is_none());
         assert!(notes.to_upstream().is_none());
         assert!(notes.as_mintv2().is_some());

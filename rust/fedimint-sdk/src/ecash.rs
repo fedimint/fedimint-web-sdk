@@ -512,11 +512,7 @@ impl Ecash {
                     .send(upstream_notes_val, extra_meta, false)
                     .await
                     .map_err(map_mintv2_send_error)?;
-                let encoded = fedimint_core::base32::encode_prefixed(
-                    fedimint_core::base32::FEDIMINT_PREFIX,
-                    &ecash,
-                );
-                (operation_id, Notes::from_mintv2(ecash, encoded), "mintv2")
+                (operation_id, Notes::from_mintv2(ecash), "mintv2")
             }
         };
 
