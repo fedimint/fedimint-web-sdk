@@ -1,0 +1,27 @@
+name: Android E2E on label
+
+# Adding the `ci-android-e2e` label to a pull request starts the Android chain,
+# e2e included, straight away rather than at the next push. From then on
+# android-sdk.yaml sees the label on every push by itself; this workflow only
+# covers the moment it is added.
+#
+# A workflow of its own rather than a `labeled` trigger on android-sdk.yaml.
+# There, every unrelated label would either start the whole chain again or
+# start a run whose skipped jobs report under the names branch protection
+# requires, where a skip reads as a pass. Called from here, the chain's jobs
+# report under this workflow's job name, which nothing requires.
+
+on:
+  pull_request:
+    types: [labeled]
+
+# What android-sdk.yaml needs; see the note there on why not `{}`.
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: 'Android SDK with e2e'
+    if: github.event.label.name == 'ci-android-e2e'
+    uses: ./.github/workflows/android-sdk.yaml
+    secrets: inherit

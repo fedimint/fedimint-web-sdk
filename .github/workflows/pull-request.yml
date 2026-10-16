@@ -6,6 +6,13 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # The merge queue's run: main plus the PRs queued ahead, tested before main
+  # moves. Branch protection's required checks (the Verify jobs) have to report
+  # here too, or the queue waits on them until it times out. Only those run:
+  # the queue waits for nothing else, and the rest run on the push to main that
+  # follows, as they always have.
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   # Label events only need to consider the gated iOS lane. Give each one its own group so
@@ -37,6 +44,8 @@ jobs:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PUSH_BEFORE_SHA: ${{ github.event.before }}
           PUSH_AFTER_SHA: ${{ github.sha }}
+          MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha }}
         run: |
           set -euo pipefail
 
@@ -83,6 +92,9 @@ jobs:
                 exit 0
               fi
               diff_args=("$PUSH_BEFORE_SHA" "$PUSH_AFTER_SHA")
+              ;;
+            merge_group)
+              diff_args=("$MERGE_GROUP_BASE_SHA" "$MERGE_GROUP_HEAD_SHA")
               ;;
             *)
               enable_all
@@ -156,7 +168,7 @@ jobs:
   test-react-native:
     name: Test React Native
     needs: detect-changes
-    if: ${{ github.event.action != 'labeled' && (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.react-native == 'true') }}
+    if: ${{ github.event_name != 'merge_group' && github.event.action != 'labeled' && (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.react-native == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -177,7 +189,7 @@ jobs:
   build-rn-android:
     name: Build RN Android
     needs: detect-changes
-    if: ${{ github.event.action != 'labeled' && (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.react-native == 'true') }}
+    if: ${{ github.event_name != 'merge_group' && github.event.action != 'labeled' && (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.react-native == 'true') }}
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 60
     steps:
@@ -191,8 +203,9 @@ jobs:
     name: Build RN iOS
     needs: detect-changes
     # macOS runners are the scarce and expensive lane, so pull requests only build iOS when asked
-    # to through the `ci-ios` label. Pushes to main and manual runs always build.
-    if: ${{ (github.event.action != 'labeled' || github.event.label.name == 'ci-ios') && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-ios')) && (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.react-native == 'true') }}
+    # to through the `ci-ios` label. Pushes to main and manual runs always build; the merge queue
+    # does not, since the push to main right after it does.
+    if: ${{ github.event_name != 'merge_group' && (github.event.action != 'labeled' || github.event.label.name == 'ci-ios') && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-ios')) && (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.react-native == 'true') }}
     runs-on: macos-latest
     timeout-minutes: 120
     steps:
@@ -207,7 +220,7 @@ jobs:
   integration-test-sdk:
     name: 'Integration test SDK (${{ matrix.shape }})'
     needs: detect-changes
-    if: ${{ github.event.action != 'labeled' && (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.rust-sdk == 'true') }}
+    if: ${{ github.event_name != 'merge_group' && github.event.action != 'labeled' && (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.rust-sdk == 'true') }}
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 45
     # Non-blocking on day one: let the suite build a track record before
