@@ -114,7 +114,6 @@ interface NativeModuleInterface {
   ubrn_uniffi_fedimint_sdk_checksum_method_meta_config_metadata(): number
   ubrn_uniffi_fedimint_sdk_checksum_method_meta_consensus_metadata(): number
   ubrn_uniffi_fedimint_sdk_checksum_method_meta_get(): number
-  ubrn_uniffi_fedimint_sdk_checksum_method_meta_override_metadata(): number
   ubrn_uniffi_fedimint_sdk_checksum_method_mnemonic_words(): number
   ubrn_uniffi_fedimint_sdk_checksum_constructor_mnemonic_from_words(): number
   ubrn_uniffi_fedimint_sdk_checksum_constructor_mnemonic_generate(): number
@@ -464,9 +463,6 @@ interface NativeModuleInterface {
   ubrn_uniffi_fedimint_sdk_fn_method_meta_get(
     uniffiSelf: bigint,
     key: Uint8Array,
-  ): bigint
-  ubrn_uniffi_fedimint_sdk_fn_method_meta_override_metadata(
-    uniffiSelf: bigint,
   ): bigint
   ubrn_uniffi_fedimint_sdk_fn_method_mnemonic_words(
     uniffiSelf: bigint,

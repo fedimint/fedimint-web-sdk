@@ -361,8 +361,6 @@ RustBuffer uniffi_fedimint_sdk_fn_method_meta_config_metadata(
     /*handle*/ uint64_t ptr);
 /*handle*/ uint64_t uniffi_fedimint_sdk_fn_method_meta_get(
     /*handle*/ uint64_t ptr, RustBuffer key);
-/*handle*/ uint64_t uniffi_fedimint_sdk_fn_method_meta_override_metadata(
-    /*handle*/ uint64_t ptr);
 /*handle*/ uint64_t uniffi_fedimint_sdk_fn_clone_onchain(
     /*handle*/ uint64_t handle, RustCallStatus *uniffi_out_err);
 void uniffi_fedimint_sdk_fn_free_onchain(
@@ -706,7 +704,6 @@ uint16_t uniffi_fedimint_sdk_checksum_method_meta_all();
 uint16_t uniffi_fedimint_sdk_checksum_method_meta_config_metadata();
 uint16_t uniffi_fedimint_sdk_checksum_method_meta_consensus_metadata();
 uint16_t uniffi_fedimint_sdk_checksum_method_meta_get();
-uint16_t uniffi_fedimint_sdk_checksum_method_meta_override_metadata();
 uint16_t uniffi_fedimint_sdk_checksum_method_onchain_send();
 uint16_t uniffi_fedimint_sdk_checksum_method_onchain_deposits();
 uint16_t uniffi_fedimint_sdk_checksum_method_onchain_quote();
@@ -3616,18 +3613,6 @@ NativeFedimintSdk::NativeFedimintSdk(
             return this->cpp_uniffi_fedimint_sdk_fn_method_meta_get(
                 rt, thisVal, args, count);
           });
-  props["ubrn_uniffi_fedimint_sdk_fn_method_meta_override_metadata"] =
-      jsi::Function::createFromHostFunction(
-          rt,
-          jsi::PropNameID::forAscii(
-              rt, "ubrn_uniffi_fedimint_sdk_fn_method_meta_override_metadata"),
-          1,
-          [this](jsi::Runtime &rt, const jsi::Value &thisVal,
-                 const jsi::Value *args, size_t count) -> jsi::Value {
-            return this
-                ->cpp_uniffi_fedimint_sdk_fn_method_meta_override_metadata(
-                    rt, thisVal, args, count);
-          });
   props["ubrn_uniffi_fedimint_sdk_fn_clone_onchain"] =
       jsi::Function::createFromHostFunction(
           rt,
@@ -5898,18 +5883,6 @@ NativeFedimintSdk::NativeFedimintSdk(
                  const jsi::Value *args, size_t count) -> jsi::Value {
             return this->cpp_uniffi_fedimint_sdk_checksum_method_meta_get(
                 rt, thisVal, args, count);
-          });
-  props["ubrn_uniffi_fedimint_sdk_checksum_method_meta_override_metadata"] =
-      jsi::Function::createFromHostFunction(
-          rt,
-          jsi::PropNameID::forAscii(rt, "ubrn_uniffi_fedimint_sdk_checksum_"
-                                        "method_meta_override_metadata"),
-          0,
-          [this](jsi::Runtime &rt, const jsi::Value &thisVal,
-                 const jsi::Value *args, size_t count) -> jsi::Value {
-            return this
-                ->cpp_uniffi_fedimint_sdk_checksum_method_meta_override_metadata(
-                    rt, thisVal, args, count);
           });
   props["ubrn_uniffi_fedimint_sdk_checksum_method_onchain_send"] =
       jsi::Function::createFromHostFunction(
@@ -9258,17 +9231,6 @@ jsi::Value NativeFedimintSdk::cpp_uniffi_fedimint_sdk_fn_method_meta_get(
   return uniffi_jsi::Bridging</*handle*/ uint64_t>::toJs(rt, callInvoker,
                                                          value);
 }
-jsi::Value
-NativeFedimintSdk::cpp_uniffi_fedimint_sdk_fn_method_meta_override_metadata(
-    jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
-    size_t count) {
-  auto value = uniffi_fedimint_sdk_fn_method_meta_override_metadata(
-      uniffi_jsi::Bridging</*handle*/ uint64_t>::fromJs(rt, callInvoker,
-                                                        args[0]));
-
-  return uniffi_jsi::Bridging</*handle*/ uint64_t>::toJs(rt, callInvoker,
-                                                         value);
-}
 jsi::Value NativeFedimintSdk::cpp_uniffi_fedimint_sdk_fn_clone_onchain(
     jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
     size_t count) {
@@ -11456,14 +11418,6 @@ jsi::Value NativeFedimintSdk::cpp_uniffi_fedimint_sdk_checksum_method_meta_get(
     jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
     size_t count) {
   auto value = uniffi_fedimint_sdk_checksum_method_meta_get();
-
-  return uniffi_jsi::Bridging<uint16_t>::toJs(rt, callInvoker, value);
-}
-jsi::Value NativeFedimintSdk::
-    cpp_uniffi_fedimint_sdk_checksum_method_meta_override_metadata(
-        jsi::Runtime &rt, const jsi::Value &thisVal, const jsi::Value *args,
-        size_t count) {
-  auto value = uniffi_fedimint_sdk_checksum_method_meta_override_metadata();
 
   return uniffi_jsi::Bridging<uint16_t>::toJs(rt, callInvoker, value);
 }

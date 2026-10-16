@@ -435,11 +435,6 @@ const DEFINITIONS = {
       ret: FfiType.UInt16,
       hasRustCallStatus: false,
     },
-    uniffi_fedimint_sdk_checksum_method_meta_override_metadata: {
-      args: [],
-      ret: FfiType.UInt16,
-      hasRustCallStatus: false,
-    },
     uniffi_fedimint_sdk_checksum_method_mnemonic_words: {
       args: [],
       ret: FfiType.UInt16,
@@ -1082,11 +1077,6 @@ const DEFINITIONS = {
     },
     uniffi_fedimint_sdk_fn_method_meta_get: {
       args: [FfiType.Handle, FfiType.RustBuffer],
-      ret: FfiType.Handle,
-      hasRustCallStatus: false,
-    },
-    uniffi_fedimint_sdk_fn_method_meta_override_metadata: {
-      args: [FfiType.Handle],
       ret: FfiType.Handle,
       hasRustCallStatus: false,
     },
@@ -2022,7 +2012,6 @@ interface NativeModuleInterface {
   uniffi_fedimint_sdk_checksum_method_meta_config_metadata(): number
   uniffi_fedimint_sdk_checksum_method_meta_consensus_metadata(): number
   uniffi_fedimint_sdk_checksum_method_meta_get(): number
-  uniffi_fedimint_sdk_checksum_method_meta_override_metadata(): number
   uniffi_fedimint_sdk_checksum_method_mnemonic_words(): number
   uniffi_fedimint_sdk_checksum_constructor_mnemonic_from_words(): number
   uniffi_fedimint_sdk_checksum_constructor_mnemonic_generate(): number
@@ -2368,9 +2357,6 @@ interface NativeModuleInterface {
   uniffi_fedimint_sdk_fn_method_meta_get(
     uniffiSelf: bigint,
     key: Uint8Array,
-  ): bigint
-  uniffi_fedimint_sdk_fn_method_meta_override_metadata(
-    uniffiSelf: bigint,
   ): bigint
   uniffi_fedimint_sdk_fn_method_mnemonic_words(
     uniffiSelf: bigint,

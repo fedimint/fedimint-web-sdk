@@ -9372,11 +9372,13 @@ const FfiConverterTypeLightning = new FfiConverterObject(
  * meta module does not define still shows the override or configuration
  * value.
  *
- * The raw sources stay available separately:
- * [`Meta::config_metadata`], [`Meta::override_metadata`] and
- * [`Meta::consensus_metadata`], so an application that needs to know
- * *where* a value came from, or that needs the consensus revision, is not
- * forced to work backwards from the merged result.
+ * The configuration and consensus sources stay available separately:
+ * [`Meta::config_metadata`] and [`Meta::consensus_metadata`], so an
+ * application that needs to know *where* a value came from, or that needs
+ * the consensus revision, is not forced to work backwards from the merged
+ * result. The override document has no accessor of its own: fedimint-client
+ * caches it already laid over the configuration metadata, so which source a
+ * value came from is gone by the time the SDK reads it.
  *
  * # When the override document contributes
  *
@@ -9434,8 +9436,7 @@ const FfiConverterTypeLightning = new FfiConverterObject(
  * None of this destroys anything. Everything the projection skips or
  * flattens is still in [`ConsensusMetadata::value`] exactly as consensus
  * stores it, which is what to read for anything that depends on the
- * document's structure, its scalar types, or its precise bytes. The same
- * holds for the override document and [`Meta::override_metadata`].
+ * document's structure, its scalar types, or its precise bytes.
  */
 export interface MetaLike {
   /**
@@ -9450,8 +9451,7 @@ export interface MetaLike {
    * value is a nested object or array is skipped in favour of the
    * override or configuration value, or omitted if there is neither. This
    * map is therefore a view for rendering, never an inventory of what the
-   * federation's metadata contains; [`Meta::consensus_metadata`] and
-   * [`Meta::override_metadata`] are that.
+   * federation's metadata contains; [`Meta::consensus_metadata`] is that.
    *
    * Ordered by key: the map is a
    * [`BTreeMap`](std::collections::BTreeMap) rather than a hash map so
@@ -9512,8 +9512,8 @@ export interface MetaLike {
    * stands). The override document follows the same rules, and an
    * override document that has not been fetched contributes nothing. A
    * caller that needs to distinguish "absent" from "present but not
-   * projectable" must read [`Meta::consensus_metadata`] or
-   * [`Meta::override_metadata`] and interpret the document itself.
+   * projectable" must read [`Meta::consensus_metadata`] and interpret
+   * [`ConsensusMetadata::value`] itself.
    *
    * # Errors
    *
@@ -9525,41 +9525,6 @@ export interface MetaLike {
     key: string,
     asyncOpts_?: { signal: AbortSignal },
   ) /*throws*/ : Promise<string | undefined>
-  /**
-   * The raw override metadata: this federation's entry in the document its
-   * configuration names under `meta_override_url`, as a JSON object, or
-   * `None` if there is none to read.
-   *
-   * `None` means the configuration names no override URL, or that
-   * fedimint-client has not fetched the document: the URL was
-   * unreachable, the document was not a JSON object keyed by federation
-   * id, or it had no entry for this federation. Like a missing meta
-   * module, that is an ordinary answer, not a failure.
-   *
-   * The returned text is unprojected: every value keeps its JSON type,
-   * including the nested objects and arrays the merged view skips. Its
-   * formatting is not the original document's: keys are sorted and
-   * whitespace is dropped. The document is read from the copy
-   * fedimint-client caches and refreshes in the background, so this does
-   * not contact the override URL itself; it can still wait, up to the same
-   * timeout as [`Meta::consensus_metadata`], for the first fetch after the
-   * federation opens.
-   *
-   * fedimint-client stores the override document already laid over the
-   * configuration metadata, so the SDK recovers the override by
-   * difference. A key the override document sets to exactly the
-   * configuration's string value cannot be told apart from configuration
-   * and is left out. That never changes [`Meta::get`] or [`Meta::all`],
-   * which would show that value either way.
-   *
-   * # Errors
-   *
-   * [`Timeout`](crate::ErrorCode::Timeout) and
-   * [`FederationClosed`](crate::ErrorCode::FederationClosed).
-   */
-  overrideMetadata(asyncOpts_?: {
-    signal: AbortSignal
-  }) /*throws*/ : Promise<string | undefined>
 }
 /**
  * @deprecated Use `MetaLike` instead.
@@ -9612,11 +9577,13 @@ export type MetaInterface = MetaLike
  * meta module does not define still shows the override or configuration
  * value.
  *
- * The raw sources stay available separately:
- * [`Meta::config_metadata`], [`Meta::override_metadata`] and
- * [`Meta::consensus_metadata`], so an application that needs to know
- * *where* a value came from, or that needs the consensus revision, is not
- * forced to work backwards from the merged result.
+ * The configuration and consensus sources stay available separately:
+ * [`Meta::config_metadata`] and [`Meta::consensus_metadata`], so an
+ * application that needs to know *where* a value came from, or that needs
+ * the consensus revision, is not forced to work backwards from the merged
+ * result. The override document has no accessor of its own: fedimint-client
+ * caches it already laid over the configuration metadata, so which source a
+ * value came from is gone by the time the SDK reads it.
  *
  * # When the override document contributes
  *
@@ -9674,8 +9641,7 @@ export type MetaInterface = MetaLike
  * None of this destroys anything. Everything the projection skips or
  * flattens is still in [`ConsensusMetadata::value`] exactly as consensus
  * stores it, which is what to read for anything that depends on the
- * document's structure, its scalar types, or its precise bytes. The same
- * holds for the override document and [`Meta::override_metadata`].
+ * document's structure, its scalar types, or its precise bytes.
  */
 export class Meta extends UniffiAbstractObject implements MetaLike {
   readonly [uniffiTypeNameSymbol] = 'Meta'
@@ -9700,8 +9666,7 @@ export class Meta extends UniffiAbstractObject implements MetaLike {
    * value is a nested object or array is skipped in favour of the
    * override or configuration value, or omitted if there is neither. This
    * map is therefore a view for rendering, never an inventory of what the
-   * federation's metadata contains; [`Meta::consensus_metadata`] and
-   * [`Meta::override_metadata`] are that.
+   * federation's metadata contains; [`Meta::consensus_metadata`] is that.
    *
    * Ordered by key: the map is a
    * [`BTreeMap`](std::collections::BTreeMap) rather than a hash map so
@@ -9870,8 +9835,8 @@ export class Meta extends UniffiAbstractObject implements MetaLike {
    * stands). The override document follows the same rules, and an
    * override document that has not been fetched contributes nothing. A
    * caller that needs to distinguish "absent" from "present but not
-   * projectable" must read [`Meta::consensus_metadata`] or
-   * [`Meta::override_metadata`] and interpret the document itself.
+   * projectable" must read [`Meta::consensus_metadata`] and interpret
+   * [`ConsensusMetadata::value`] itself.
    *
    * # Errors
    *
@@ -9891,87 +9856,6 @@ export class Meta extends UniffiAbstractObject implements MetaLike {
           return nativeModule().ubrn_uniffi_fedimint_sdk_fn_method_meta_get(
             uniffiTypeMetaObjectFactory.clonePointer(this),
             FfiConverterString.lower(key, nativeModule().rustbuffer_alloc),
-          )
-        },
-        /*pollFunc:*/ nativeModule()
-          .ubrn_ffi_fedimint_sdk_rust_future_poll_rust_buffer,
-        /*cancelFunc:*/ nativeModule()
-          .ubrn_ffi_fedimint_sdk_rust_future_cancel_rust_buffer,
-        /*completeFunc:*/ nativeModule()
-          .ubrn_ffi_fedimint_sdk_rust_future_complete_rust_buffer,
-        /*freeFunc:*/ nativeModule()
-          .ubrn_ffi_fedimint_sdk_rust_future_free_rust_buffer,
-        // Async returns always go through the JS-side converter: the
-        // FFI symbol returns the future handle (u64), and the user-level
-        // RustBuffer comes back via the shared `rust_future_complete_*`
-        // export. The bytes the runtime hands back must be deserialized
-        // here using the per-callable return-type converter.
-        // Borrowed view over foreign memory: the call site owns the free,
-        // as on the sync paths. Unconditional — a no-op where buffers are
-        // already JS-owned.
-        /*liftFunc:*/ (__rb) => {
-          try {
-            return FfiConverterOptionalString.lift(__rb)
-          } finally {
-            nativeModule().rustbuffer_free(__rb)
-          }
-        },
-        /*liftString:*/ FfiConverterString.lift.bind(FfiConverterString),
-        /*asyncOpts:*/ asyncOpts_,
-        /*errorHandler:*/ FfiConverterTypeError__as_error.lift.bind(
-          FfiConverterTypeError__as_error,
-        ),
-      )
-    } catch (__error: any) {
-      if (uniffiIsDebug && __error instanceof Error) {
-        __error.stack = __stack
-      }
-      throw __error
-    }
-  }
-
-  /**
-   * The raw override metadata: this federation's entry in the document its
-   * configuration names under `meta_override_url`, as a JSON object, or
-   * `None` if there is none to read.
-   *
-   * `None` means the configuration names no override URL, or that
-   * fedimint-client has not fetched the document: the URL was
-   * unreachable, the document was not a JSON object keyed by federation
-   * id, or it had no entry for this federation. Like a missing meta
-   * module, that is an ordinary answer, not a failure.
-   *
-   * The returned text is unprojected: every value keeps its JSON type,
-   * including the nested objects and arrays the merged view skips. Its
-   * formatting is not the original document's: keys are sorted and
-   * whitespace is dropped. The document is read from the copy
-   * fedimint-client caches and refreshes in the background, so this does
-   * not contact the override URL itself; it can still wait, up to the same
-   * timeout as [`Meta::consensus_metadata`], for the first fetch after the
-   * federation opens.
-   *
-   * fedimint-client stores the override document already laid over the
-   * configuration metadata, so the SDK recovers the override by
-   * difference. A key the override document sets to exactly the
-   * configuration's string value cannot be told apart from configuration
-   * and is left out. That never changes [`Meta::get`] or [`Meta::all`],
-   * which would show that value either way.
-   *
-   * # Errors
-   *
-   * [`Timeout`](crate::ErrorCode::Timeout) and
-   * [`FederationClosed`](crate::ErrorCode::FederationClosed).
-   */
-  async overrideMetadata(asyncOpts_?: {
-    signal: AbortSignal
-  }): Promise<string | undefined> /*throws*/ {
-    const __stack = uniffiIsDebug ? new Error().stack : undefined
-    try {
-      return await uniffiRustCallAsync(
-        /*rustCaller:*/ uniffiCaller,
-        /*rustFutureFunc:*/ () => {
-          return nativeModule().ubrn_uniffi_fedimint_sdk_fn_method_meta_override_metadata(
-            uniffiTypeMetaObjectFactory.clonePointer(this),
           )
         },
         /*pollFunc:*/ nativeModule()
@@ -18359,7 +18243,7 @@ function uniffiEnsureInitialized() {
     )
   }
   if (
-    nativeModule().ubrn_uniffi_fedimint_sdk_checksum_method_meta_all() !== 34926
+    nativeModule().ubrn_uniffi_fedimint_sdk_checksum_method_meta_all() !== 28170
   ) {
     throw new UniffiInternalError.ApiChecksumMismatch(
       'uniffi_fedimint_sdk_checksum_method_meta_all',
@@ -18382,18 +18266,10 @@ function uniffiEnsureInitialized() {
     )
   }
   if (
-    nativeModule().ubrn_uniffi_fedimint_sdk_checksum_method_meta_get() !== 62222
+    nativeModule().ubrn_uniffi_fedimint_sdk_checksum_method_meta_get() !== 35728
   ) {
     throw new UniffiInternalError.ApiChecksumMismatch(
       'uniffi_fedimint_sdk_checksum_method_meta_get',
-    )
-  }
-  if (
-    nativeModule().ubrn_uniffi_fedimint_sdk_checksum_method_meta_override_metadata() !==
-    22000
-  ) {
-    throw new UniffiInternalError.ApiChecksumMismatch(
-      'uniffi_fedimint_sdk_checksum_method_meta_override_metadata',
     )
   }
   if (

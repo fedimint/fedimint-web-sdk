@@ -57,11 +57,13 @@ const CONSENSUS_FETCH_TIMEOUT: Duration = Duration::from_secs(5);
 /// meta module does not define still shows the override or configuration
 /// value.
 ///
-/// The raw sources stay available separately:
-/// [`Meta::config_metadata`], [`Meta::override_metadata`] and
-/// [`Meta::consensus_metadata`], so an application that needs to know
-/// *where* a value came from, or that needs the consensus revision, is not
-/// forced to work backwards from the merged result.
+/// The configuration and consensus sources stay available separately:
+/// [`Meta::config_metadata`] and [`Meta::consensus_metadata`], so an
+/// application that needs to know *where* a value came from, or that needs
+/// the consensus revision, is not forced to work backwards from the merged
+/// result. The override document has no accessor of its own: fedimint-client
+/// caches it already laid over the configuration metadata, so which source a
+/// value came from is gone by the time the SDK reads it.
 ///
 /// # When the override document contributes
 ///
@@ -119,8 +121,7 @@ const CONSENSUS_FETCH_TIMEOUT: Duration = Duration::from_secs(5);
 /// None of this destroys anything. Everything the projection skips or
 /// flattens is still in [`ConsensusMetadata::value`] exactly as consensus
 /// stores it, which is what to read for anything that depends on the
-/// document's structure, its scalar types, or its precise bytes. The same
-/// holds for the override document and [`Meta::override_metadata`].
+/// document's structure, its scalar types, or its precise bytes.
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Object))]
 pub struct Meta {
@@ -150,8 +151,8 @@ impl Meta {
     /// stands). The override document follows the same rules, and an
     /// override document that has not been fetched contributes nothing. A
     /// caller that needs to distinguish "absent" from "present but not
-    /// projectable" must read [`Meta::consensus_metadata`] or
-    /// [`Meta::override_metadata`] and interpret the document itself.
+    /// projectable" must read [`Meta::consensus_metadata`] and interpret
+    /// [`ConsensusMetadata::value`] itself.
     ///
     /// # Errors
     ///
@@ -174,8 +175,7 @@ impl Meta {
     /// value is a nested object or array is skipped in favour of the
     /// override or configuration value, or omitted if there is neither. This
     /// map is therefore a view for rendering, never an inventory of what the
-    /// federation's metadata contains; [`Meta::consensus_metadata`] and
-    /// [`Meta::override_metadata`] are that.
+    /// federation's metadata contains; [`Meta::consensus_metadata`] is that.
     ///
     /// Ordered by key: the map is a
     /// [`BTreeMap`](std::collections::BTreeMap) rather than a hash map so
@@ -241,41 +241,6 @@ impl Meta {
             value: mcv.value.as_slice().to_vec(),
         }))
     }
-
-    /// The raw override metadata: this federation's entry in the document its
-    /// configuration names under `meta_override_url`, as a JSON object, or
-    /// `None` if there is none to read.
-    ///
-    /// `None` means the configuration names no override URL, or that
-    /// fedimint-client has not fetched the document: the URL was
-    /// unreachable, the document was not a JSON object keyed by federation
-    /// id, or it had no entry for this federation. Like a missing meta
-    /// module, that is an ordinary answer, not a failure.
-    ///
-    /// The returned text is unprojected: every value keeps its JSON type,
-    /// including the nested objects and arrays the merged view skips. Its
-    /// formatting is not the original document's: keys are sorted and
-    /// whitespace is dropped. The document is read from the copy
-    /// fedimint-client caches and refreshes in the background, so this does
-    /// not contact the override URL itself; it can still wait, up to the same
-    /// timeout as [`Meta::consensus_metadata`], for the first fetch after the
-    /// federation opens.
-    ///
-    /// fedimint-client stores the override document already laid over the
-    /// configuration metadata, so the SDK recovers the override by
-    /// difference. A key the override document sets to exactly the
-    /// configuration's string value cannot be told apart from configuration
-    /// and is left out. That never changes [`Meta::get`] or [`Meta::all`],
-    /// which would show that value either way.
-    ///
-    /// # Errors
-    ///
-    /// [`Timeout`](crate::ErrorCode::Timeout) and
-    /// [`FederationClosed`](crate::ErrorCode::FederationClosed).
-    pub async fn override_metadata(&self) -> Result<Option<String>> {
-        let document = self.override_document().await?;
-        Ok(document.map(|map| serde_json::Value::Object(map).to_string()))
-    }
 }
 
 impl Meta {
@@ -286,9 +251,10 @@ impl Meta {
         }
     }
 
-    /// The override document, as [`Meta::override_metadata`] describes it, before it is turned
-    /// into text.
-    async fn override_document(&self) -> Result<Option<JsonObject>> {
+    /// fedimint-client's cached meta entries: the configuration metadata with the override
+    /// document laid over it, or `None` if the configuration names no override URL or the
+    /// document has not been fetched.
+    async fn overridden_config(&self) -> Result<Option<JsonObject>> {
         let client = self.inner.federation.client(false).await?;
         let config = client.config().await.global.meta;
         if !config.contains_key(META_OVERRIDE_URL_KEY) {
@@ -299,7 +265,7 @@ impl Meta {
         // `LegacyMetaSource`, whose cache holds configuration metadata with the override document
         // laid over it and nothing else. The SDK never calls `ClientBuilder::with_meta_service`.
         // Installing `MetaModuleMetaSourceWithFallback` there would put consensus values in this
-        // cache, so they would read as overrides here: read the override some other way first.
+        // cache, projected by its rules rather than the ones on `Meta`.
         let entries = fedimint_core::runtime::timeout(
             CONSENSUS_FETCH_TIMEOUT,
             client.meta_service().entries(client.db()),
@@ -307,12 +273,12 @@ impl Meta {
         .await
         .map_err(|_| Error::new(ErrorCode::Timeout, "override metadata fetch timed out"))?;
 
-        Ok(entries.map(|entries| override_entries(&config, entries)))
+        Ok(entries.map(|entries| entries.into_iter().collect()))
     }
 
     async fn merged_view(&self) -> Result<BTreeMap<String, String>> {
         let (consensus, overrides) =
-            futures::join!(self.consensus_metadata(), self.override_document());
+            futures::join!(self.consensus_metadata(), self.overridden_config());
         let consensus = consensus?;
         // An override that has not arrived in time contributes nothing rather than failing the
         // view; see "When the override document contributes" on `Meta`.
@@ -350,23 +316,6 @@ fn merge_sources(
         Some(bytes) => apply_consensus_bytes(&merged, bytes),
         None => merged,
     }
-}
-
-/// Recovers the override document from fedimint-client's cached meta entries, which hold the
-/// configuration metadata with the override laid over it.
-///
-/// An entry is configuration, not override, when it is exactly the configuration's string value,
-/// which is how fedimint-client's legacy source stores a configuration entry.
-fn override_entries(
-    config: &BTreeMap<String, String>,
-    entries: BTreeMap<String, serde_json::Value>,
-) -> JsonObject {
-    entries
-        .into_iter()
-        .filter(|(key, value)| {
-            !matches!((config.get(key), value), (Some(c), serde_json::Value::String(v)) if c == v)
-        })
-        .collect()
 }
 
 /// Lays the consensus document over `base`, by rules 1 to 5 on [`Meta`].
@@ -642,31 +591,28 @@ mod tests {
     }
 
     #[test]
-    fn override_entries_drops_entries_that_are_configuration() {
-        let config = map(&[
-            ("meta_override_url", "https://example.com/meta.json"),
-            ("same", "v"),
-            ("changed", "c"),
-            ("retyped", "42"),
-        ]);
-        let entries: BTreeMap<String, serde_json::Value> = object(json!({
-            "meta_override_url": "https://example.com/meta.json",
+    fn merge_sources_projects_the_cached_override_over_config() {
+        // fedimint-client caches the configuration with the override document laid over it:
+        // configuration entries as strings, override entries replacing them with any JSON value.
+        let config = map(&[("same", "v"), ("changed", "c"), ("nested", "c")]);
+        let cached = object(json!({
             "same": "v",
             "changed": "o",
-            "added": {"a": [1, 2]},
-            // A number is not the configuration's string, so it is the override's.
-            "retyped": 42,
-        }))
-        .into_iter()
-        .collect();
+            "nested": {"a": [1, 2]},
+            "added": 42,
+        }));
+
+        let merged = merge_sources(config, Some(cached), None);
 
         assert_eq!(
-            override_entries(&config, entries),
-            object(json!({
-                "changed": "o",
-                "added": {"a": [1, 2]},
-                "retyped": 42,
-            }))
+            merged,
+            map(&[
+                ("same", "v"),
+                ("changed", "o"),
+                // Skipped under rule 4, so configuration stands under rule 5.
+                ("nested", "c"),
+                ("added", "42"),
+            ])
         );
     }
 
@@ -721,9 +667,6 @@ mod tests {
         // consensus_metadata, get, and all return FederationClosed error
         let consensus_err = meta.consensus_metadata().await.expect_err("should fail");
         assert_eq!(consensus_err.code, ErrorCode::FederationClosed);
-
-        let override_err = meta.override_metadata().await.expect_err("should fail");
-        assert_eq!(override_err.code, ErrorCode::FederationClosed);
 
         let get_err = meta.get("any_key").await.expect_err("should fail");
         assert_eq!(get_err.code, ErrorCode::FederationClosed);
