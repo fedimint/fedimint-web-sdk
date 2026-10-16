@@ -10,9 +10,10 @@ use crate::{Error, ErrorCode};
 /// `Bolt11Invoice` is opaque: callers obtain one by parsing an invoice
 /// string a payee gave them, read it through the accessors below, and pass
 /// it to a quote call; they never construct or reassemble one field by
-/// field. It round-trips through [`Display`](core::fmt::Display) (recovering
-/// the original bolt11 string) and [`FromStr`](core::str::FromStr) with a
-/// validating parse.
+/// field. It round-trips through [`Display`](core::fmt::Display) and
+/// [`FromStr`](core::str::FromStr) with a validating parse. `Display` writes
+/// the canonical lowercase bolt11 string, without the surrounding whitespace
+/// or `lightning:` scheme the parse accepts.
 #[derive(Debug, Clone)]
 pub struct Bolt11Invoice {
     invoice: lightning_invoice::Bolt11Invoice,
@@ -143,8 +144,8 @@ impl Bolt11Invoice {
 
 impl core::fmt::Display for Bolt11Invoice {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        // Re-encodes the signed invoice, reproducing the original bolt11
-        // string (lightning-invoice-0.33.3/src/ser.rs:152-156).
+        // Re-encodes the signed invoice as canonical lowercase bolt11
+        // (lightning-invoice-0.33.3/src/ser.rs:152-156).
         core::fmt::Display::fmt(&self.invoice, f)
     }
 }
@@ -152,16 +153,23 @@ impl core::fmt::Display for Bolt11Invoice {
 impl core::str::FromStr for Bolt11Invoice {
     type Err = crate::Error;
 
-    /// Parses a bolt11 invoice from its canonical string form. Returns
-    /// [`ErrorCode::InvalidInput`](crate::ErrorCode::InvalidInput) for a
-    /// malformed value.
+    /// Parses a bolt11 invoice from its canonical string form, ignoring
+    /// surrounding whitespace and a `lightning:` URI scheme in any case, as a
+    /// QR code often carries. A `bitcoin:` (BIP-21) URI is not accepted.
+    /// Returns [`ErrorCode::InvalidInput`](crate::ErrorCode::InvalidInput)
+    /// for a malformed value.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        const SCHEME: &str = "lightning:";
+        let s = s.trim();
+        let bolt11 = match s.get(..SCHEME.len()) {
+            Some(scheme) if scheme.eq_ignore_ascii_case(SCHEME) => &s[SCHEME.len()..],
+            _ => s,
+        };
         // An expired invoice still parses: expiry is refused at quote time,
         // where the caller can be told something useful about it. Upstream's
         // `ParseOrSemanticError` names a structural problem, not the invoice,
         // so its text may be passed on.
-        let invoice = s
-            .trim()
+        let invoice = bolt11
             .parse::<lightning_invoice::Bolt11Invoice>()
             .map_err(|err| {
                 Error::new(
@@ -221,6 +229,33 @@ mod tests {
         assert_eq!(invoice.to_string(), MAINNET_25M);
         let padded = format!("  {MAINNET_25M}\n");
         assert_eq!(padded.parse::<Bolt11Invoice>().expect("trimmed"), invoice);
+    }
+
+    #[test]
+    fn parsing_accepts_a_lightning_scheme_in_any_case() {
+        let invoice = MAINNET_25M
+            .parse::<Bolt11Invoice>()
+            .expect("a valid invoice");
+        let upper = MAINNET_25M.to_ascii_uppercase();
+        for uri in [
+            format!("lightning:{MAINNET_25M}"),
+            format!(" LIGHTNING:{upper}\n"),
+            format!("Lightning:{MAINNET_25M}"),
+        ] {
+            let parsed = uri.parse::<Bolt11Invoice>().expect("a lightning: URI");
+            assert_eq!(parsed, invoice);
+            assert_eq!(parsed.to_string(), MAINNET_25M);
+        }
+    }
+
+    #[test]
+    fn parsing_rejects_a_bitcoin_scheme() {
+        // BIP-21 is a URI with an address and query parameters, not a prefix
+        // to strip.
+        let error = format!("bitcoin:{MAINNET_25M}")
+            .parse::<Bolt11Invoice>()
+            .expect_err("a bitcoin: URI is not an invoice");
+        assert_eq!(error.code, crate::ErrorCode::InvalidInput);
     }
 
     #[test]

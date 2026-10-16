@@ -1713,7 +1713,7 @@ impl Backfiller for EcashBackfiller {
                     let parsed_notes = ecash.parse::<crate::Notes>().ok().or_else(|| {
                         decoded_ecash
                             .as_ref()
-                            .map(|e| crate::Notes::from_mintv2(e.clone(), ecash.clone()))
+                            .map(|e| crate::Notes::from_mintv2(e.clone()))
                     });
                     let decoded_amount = decoded_ecash
                         .as_ref()
