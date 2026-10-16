@@ -308,6 +308,14 @@ interface NativeModuleInterface {
     uniffiSelf: bigint,
     uniffi_out_err: UniffiRustCallStatus,
   ): Uint8Array
+  ubrn_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug(
+    uniffiSelf: bigint,
+    uniffi_out_err: UniffiRustCallStatus,
+  ): Uint8Array
+  ubrn_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display(
+    uniffiSelf: bigint,
+    uniffi_out_err: UniffiRustCallStatus,
+  ): Uint8Array
   ubrn_uniffi_fedimint_sdk_fn_method_federation_activity(
     uniffiSelf: bigint,
     cursor: Uint8Array,

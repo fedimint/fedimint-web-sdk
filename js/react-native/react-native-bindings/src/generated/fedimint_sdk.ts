@@ -2370,6 +2370,40 @@ export class Exception extends UniffiAbstractObject implements ExceptionLike {
     }
   }
 
+  toString(): string {
+    const __rb: Uint8Array = uniffiCaller.rustCall(
+      /*caller:*/ (callStatus) => {
+        return nativeModule().ubrn_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display(
+          uniffiTypeExceptionObjectFactory.clonePointer(this),
+          callStatus,
+        )
+      },
+      /*liftString:*/ FfiConverterString.lift.bind(FfiConverterString),
+    )
+    try {
+      return FfiConverterString.lift(__rb)
+    } finally {
+      nativeModule().rustbuffer_free(__rb)
+    }
+  }
+
+  toDebugString(): string {
+    const __rb: Uint8Array = uniffiCaller.rustCall(
+      /*caller:*/ (callStatus) => {
+        return nativeModule().ubrn_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug(
+          uniffiTypeExceptionObjectFactory.clonePointer(this),
+          callStatus,
+        )
+      },
+      /*liftString:*/ FfiConverterString.lift.bind(FfiConverterString),
+    )
+    try {
+      return FfiConverterString.lift(__rb)
+    } finally {
+      nativeModule().rustbuffer_free(__rb)
+    }
+  }
+
   uniffiDestroy(): void {
     const ptr = (this as any)[destructorGuardSymbol]
     if (ptr !== undefined) {
