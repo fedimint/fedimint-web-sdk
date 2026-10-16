@@ -51,21 +51,33 @@ jobs:
           fi
           prefix="gh-readonly-queue/${BASE_REF#refs/heads/}/pr-${BASH_REMATCH[1]}-"
 
-          # Unfinished queue runs on this PR's queue branches, from an earlier build:
-          # a lower run id, and a different merge group commit. The same commit is
-          # this build's own runs, this one included.
+          # Run ids are unique but not documented to increase over time, so
+          # "earlier" is decided by creation time.
+          created=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .created_at)
+          if [[ -z "$created" ]]; then
+            echo "Could not read this run's creation time" >&2
+            exit 1
+          fi
+
+          # Unfinished queue runs on this PR's queue branches from an earlier build:
+          # created before this run, on a different merge group commit. The same
+          # commit is this build's own runs, this one included. Captured with
+          # `$(...)` rather than read from a process substitution, so a failed
+          # listing fails the job instead of reading as "nothing stale".
           stale=()
           for status in queued in_progress waiting pending requested; do
-            while IFS= read -r id; do
-              [[ -n "$id" ]] && stale+=("$id")
-            done < <(
+            ids=$(
               gh api --paginate \
                 "repos/$GITHUB_REPOSITORY/actions/runs?event=merge_group&status=$status&per_page=100" |
-                jq -r --arg prefix "$prefix" --arg sha "$GITHUB_SHA" --argjson run "$GITHUB_RUN_ID" '
+                jq -r --arg prefix "$prefix" --arg sha "$GITHUB_SHA" --arg created "$created" '
                   .workflow_runs[]
-                  | select((.head_branch | startswith($prefix)) and .head_sha != $sha and .id < $run)
+                  | select((.head_branch | startswith($prefix)) and .head_sha != $sha and .created_at < $created)
                   | .id'
             )
+            if [[ -n "$ids" ]]; then
+              mapfile -t found <<< "$ids"
+              stale+=("${found[@]}")
+            fi
           done
 
           if [[ ${#stale[@]} -eq 0 ]]; then
