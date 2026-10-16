@@ -1,0 +1,105 @@
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { Amount, FederationLike } from '@fedimint/react-native-bindings'
+
+/** The pull cursor every generated `…Updates` object has. */
+interface Updates<T> {
+  next(asyncOpts_?: { signal: AbortSignal }): Promise<T | undefined>
+  /** On every generated cursor, but absent from the `…Like` interfaces. */
+  uniffiDestroy?(): void
+}
+
+/** Any generated operation (`EcashSendOperationLike`, `LnReceiveOperationLike`, …). */
+export interface ObservableOperation<S> {
+  id(): string
+  updates(): Updates<S>
+}
+
+/**
+ * The federation's balance in msat, live. `undefined` until the first value arrives, and while
+ * `federation` is `undefined`.
+ *
+ * The subscription is keyed on `federation.id()`, so a new handle for the same federation does
+ * not restart it. A stream that fails (`FederationClosed` once the federation or the SDK is
+ * closed) is reported to `onError`, the balance goes back to `undefined`, and it is not
+ * retried. To watch again after reopening, remount the component, for example with a React
+ * `key`.
+ */
+export function useBalance(
+  federation: FederationLike | undefined,
+  onError?: (err: unknown) => void,
+): Amount | undefined {
+  return useUpdates(federation, (f) => f.balanceUpdates(), onError)
+}
+
+/**
+ * The operation's state, live. `undefined` until the first state arrives, and while
+ * `operation` is `undefined`. The final state stays after the stream ends.
+ *
+ * Keyed on `operation.id()`. A failure to observe is reported to `onError`, the state goes back
+ * to `undefined`, and it is not retried; it is never the operation's outcome, which is a state.
+ */
+export function useOperation<S>(
+  operation: ObservableOperation<S> | undefined,
+  onError?: (err: unknown) => void,
+): S | undefined {
+  return useUpdates(operation, (o) => o.updates(), onError)
+}
+
+/**
+ * Pulls `open(source)`'s cursor while `source.id()` stays the same. The first `next()` is the
+ * current value, and `undefined` is the clean end. Unmounting or a new id aborts the pending
+ * `next()`.
+ */
+function useUpdates<Source extends { id(): string }, T>(
+  source: Source | undefined,
+  open: (source: Source) => Updates<T>,
+  onError: ((err: unknown) => void) | undefined,
+): T | undefined {
+  const key = source?.id()
+  const [latest, setLatest] = useState<{ key: string; value: T }>()
+  // Read when a failure arrives. Set at commit, so a render React abandons cannot replace it.
+  const onErrorRef = useRef(onError)
+  useLayoutEffect(() => {
+    onErrorRef.current = onError
+  })
+
+  useEffect(() => {
+    // The committed source. Keyed on its id, so a new handle each render does not resubscribe.
+    const current = source
+    if (key === undefined || current === undefined) return
+    const controller = new AbortController()
+    const { signal } = controller
+    const pull = async () => {
+      let updates: Updates<T> | undefined
+      try {
+        updates = open(current)
+        for (;;) {
+          const value = await updates.next({ signal })
+          if (signal.aborted || value === undefined) return
+          setLatest({ key, value })
+        }
+      } catch (err) {
+        if (signal.aborted) return
+        // A stopped stream must not look live.
+        setLatest(undefined)
+        try {
+          onErrorRef.current?.(err)
+        } catch (thrown) {
+          // A throwing handler must not become an unhandled rejection of `pull()`.
+          console.error(thrown)
+        }
+      } finally {
+        // The cursor holds the federation and its storage claim; do not wait for GC to free it.
+        updates?.uniffiDestroy?.()
+      }
+    }
+    void pull()
+    return () => {
+      controller.abort()
+      // Without this, the same id coming back would show the old value until its cursor yields.
+      setLatest(undefined)
+    }
+  }, [key])
+
+  return latest !== undefined && latest.key === key ? latest.value : undefined
+}
