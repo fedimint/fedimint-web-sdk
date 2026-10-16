@@ -20,8 +20,9 @@ export interface ObservableOperation<S> {
  *
  * The subscription is keyed on `federation.id()`, so a new handle for the same federation does
  * not restart it. A stream that fails (`FederationClosed` once the federation or the SDK is
- * closed) is reported to `onError` and not retried. To watch again after reopening, remount the
- * component, for example with a React `key`.
+ * closed) is reported to `onError`, the balance goes back to `undefined`, and it is not
+ * retried. To watch again after reopening, remount the component, for example with a React
+ * `key`.
  */
 export function useBalance(
   federation: FederationLike | undefined,
@@ -34,8 +35,8 @@ export function useBalance(
  * The operation's state, live. `undefined` until the first state arrives, and while
  * `operation` is `undefined`. The final state stays after the stream ends.
  *
- * Keyed on `operation.id()`. A failure to observe is reported to `onError` and not retried; it
- * is never the operation's outcome, which is a state.
+ * Keyed on `operation.id()`. A failure to observe is reported to `onError`, the state goes back
+ * to `undefined`, and it is not retried; it is never the operation's outcome, which is a state.
  */
 export function useOperation<S>(
   operation: ObservableOperation<S> | undefined,
@@ -78,7 +79,15 @@ function useUpdates<Source extends { id(): string }, T>(
           setLatest({ key, value })
         }
       } catch (err) {
-        if (!signal.aborted) onErrorRef.current?.(err)
+        if (signal.aborted) return
+        // A stopped stream must not look live.
+        setLatest(undefined)
+        try {
+          onErrorRef.current?.(err)
+        } catch (thrown) {
+          // A throwing handler must not become an unhandled rejection of `pull()`.
+          console.error(thrown)
+        }
       } finally {
         // The cursor holds the federation and its storage claim; do not wait for GC to free it.
         updates?.uniffiDestroy?.()

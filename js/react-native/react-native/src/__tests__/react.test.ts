@@ -151,6 +151,33 @@ describe('useBalance', () => {
     expect(c.next).toHaveBeenCalledTimes(1)
   })
 
+  it('clears the balance when the stream fails', async () => {
+    const c = cursor<bigint>()
+    const { seen } = renderBalance(federation('fed-a', c), vi.fn())
+    await c.push(1_000n)
+    await c.fail(new Error('FederationClosed'))
+    await act(async () => {})
+    expect(seen[seen.length - 1]).toBeUndefined()
+  })
+
+  it('logs an onError that throws instead of rejecting', async () => {
+    const c = cursor<bigint>()
+    const thrown = new Error('handler bug')
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      renderBalance(federation('fed-a', c), () => {
+        throw thrown
+      })
+      await c.fail(new Error('FederationClosed'))
+      await act(async () => {})
+      // Vitest fails the run on an unhandled rejection, so reaching here with the log is the check.
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(logged).toHaveBeenCalledWith(thrown)
+    } finally {
+      logged.mockRestore()
+    }
+  })
+
   it('destroys the cursor once on unmount', async () => {
     const c = cursor<bigint>()
     const { root } = renderBalance(federation('fed-a', c))
