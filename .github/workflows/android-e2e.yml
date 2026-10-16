@@ -143,7 +143,7 @@ jobs:
         run: |
           nix develop --accept-flake-config .#android-tests --command bash << 'EOF'
             set -euo pipefail
-            # Same entry point the wasm suite uses (js/package.json's
+            # Same entry point the browser package's tests use (js/package.json's
             # `test:setup`): devimint stands a federation up, exports its
             # ports, and execs the run inside it. The app reaches that
             # federation through `adb reverse` — see the script.

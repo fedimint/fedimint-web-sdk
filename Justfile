@@ -30,12 +30,13 @@ build-android-apk:
 
 # Boot an emulator, install the example app and drive it with the Appium suite
 # (js/android/integration-tests) against a devimint federation — the Android
-# counterpart of `just test`, which does the same for the wasm client, through
-# the same scripts/setup_test_shell.sh. There is deliberately no federation-free
-# variant: one way to run this suite, so what CI does and what you can
-# reproduce are the same thing. Builds the APK first (see build-android-apk);
-# the script itself only installs one. `shape` picks the federation's module
-# generation: v1 (mint, wallet, ln) or v2 (mintv2, walletv2, lnv2).
+# counterpart of `just test`, which does the same for the browser package's
+# tests (js/web/sdk-web), through the same scripts/setup_test_shell.sh. There is
+# deliberately no federation-free variant: one way to run this suite, so what CI
+# does and what you can reproduce are the same thing. Builds the APK first (see
+# build-android-apk); the script itself only installs one. `shape` picks the
+# federation's module generation: v1 (mint, wallet, ln) or v2 (mintv2, walletv2,
+# lnv2).
 test-android-e2e shape="v1": build-android-apk
     FM_SDK_SHAPE={{shape}} nix develop --accept-flake-config .#android-tests -c scripts/setup_test_shell.sh bash scripts/e2e-android/run-android-e2e.sh
 

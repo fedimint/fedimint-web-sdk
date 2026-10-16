@@ -6,22 +6,12 @@ on:
         required: false
     inputs:
       run_core:
-        description: 'Run core build, unit test, and typecheck jobs'
+        description: 'Run the JS build, unit test, and typecheck jobs'
         required: false
         type: boolean
         default: true
       run_web:
-        description: 'Run web/WASM integration tests'
-        required: false
-        type: boolean
-        default: true
-      run_docs:
-        description: 'Run docs build'
-        required: false
-        type: boolean
-        default: true
-      run_cli:
-        description: 'Run create-fedimint-app CLI tests'
+        description: "Run the browser package's tests against a devimint federation"
         required: false
         type: boolean
         default: true
@@ -91,9 +81,6 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-deps
 
-      - name: Build types package
-        run: pnpm --dir js --filter @fedimint/types build
-
       - name: Check types
         run: pnpm --dir js typecheck
 
@@ -109,11 +96,6 @@ jobs:
 
       - name: Setup Nix
         uses: ./.github/actions/setup-nix
-        with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-
-      - name: Build WASM
-        uses: ./.github/actions/build-wasm
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
@@ -134,47 +116,3 @@ jobs:
             pnpm --dir js build
             pnpm --dir js test
           EOF
-
-      - name: Report Size
-        uses: alexlwn123/compressed-size-action@alex/fix-build
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          pattern: 'js/{shared,web,tools}/**/{dist/**/*.{js,mjs,cjs},*.wasm}'
-          install-script: nix develop --accept-flake-config -c pnpm --dir js install
-          build-script: nix develop --accept-flake-config -c pnpm --dir js build
-
-  build-docs:
-    name: Build Docs
-    if: ${{ github.event_name == 'workflow_dispatch' || inputs.run_docs != false }}
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v7
-
-      - name: Install dependencies
-        uses: ./.github/actions/install-deps
-
-      - name: Build Packages (dependency of docs)
-        run: pnpm --dir js build
-
-      - name: Build Docs
-        run: pnpm --dir js docs:build
-
-  test-cli:
-    name: Test CLI
-    if: ${{ github.event_name == 'workflow_dispatch' || inputs.run_cli != false }}
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v7
-
-      - name: Install dependencies
-        uses: ./.github/actions/install-deps
-
-      - name: Build create-fedimint-app
-        run: pnpm --dir js --filter create-fedimint-app build
-
-      - name: Run CLI tests
-        run: pnpm --dir js test:create

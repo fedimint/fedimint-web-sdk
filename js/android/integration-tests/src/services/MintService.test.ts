@@ -33,10 +33,9 @@ const SPEND_CANDIDATES_MSATS: Record<Shape, readonly number[]> = {
 }
 
 // Ecash out and back in: spend notes, then reissue the very same notes into
-// the wallet that made them. Mirrors the wasm suite's MintService tests, and
-// covers the one thing those cannot — that an opaque handle (`Notes`) survives
-// the round trip through the generated Kotlin, out as a string a user could
-// paste, and back in.
+// the wallet that made them. This checks that an opaque handle (`Notes`)
+// survives the round trip through the generated Kotlin, out as a string a user
+// could paste, and back in.
 //
 // Runs on whatever LightningService left behind, so the federation is joined
 // and funded once for both tests rather than per test.

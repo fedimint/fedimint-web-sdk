@@ -9,9 +9,8 @@ Kotlin, JS/wasm) is generated from.
 
 The surface documented throughout this crate is implemented behind every
 facade: `Ecash`, `Lightning`, `Onchain`, `Meta`, and recovery on `Sdk`. This
-crate tracks fedimint `master` at one pinned revision, the same one the
-repo's `flake.nix` pins for devimint and the wasm client, so the SDK and the
-federation its tests run against always come from one commit.
+crate builds against one fedimint release, required at an exact version in
+`Cargo.toml`.
 
 The language bindings are generated from this surface with UniFFI, behind
 the `uniffi` feature. The exports hand out this crate's own types, so a
@@ -33,6 +32,12 @@ this surface changes.
 The design is tracked in
 [fedimint-sdk#344](https://github.com/fedimint/fedimint-sdk/issues/344), the
 RFC this crate implements.
+
+## Building
+
+The crate's dependencies compile RocksDB and AWS-LC from source and generate
+bindings for them, so a build needs a C and C++ compiler, CMake and libclang
+on the host. On Ubuntu: `sudo apt-get install clang libclang-dev cmake`.
 
 ## Examples
 
@@ -84,7 +89,7 @@ scripts/run-sdk-examples.sh v2 shell
 ```
 
 The default and recommended shape is `v2`. On `v1`, the pinned fedimint
-revision's lnv1 client cannot decode a successful send's preimage
+release's lnv1 client cannot decode a successful send's preimage
 ([fedimint/fedimint#8969](https://github.com/fedimint/fedimint/issues/8969)),
 so the `walkthrough` and `lightning` examples end with an `Internal` error
 after the payment has actually gone through; `ecash` and `onchain` are

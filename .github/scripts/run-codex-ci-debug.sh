@@ -131,9 +131,9 @@ A GitHub Actions workflow failed on the main branch. Investigate the failure
 and either comment on the culprit pull request, document unresolved findings
 in a GitHub issue, or open a draft pull request with a small, well-scoped fix.
 
-fedimint-sdk is a TypeScript monorepo (pnpm workspaces) providing SDKs for
-building web applications on Fedimint, wrapping the Rust client compiled to
-WebAssembly.
+fedimint-sdk holds the SDK for building wallets and apps on Fedimint: a Rust
+crate over `fedimint-client`, and the Kotlin, Swift, React Native and browser
+SDKs generated from it.
 
 Target run:
 - Run id: $CI_DEBUG_RUN_ID
@@ -171,21 +171,15 @@ Baseline investigation:
   match.
 
 Common failure categories in this repository:
-- The "Changesets" workflow handles versioning and npm publishing — failures
-  are often npm auth/registry errors, changeset misconfiguration, or a package
-  that no longer builds. Treat clear upstream registry HTTP 5xx failures as
-  transient unless they recur enough to justify a retry/caching fix.
 - The "React Native SDK Release" workflow publishes the two React Native
-  packages from a pushed `react-native-sdk-v*` tag, without changesets and
-  without an npm token (npm trusted publishing). A tag and an npm version are
-  permanent, so never propose moving or deleting a tag: a release that failed
-  halfway is re-run (it skips what is already on npm), and a bad one is fixed
-  by the next version. js/react-native/README.md describes the release.
+  packages from a pushed `react-native-sdk-v*` tag, without an npm token (npm
+  trusted publishing). A tag and an npm version are permanent, so never
+  propose moving or deleting a tag: a release that failed halfway is re-run
+  (it skips what is already on npm), and a bad one is fixed by the next
+  version. js/react-native/README.md describes the release.
 - Integration tests run vitest against a real devimint federation and can be
   flaky for timing reasons; a flaky failure still needs to be debugged and
   fixed when there is a high-confidence cause.
-- Docs deployment failures are usually VitePress build errors introduced by a
-  recently merged docs or API change.
 
 Decision rules:
 - Open a draft PR only when the fix is concrete, low-risk, and can be validated

@@ -14,7 +14,7 @@ name: React Native SDK Release
 # The tag is the version. The packages carry none: in the tree both are
 # `"private": true` at `0.0.0`, and only the tarballs `pack` makes have the
 # version and no `private`. That keeps every other publishing path in the
-# repository (changesets, a stray `pnpm publish -r`) away from them. Both
+# repository (a stray `pnpm publish -r`) away from them. Both
 # packages always go out together at the same version, `X.Y.Z-beta.N` under
 # the `beta` dist-tag and `X.Y.Z` under `latest`.
 #

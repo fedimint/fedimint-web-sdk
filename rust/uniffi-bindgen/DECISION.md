@@ -16,8 +16,8 @@ this branch.
 **Option A — separate crate.** A `fedimint-sdk-ffi` crate, alongside
 `fedimint-sdk`, that depends on it and re-exports a UniFFI-shaped wrapper API:
 its own `#[uniffi::export]` blocks, its own error enum, its own `Cargo.lock`.
-This is the shape [fedimint-client-uniffi](../fedimint-client-uniffi) already
-uses, and what the `spike/ffi-shape` prototype on
+This is the shape the legacy `fedimint-client-uniffi` crate
+used, and what the `spike/ffi-shape` prototype on
 [fedimint-sdk#380](https://github.com/fedimint/fedimint-sdk/issues/380) built
 and recommended.
 
@@ -54,12 +54,12 @@ The costs above are real but contained; the benefit Option A gives up is not.
   new facade method needs a matching wrapper, by hand, forever. For a crate
   whose stated purpose is to be the one place the contract is defined, that
   is the bigger long-term risk, and it is exactly the risk `fedimint-client-uniffi`
-  (an existing Option-A crate) already lives with today.
+  (a legacy Option-A crate) lived with.
 - **The wasm risk is fully contained.** Before this change, the feature was opt-in and off by
   default and nothing in this repo passed `--features uniffi` or `--all-features` together with
-  `--target wasm32-unknown-unknown`: `scripts/build_wasm.sh` builds a different crate entirely
-  (`fedimint-client-wasm` via `nix build .#wasmBundle`), and `fedimint-sdk`'s own wasm layer wasn't
-  wired up yet. The risk was a future contributor running `--all-features` locally or in a
+  `--target wasm32-unknown-unknown`: the only wasm build was of a different crate entirely
+  (fedimint's own `fedimint-client-wasm`), and `fedimint-sdk`'s own wasm layer wasn't wired up
+  yet. The risk was a future contributor running `--all-features` locally or in a
   tightened CI matrix. **Update (2026-09-18):** since this change, the `uniffi` feature compiles
   for `wasm32-unknown-unknown` too (per-target `uniffi`, with `wasm-unstable-single-threaded` in
   place of `tokio` on wasm), so `--all-features` together with the wasm target is now a supported

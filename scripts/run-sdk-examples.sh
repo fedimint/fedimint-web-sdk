@@ -9,7 +9,7 @@
 # not v1 or v2) is an example name. Defaults to running all four examples: walkthrough, ecash,
 # lightning, onchain. The name `shell` instead hands the federation to the caller's own shell
 # (SHELL, or FM_SDK_SHELL to pick another) for running the examples by hand. v1 stays
-# selectable, but on it the pinned fedimint revision's lnv1
+# selectable, but on it the pinned fedimint release's lnv1
 # client cannot decode a successful send's preimage, so the walkthrough and lightning examples end
 # with an Internal error after the payment has actually gone through, while ecash and onchain are
 # unaffected.
@@ -45,13 +45,13 @@ fi
 cd "$repo_root/rust/fedimint-sdk"
 
 # Record what is being driven against what. The flake's devimint and the client
-# crates this SDK links are pinned to the same fedimint revision, and the CI
+# crates this SDK links are pinned to the same fedimint release, and the CI
 # pins-agree job fails the build if they ever stop being, but printing both here
 # is what makes a local tree that has drifted obvious in the log rather than
 # mysterious in a test failure.
 echo "fedimint-sdk examples: shape=${shape} fed_size=${FM_FED_SIZE}"
 devimint --version || true
-grep -m1 -o 'rev = "[0-9a-f]\{40\}"' Cargo.toml
+grep -m1 '^fedimint-client = ' Cargo.toml
 
 # Build before devimint starts, so build time is not charged to the federation's
 # uptime and a compile error does not cost a full DKG.

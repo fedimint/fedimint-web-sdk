@@ -9,46 +9,9 @@ export default defineConfig({
     watch: false,
     coverage: {
       provider: 'v8',
-      include: [
-        'shared/**/*.ts',
-        'web/**/*.ts',
-        'react-native/**/*.ts',
-        'tools/**/*.ts',
-      ],
+      include: ['web/**/*.ts', 'react-native/**/*.ts'],
     },
     projects: [
-      {
-        plugins: [wasm()],
-        test: {
-          environment: 'happy-dom',
-          name: 'integration-tests',
-          include: ['web/integration-tests/**/*.test.ts'],
-          exclude: ['tools/create-fedimint-app/**/*.test.ts'],
-          browser: {
-            enabled: true,
-            provider: playwright(),
-            fileParallelism: false,
-            ui: false, // no ui for the core library
-            api: {
-              port: 63315,
-            },
-            screenshotFailures: false,
-            instances: [
-              {
-                browser: 'chromium',
-                headless: true,
-              },
-            ],
-          },
-          env: {
-            // devimint exports the faucet port to the environment of the command it
-            // execs (`pnpm test` runs under `devimint wasm-test-setup --exec`); the
-            // fallback matches devimint's current hard-coded default. `||` so a
-            // set-but-empty variable also falls back, like `:-` in the setup script.
-            FAUCET: `http://localhost:${process.env.FM_PORT_FAUCET || '15243'}`,
-          },
-        },
-      },
       {
         plugins: [wasm()],
         test: {
@@ -59,7 +22,7 @@ export default defineConfig({
             enabled: true,
             provider: playwright(),
             fileParallelism: false,
-            ui: false, // no ui for the core library
+            ui: false, // no ui for the browser tests
             api: {
               port: 63315,
             },
@@ -83,29 +46,10 @@ export default defineConfig({
       },
       {
         test: {
-          name: 'cli',
-          environment: 'happy-dom',
-          include: ['tools/create-fedimint-app/__tests__/*.test.ts'],
-          exclude: ['tools/create-fedimint-app/__tests__/subfolder'],
-          isolate: true,
-          testTimeout: 20000,
-        },
-      },
-      {
-        test: {
           name: 'unit',
           environment: 'node',
-          include: ['shared/core/**/*.test.ts', 'web/sdk-web/src/**/*.test.ts'],
+          include: ['web/sdk-web/src/**/*.test.ts'],
           exclude: ['**/*.browser.test.ts'],
-        },
-        resolve: {
-          alias: {
-            // Type-only workspace dependency; alias to source so the package
-            // does not have to be built before running unit tests.
-            '@fedimint/types': fileURLToPath(
-              new URL('./shared/types/src/index.ts', import.meta.url),
-            ),
-          },
         },
       },
       {
@@ -130,6 +74,6 @@ export default defineConfig({
     ],
   },
   optimizeDeps: {
-    exclude: ['@fedimint/core', '@fedimint/sdk-web'],
+    exclude: ['@fedimint/sdk-web'],
   },
 })
