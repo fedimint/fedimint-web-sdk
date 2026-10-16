@@ -1,9 +1,14 @@
 //! Federation discovery types for Nostr NIP-87 announcements and local dev fixtures.
 //!
-//! A [`DiscoveredFederation`] is a lightweight record representing a joinable
-//! federation discovered either from a local dev mock ([`DiscoverySource::Dev`])
+//! A [`DiscoveredFederation`] is a lightweight record representing a federation
+//! discovered either from a local dev mock ([`DiscoverySource::Dev`])
 //! or from Nostr NIP-87 (`kind:38173`) federation announcement events
 //! ([`DiscoverySource::Nostr`]).
+//!
+//! Note that the dev mock ([`DiscoverySource::Dev`]) is a display-only placeholder
+//! with a dummy test vector invite pointing at `wss://foo.bar/`; attempting to
+//! [`Sdk::preview`](crate::Sdk::preview) or [`Sdk::join`](crate::Sdk::join) it
+//! will fail to connect.
 //!
 //! Discovered entries are *advertisements*, not proven federation configuration.
 //! To verify a federation, feed its [`invite`](DiscoveredFederation::invite)
@@ -13,13 +18,15 @@ use std::collections::BTreeMap;
 
 use serde::Deserialize;
 
-use crate::{FederationId, InviteCode};
+use crate::{FederationId, InviteCode, Network};
 
 /// Specifies the source for discovering federations.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DiscoverySource {
-    /// Dev mode: returns a hardcoded local/test federation without network queries.
-    #[default]
+    /// Dev mode: returns a hardcoded display-only test federation without network queries.
+    ///
+    /// This fixture uses a dummy test invite (`wss://foo.bar/`) intended for UI
+    /// layout and offline rendering; previewing or joining it will fail to connect.
     Dev,
     /// Production mode: queries Nostr relays for NIP-87 (`kind:38173`) federation announcements.
     Nostr {
@@ -61,6 +68,12 @@ pub struct DiscoveredFederation {
     /// The federation's invite code, parsed, validated, and cross-checked
     /// against `id`.
     pub invite: InviteCode,
+    /// The federation's advertised human-readable name, if provided.
+    pub name: Option<String>,
+    /// The Bitcoin network this federation advertises operating on, if recognized.
+    pub network: Option<Network>,
+    /// The kind names of modules advertised by the federation (e.g. `["lightning", "wallet", "mint"]`).
+    pub modules: Vec<String>,
     /// Publisher-supplied metadata for the entry.
     ///
     /// Extracted from NIP-87 event tags (e.g. `modules`, `network`, `publisher_pubkey`)
@@ -68,17 +81,31 @@ pub struct DiscoveredFederation {
     pub metadata: BTreeMap<String, String>,
 }
 
+fn parse_network(s: &str) -> Option<Network> {
+    match s.trim().to_ascii_lowercase().as_str() {
+        "bitcoin" | "mainnet" => Some(Network::Bitcoin),
+        "testnet" | "testnet3" => Some(Network::Testnet),
+        "testnet4" => Some(Network::Testnet4),
+        "signet" => Some(Network::Signet),
+        "regtest" => Some(Network::Regtest),
+        _ => None,
+    }
+}
+
 impl DiscoveredFederation {
-    /// Returns the hardcoded test federation for dev/offline mode.
+    /// Returns the hardcoded display-only test federation for dev/offline mode.
+    ///
+    /// The returned entry contains placeholder metadata and a dummy invite code
+    /// that cannot be previewed or joined.
     pub fn dev() -> Self {
         dev_federation()
     }
 }
 
-/// Returns the hardcoded test federation for dev/offline mode.
+/// Returns the hardcoded display-only test federation for dev/offline mode.
 ///
 /// See [`DiscoveredFederation::dev`].
-pub fn dev_federation() -> DiscoveredFederation {
+pub(crate) fn dev_federation() -> DiscoveredFederation {
     let id: FederationId = "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a"
         .parse()
         .expect("valid dev federation id");
@@ -88,6 +115,7 @@ pub fn dev_federation() -> DiscoveredFederation {
     )
     .expect("valid dev invite code");
     let mut metadata = BTreeMap::new();
+    metadata.insert("name".to_string(), "Dev Test Federation".to_string());
     metadata.insert(
         "federation_name".to_string(),
         "Dev Test Federation".to_string(),
@@ -97,6 +125,13 @@ pub fn dev_federation() -> DiscoveredFederation {
     DiscoveredFederation {
         id,
         invite,
+        name: Some("Dev Test Federation".to_string()),
+        network: Some(Network::Regtest),
+        modules: vec![
+            "lightning".to_string(),
+            "wallet".to_string(),
+            "mint".to_string(),
+        ],
         metadata,
     }
 }
@@ -203,9 +238,28 @@ impl std::convert::TryFrom<RawNip87Event> for DiscoveredFederation {
             }
         }
 
+        let name = metadata
+            .get("name")
+            .cloned()
+            .or_else(|| metadata.get("federation_name").cloned());
+        let network = metadata.get("network").and_then(|s| parse_network(s));
+        let modules = metadata
+            .get("modules")
+            .map(|s| {
+                s.split(',')
+                    .map(str::trim)
+                    .filter(|m| !m.is_empty())
+                    .map(ToString::to_string)
+                    .collect()
+            })
+            .unwrap_or_default();
+
         Ok(DiscoveredFederation {
             id,
             invite,
+            name,
+            network,
+            modules,
             metadata,
         })
     }
@@ -238,6 +292,16 @@ mod tests {
         let fed = DiscoveredFederation::try_from(raw).expect("should parse");
         assert_eq!(fed.id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
         assert_eq!(fed.invite, CODE.parse::<InviteCode>().unwrap());
+        assert_eq!(fed.name.as_deref(), Some("Test Fed"));
+        assert_eq!(fed.network, Some(Network::Signet));
+        assert_eq!(
+            fed.modules,
+            vec![
+                "lightning".to_string(),
+                "wallet".to_string(),
+                "mint".to_string()
+            ]
+        );
         assert_eq!(fed.metadata.get("name").unwrap(), "Test Fed");
         assert_eq!(
             fed.metadata.get("picture").unwrap(),
@@ -380,10 +444,21 @@ mod tests {
         assert_eq!(dev, DiscoveredFederation::dev());
         assert_eq!(dev.id, CODE_FEDERATION_ID.parse::<FederationId>().unwrap());
         assert_eq!(dev.invite, CODE.parse::<InviteCode>().unwrap());
+        assert_eq!(dev.name.as_deref(), Some("Dev Test Federation"));
+        assert_eq!(dev.network, Some(Network::Regtest));
+        assert_eq!(
+            dev.modules,
+            vec![
+                "lightning".to_string(),
+                "wallet".to_string(),
+                "mint".to_string()
+            ]
+        );
         assert_eq!(
             dev.metadata.get("federation_name").unwrap(),
             "Dev Test Federation"
         );
+        assert_eq!(dev.metadata.get("name").unwrap(), "Dev Test Federation");
         assert_eq!(dev.metadata.get("network").unwrap(), "regtest");
     }
 

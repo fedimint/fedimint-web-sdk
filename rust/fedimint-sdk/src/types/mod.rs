@@ -33,7 +33,7 @@ mod timestamp;
 
 pub use address::Address;
 pub use amount::{Amount, Sats};
-pub use discovery::{DiscoveredFederation, DiscoverySource, dev_federation};
+pub use discovery::{DiscoveredFederation, DiscoverySource};
 pub use ids::{Cursor, FederationId, GatewayId, OperationId, Txid};
 pub use invite::{FederationPreview, InviteCode};
 pub use invoice::Bolt11Invoice;

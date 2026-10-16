@@ -423,7 +423,7 @@ pub use storage::Storage;
 pub use types::{
     Address, Amount, Bolt11Invoice, Cursor, DiscoveredFederation, DiscoverySource, FederationId,
     FederationPreview, GatewayId, InviteCode, Mnemonic, Network, Notes, OperationId, Preimage,
-    Sats, Timestamp, Txid, dev_federation,
+    Sats, Timestamp, Txid,
 };
 
 // The `async-compat` dependency in Cargo.toml is never named in the source: it is there only to
