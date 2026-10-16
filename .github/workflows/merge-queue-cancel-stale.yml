@@ -1,0 +1,80 @@
+name: Merge Queue Cleanup
+
+# Cancels the merge queue runs a new queue build makes obsolete.
+#
+# When GitHub drops a queue entry (a required check failed, or a PR ahead of it
+# failed and its group is rebuilt on a new base), it leaves that build's
+# workflow runs going. The next queue build for the same PR then runs next to
+# the stale one, and both want the one Mac that runs Android e2e: on #470 the
+# stale run held it for about 16 minutes while the new run's e2e waited.
+#
+# A PR has at most one live queue entry, so any older, unfinished queue run for
+# the same PR is stale. This finds them by queue branch,
+# gh-readonly-queue/<base>/pr-<n>-<base sha>, and cancels them, in every
+# workflow. The base SHA changes when a group is rebuilt on a new base, so this
+# matches on the PR number rather than the whole branch; a concurrency group on
+# `github.ref` would miss those rebuilds.
+#
+# Not a required check: nothing waits for it, and if it fails the stale runs
+# just finish on their own, as they did before.
+#
+# It cannot cancel a stale run for a PR that is dropped and never queued again,
+# since no new queue build starts to notice it.
+
+on:
+  merge_group:
+    types: [checks_requested]
+
+permissions: {}
+
+jobs:
+  cancel:
+    name: 'Cancel stale queue runs for this PR'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: write
+
+    steps:
+      - name: 'Cancel older queue runs for the same PR'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          QUEUE_REF: ${{ github.ref }}
+          BASE_REF: ${{ github.event.merge_group.base_ref }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$QUEUE_REF" =~ /pr-([0-9]+)- ]]; then
+            echo "Not a queue branch, nothing to cancel: $QUEUE_REF"
+            exit 0
+          fi
+          prefix="gh-readonly-queue/${BASE_REF#refs/heads/}/pr-${BASH_REMATCH[1]}-"
+
+          # Unfinished queue runs on this PR's queue branches, from an earlier build:
+          # a lower run id, and a different merge group commit. The same commit is
+          # this build's own runs, this one included.
+          stale=()
+          for status in queued in_progress waiting pending requested; do
+            while IFS= read -r id; do
+              [[ -n "$id" ]] && stale+=("$id")
+            done < <(
+              gh api --paginate \
+                "repos/$GITHUB_REPOSITORY/actions/runs?event=merge_group&status=$status&per_page=100" |
+                jq -r --arg prefix "$prefix" --arg sha "$GITHUB_SHA" --argjson run "$GITHUB_RUN_ID" '
+                  .workflow_runs[]
+                  | select((.head_branch | startswith($prefix)) and .head_sha != $sha and .id < $run)
+                  | .id'
+            )
+          done
+
+          if [[ ${#stale[@]} -eq 0 ]]; then
+            echo "No stale queue runs for ${prefix}*"
+            exit 0
+          fi
+
+          for id in "${stale[@]}"; do
+            echo "Cancelling stale queue run $id ($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$id)"
+            # It may have finished since it was listed.
+            gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
+          done
