@@ -7,10 +7,10 @@ on:
     branches: [main]
   workflow_dispatch:
   # The merge queue's run: main plus the PRs queued ahead, tested before main
-  # moves. Branch protection's required checks (the Verify jobs) have to report
-  # here too, or the queue waits on them until it times out. Only those run:
-  # the queue waits for nothing else, and the rest run on the push to main that
-  # follows, as they always have.
+  # moves. Branch protection's required checks (the Verify jobs and the iOS
+  # build) have to report here too, or the queue waits on them until it times
+  # out. Only those run: the queue waits for nothing else, and the rest run on
+  # the push to main that follows, as they always have.
   merge_group:
     types: [checks_requested]
 
@@ -203,9 +203,10 @@ jobs:
     name: Build RN iOS
     needs: detect-changes
     # macOS runners are the scarce and expensive lane, so pull requests only build iOS when asked
-    # to through the `ci-ios` label. Pushes to main and manual runs always build; the merge queue
-    # does not, since the push to main right after it does.
-    if: ${{ github.event_name != 'merge_group' && (github.event.action != 'labeled' || github.event.label.name == 'ci-ios') && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-ios')) && (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.react-native == 'true') }}
+    # to through the `ci-ios` label. The merge queue and pushes to main build whenever the React
+    # Native lane changed, and manual runs always do. In the queue it runs alongside the Android
+    # chain, which usually takes longer, so it seldom adds to the wait.
+    if: ${{ (github.event.action != 'labeled' || github.event.label.name == 'ci-ios') && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'ci-ios')) && (github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.react-native == 'true') }}
     runs-on: macos-latest
     timeout-minutes: 120
     steps:
