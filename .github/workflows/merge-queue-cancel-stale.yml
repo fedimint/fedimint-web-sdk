@@ -15,6 +15,9 @@ name: Merge Queue Cleanup
 # matches on the PR number rather than the whole branch; a concurrency group on
 # `github.ref` would miss those rebuilds.
 #
+# Runs are force-cancelled, so a stale run ends cancelled rather than red; see
+# the cancel step.
+#
 # Not a required check: nothing waits for it, and if it fails the stale runs
 # just finish on their own, as they did before.
 #
@@ -61,32 +64,51 @@ jobs:
 
           # Unfinished queue runs on this PR's queue branches from an earlier build:
           # created before this run, on a different merge group commit. The same
-          # commit is this build's own runs, this one included. Captured with
-          # `$(...)` rather than read from a process substitution, so a failed
-          # listing fails the job instead of reading as "nothing stale".
-          stale=()
-          for status in queued in_progress waiting pending requested; do
-            ids=$(
-              gh api --paginate \
-                "repos/$GITHUB_REPOSITORY/actions/runs?event=merge_group&status=$status&per_page=100" |
-                jq -r --arg prefix "$prefix" --arg sha "$GITHUB_SHA" --arg created "$created" '
-                  .workflow_runs[]
-                  | select((.head_branch | startswith($prefix)) and .head_sha != $sha and .created_at < $created)
-                  | .id'
-            )
-            if [[ -n "$ids" ]]; then
-              mapfile -t found <<< "$ids"
-              stale+=("${found[@]}")
-            fi
-          done
+          # commit is this build's own runs, this one included.
+          #
+          # One listing filtered on `status != "completed"`, rather than one per
+          # status, so a run that moves from queued to in progress mid-listing is
+          # neither missed nor listed twice; `sort -u` drops a run that pagination
+          # returns twice. Limited to the last three days, well past how long a
+          # queue run lasts, so the listing stays short. Captured with `$(...)`
+          # rather than a process substitution, so a failed listing fails the job
+          # instead of reading as "nothing stale".
+          since=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          ids=$(
+            gh api --paginate \
+              "repos/$GITHUB_REPOSITORY/actions/runs?event=merge_group&created=%3E%3D$since&per_page=100" |
+              jq -r --arg prefix "$prefix" --arg sha "$GITHUB_SHA" --arg created "$created" '
+                .workflow_runs[]
+                | select(.status != "completed"
+                    and ((.head_branch // "") | startswith($prefix))
+                    and .head_sha != $sha
+                    and .created_at < $created)
+                | .id' |
+              sort -u
+          )
 
-          if [[ ${#stale[@]} -eq 0 ]]; then
+          if [[ -z "$ids" ]]; then
             echo "No stale queue runs for ${prefix}*"
             exit 0
           fi
+          mapfile -t stale <<< "$ids"
 
+          # Force-cancel rather than cancel. A plain cancel still runs `always()`
+          # jobs, and the Android and Swift `result` jobs report a cancelled chain
+          # as a failure on purpose, so every stale run would end red and notify
+          # whoever queued it. Force-cancel skips `always()` work, which in these
+          # runs is the result jobs and e2e's log upload, so the run ends cancelled.
+          failed=0
           for id in "${stale[@]}"; do
-            echo "Cancelling stale queue run $id ($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$id)"
-            # It may have finished since it was listed.
-            gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
+            echo "Force-cancelling stale queue run $id ($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$id)"
+            if ! out=$(gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$id/force-cancel" 2>&1); then
+              # 409: it finished between the listing and now.
+              if [[ "$out" == *"HTTP 409"* ]]; then
+                echo "  already finished"
+              else
+                echo "::error::Could not cancel run $id: $out"
+                failed=1
+              fi
+            fi
           done
+          exit "$failed"
