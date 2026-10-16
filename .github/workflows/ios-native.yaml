@@ -36,26 +36,16 @@ on:
 
   workflow_dispatch:
 
-  # On `main`, repopulate Cachix after anything that can invalidate the
-  # cross-compile — including the crate itself, so a PR that merges without
-  # having run this still lands warm.
-  push:
-    branches: [main]
-    paths:
-      - 'rust/fedimint-sdk/**'
-      - 'rust/uniffi-bindgen/**'
-      - 'nix/**'
-      - 'flake.nix'
-      - 'flake.lock'
-      - 'scripts/nix-build-ios-lib.sh'
-      - '.github/workflows/ios-native.yaml'
-
-  # Deliberately no `pull_request` trigger, matching android-native.yaml:
-  # swift-sdk.yaml calls this workflow and covers the same paths, so a PR
-  # trigger here would mean two cross-compiles of the same commit for any PR
-  # that touched both a Nix file and something under ios/. As two separate
+  # Deliberately no `pull_request`, `merge_group` or `push` trigger:
+  # swift-sdk.yaml calls this workflow and covers the same paths, so a trigger
+  # here would mean two cross-compiles of the same commit. As two separate
   # workflows they have different concurrency groups, so neither would cancel
-  # the other. One PR entry point instead: whatever needs the `.a` asks for it.
+  # the other. One entry point instead: whatever needs the `.a` asks for it.
+  #
+  # That includes refilling Cachix for main. swift-sdk.yaml runs in the merge
+  # queue whenever its path list changed, which covers everything that can
+  # invalidate this cross-compile, and main then moves to the commit the queue
+  # built, so the entries the queue's run pushed are the ones main needs.
 
 concurrency:
   group: ios-native-${{ github.head_ref || github.run_id }}
