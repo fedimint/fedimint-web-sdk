@@ -22,39 +22,19 @@ name: Swift SDK
 on:
   workflow_dispatch:
 
+  # No `paths:` filter. Branch protection requires `result`, and a workflow a
+  # filter never started leaves a required check waiting forever, so this one
+  # starts on every pull request and the `changes` job holds the path list.
   pull_request:
-    paths:
-      - 'ios/**'
-      - 'rust/fedimint-sdk/**'
-      - 'rust/uniffi-bindgen/**'
-      - 'scripts/build-ios-lib.sh'
-      - 'scripts/nix-build-ios-lib.sh'
-      - 'scripts/generate-swift-bindings.sh'
-      - 'scripts/assemble-ios-xcframework.sh'
-      - 'scripts/build-ios-sdk.sh'
-      - 'nix/**'
-      - 'flake.nix'
-      - 'flake.lock'
-      - '.github/workflows/swift-sdk.yaml'
-      - '.github/workflows/ios-native.yaml'
 
-  # On `main`, build the full four-target set so a complete XCFramework is
-  # always available as an artifact, and so the two targets pull requests skip
-  # (the device slice and the Intel simulator) cannot rot unnoticed.
-  push:
-    branches: [main]
-    paths:
-      - 'ios/**'
-      - 'rust/fedimint-sdk/**'
-      - 'rust/uniffi-bindgen/**'
-      - 'scripts/build-ios-lib.sh'
-      - 'scripts/nix-build-ios-lib.sh'
-      - 'scripts/generate-swift-bindings.sh'
-      - 'scripts/assemble-ios-xcframework.sh'
-      - 'scripts/build-ios-sdk.sh'
-      - 'nix/**'
-      - '.github/workflows/swift-sdk.yaml'
-      - '.github/workflows/ios-native.yaml'
+  # The merge queue's run: main plus the PRs queued ahead, tested before main
+  # moves. It builds when the merge group touches the path list in `changes`.
+  #
+  # No `push` trigger. When a queue build passes, main moves to the commit it
+  # built, so building again on the push would only repeat it, and the queue's
+  # `native` run has already refilled Cachix with that commit's Apple slices.
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -69,10 +49,80 @@ permissions:
   contents: read
 
 jobs:
+  # Decides whether this run builds. A pull request or a merge group builds when
+  # its diff touches the path list below. Every other event builds: a manual
+  # run, or a workflow calling this one.
+  changes:
+    name: 'Detect changes'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      swift: ${{ steps.filter.outputs.swift }}
+
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          # The pull-request comparison needs the merge base as well as both
+          # endpoint commits, so keep the complete history.
+          fetch-depth: 0
+
+      - name: 'Detect changed paths'
+        id: filter
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+        run: |
+          set -euo pipefail
+
+          case "$EVENT_NAME" in
+            pull_request)
+              diff_args=("$PR_BASE_SHA...$PR_HEAD_SHA")
+              ;;
+            merge_group)
+              diff_args=("$MERGE_GROUP_BASE_SHA" "$MERGE_GROUP_HEAD_SHA")
+              ;;
+            # A manual run, or a workflow calling this one.
+            *)
+              echo "swift=true" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+
+          # Do not let Git collapse a rename into its destination path. Treating
+          # it as a deletion plus an addition keeps both sides covered.
+          changed_files="$RUNNER_TEMP/changed-files"
+          if ! git diff --no-renames --name-only -z "${diff_args[@]}" > "$changed_files"; then
+            echo "Could not determine changed paths; building." >&2
+            echo "swift=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          swift=false
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              # Everything the Apple slices, the bindings, the XCFramework, the
+              # tests and the demo are built from, and the workflows that build
+              # them. The flake is here because the slices are Nix derivations.
+              ios/*|rust/fedimint-sdk/*|rust/uniffi-bindgen/*|nix/*|flake.nix|flake.lock|scripts/build-ios-lib.sh|scripts/nix-build-ios-lib.sh|scripts/generate-swift-bindings.sh|scripts/assemble-ios-xcframework.sh|scripts/build-ios-sdk.sh|.github/workflows/swift-sdk.yaml|.github/workflows/ios-native.yaml)
+                swift=true
+                ;;
+            esac
+          done < "$changed_files"
+
+          echo "swift=$swift" >> "$GITHUB_OUTPUT"
+
   # The shared, expensive half. Builds nothing Swift-specific and uploads the
   # per-triple archives for the job below.
   native:
     name: 'Native libraries'
+    needs: changes
+    if: needs.changes.outputs.swift == 'true'
     uses: ./.github/workflows/ios-native.yaml
     secrets: inherit
 
@@ -157,3 +207,27 @@ jobs:
           name: FedimintSdkFFI.xcframework
           path: ios/Frameworks/FedimintSdkFFI.xcframework/
           if-no-files-found: error
+
+  # The one check branch protection requires from this workflow. It runs on
+  # every pull request and merge group whatever they touched, so the check
+  # always reports: a job `changes` skipped counts as a pass, one that failed
+  # or was cancelled does not. `always()` rather than `!cancelled()`, so a
+  # cancelled run reports a failure instead of a skip that would read as a pass.
+  result:
+    name: 'Swift SDK result'
+    needs: [changes, native, swift]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: 'Check every Swift job passed or was skipped'
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          failed=$(jq -r 'to_entries[] | select(.value.result != "success" and .value.result != "skipped") | "\(.key): \(.value.result)"' <<< "$NEEDS")
+          if [[ -n "$failed" ]]; then
+            echo "$failed" >&2
+            exit 1
+          fi
