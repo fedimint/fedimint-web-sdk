@@ -1,0 +1,114 @@
+name: Merge Queue Cleanup
+
+# Cancels the merge queue runs a new queue build makes obsolete.
+#
+# When GitHub drops a queue entry (a required check failed, or a PR ahead of it
+# failed and its group is rebuilt on a new base), it leaves that build's
+# workflow runs going. The next queue build for the same PR then runs next to
+# the stale one, and both want the one Mac that runs Android e2e: on #470 the
+# stale run held it for about 16 minutes while the new run's e2e waited.
+#
+# A PR has at most one live queue entry, so any older, unfinished queue run for
+# the same PR is stale. This finds them by queue branch,
+# gh-readonly-queue/<base>/pr-<n>-<base sha>, and cancels them, in every
+# workflow. The base SHA changes when a group is rebuilt on a new base, so this
+# matches on the PR number rather than the whole branch; a concurrency group on
+# `github.ref` would miss those rebuilds.
+#
+# Runs are force-cancelled, so a stale run ends cancelled rather than red; see
+# the cancel step.
+#
+# Not a required check: nothing waits for it, and if it fails the stale runs
+# just finish on their own, as they did before.
+#
+# It cannot cancel a stale run for a PR that is dropped and never queued again,
+# since no new queue build starts to notice it.
+
+on:
+  merge_group:
+    types: [checks_requested]
+
+permissions: {}
+
+jobs:
+  cancel:
+    name: 'Cancel stale queue runs for this PR'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      actions: write
+
+    steps:
+      - name: 'Cancel older queue runs for the same PR'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          QUEUE_REF: ${{ github.ref }}
+          BASE_REF: ${{ github.event.merge_group.base_ref }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$QUEUE_REF" =~ /pr-([0-9]+)- ]]; then
+            echo "Not a queue branch, nothing to cancel: $QUEUE_REF"
+            exit 0
+          fi
+          prefix="gh-readonly-queue/${BASE_REF#refs/heads/}/pr-${BASH_REMATCH[1]}-"
+
+          # Run ids are unique but not documented to increase over time, so
+          # "earlier" is decided by creation time.
+          created=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" --jq .created_at)
+          if [[ -z "$created" ]]; then
+            echo "Could not read this run's creation time" >&2
+            exit 1
+          fi
+
+          # Unfinished queue runs on this PR's queue branches from an earlier build:
+          # created before this run, on a different merge group commit. The same
+          # commit is this build's own runs, this one included.
+          #
+          # One listing filtered on `status != "completed"`, rather than one per
+          # status, so a run that moves from queued to in progress mid-listing is
+          # neither missed nor listed twice; `sort -u` drops a run that pagination
+          # returns twice. Limited to the last three days, well past how long a
+          # queue run lasts, so the listing stays short. Captured with `$(...)`
+          # rather than a process substitution, so a failed listing fails the job
+          # instead of reading as "nothing stale".
+          since=$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          ids=$(
+            gh api --paginate \
+              "repos/$GITHUB_REPOSITORY/actions/runs?event=merge_group&created=%3E%3D$since&per_page=100" |
+              jq -r --arg prefix "$prefix" --arg sha "$GITHUB_SHA" --arg created "$created" '
+                .workflow_runs[]
+                | select(.status != "completed"
+                    and ((.head_branch // "") | startswith($prefix))
+                    and .head_sha != $sha
+                    and .created_at < $created)
+                | .id' |
+              sort -u
+          )
+
+          if [[ -z "$ids" ]]; then
+            echo "No stale queue runs for ${prefix}*"
+            exit 0
+          fi
+          mapfile -t stale <<< "$ids"
+
+          # Force-cancel rather than cancel. A plain cancel still runs `always()`
+          # jobs, and the Android and Swift `result` jobs report a cancelled chain
+          # as a failure on purpose, so every stale run would end red and notify
+          # whoever queued it. Force-cancel skips `always()` work, which in these
+          # runs is the result jobs and e2e's log upload, so the run ends cancelled.
+          failed=0
+          for id in "${stale[@]}"; do
+            echo "Force-cancelling stale queue run $id ($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$id)"
+            if ! out=$(gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$id/force-cancel" 2>&1); then
+              # 409: it finished between the listing and now.
+              if [[ "$out" == *"HTTP 409"* ]]; then
+                echo "  already finished"
+              else
+                echo "::error::Could not cancel run $id: $out"
+                failed=1
+              fi
+            fi
+          done
+          exit "$failed"
