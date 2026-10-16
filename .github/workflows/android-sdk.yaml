@@ -23,6 +23,12 @@ name: Android SDK
 # Nothing is published here. android-sdk-release.yaml and
 # android-sdk-snapshot.yaml call this whole chain and publish the AAR only after
 # every job in it has passed.
+#
+# `e2e` is the one job that needs the single self-hosted Mac, so it does not
+# run on every pull request. A pull request gets it only when it carries the
+# `ci-android-e2e` label; the merge queue runs it for every pull request,
+# whatever it touched, so nothing reaches main without it. The `changes` job
+# decides, and `result` is the one check branch protection requires from here.
 
 on:
   workflow_dispatch:
@@ -38,32 +44,17 @@ on:
         description: 'Name of the uploaded Kotlin bindings artifact'
         value: ${{ jobs.bindings.outputs.bindings-artifact }}
   # The single PR entry point for the Android chain. android-native.yaml has no
-  # PR trigger of its own precisely so that this list is the whole story: one
-  # run, one cross-compile, whatever the PR touched. That is why the Nix and
-  # flake paths are here — a change to the derivations is validated by building
-  # what they produce and then generating against it, which is a stronger check
-  # than building the `.so` alone.
+  # PR trigger of its own precisely so that this workflow is the whole story:
+  # one run, one cross-compile, whatever the PR touched.
+  #
+  # No `paths:` filter. Branch protection requires `result`, and a workflow a
+  # filter never started leaves a required check waiting forever, so this one
+  # starts on every pull request and the `changes` job holds the path list.
   pull_request:
-    paths:
-      - 'android/**'
-      - 'rust/fedimint-sdk/**'
-      - 'rust/uniffi-bindgen/**'
-      - 'nix/**'
-      - 'flake.nix'
-      - 'flake.lock'
-      - 'scripts/nix-build-android-so.sh'
-      - 'scripts/generate-android-bindings.sh'
-      - 'scripts/build-android-sdk.sh'
-      - 'scripts/e2e-android/**'
-      # android-e2e.yml runs the suite through this, the same entry
-      # point the browser package's tests use to stand a federation up.
-      - 'scripts/setup_test_shell.sh'
-      - 'scripts/devimint-modules.sh'
-      - 'js/android/integration-tests/**'
-      - '.github/workflows/android-sdk.yaml'
-      - '.github/workflows/android-native.yaml'
-      - '.github/workflows/android-apk.yaml'
-      - '.github/workflows/android-e2e.yml'
+  # The merge queue's run: main plus the PRs queued ahead, tested before main
+  # moves. It always gets the whole chain, e2e included; see `changes`.
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -78,10 +69,108 @@ permissions:
   contents: read
 
 jobs:
+  # Decides what this run builds. A pull request gets the build its diff needs,
+  # and e2e only with the `ci-android-e2e` label. Every other event gets the
+  # whole chain, e2e included: a merge group, a manual run, or the release and
+  # snapshot workflows calling this one.
+  #
+  # The queue ignores the path list on purpose. It is the last check before
+  # main, and e2e also depends on files outside the list: the setup-nix action,
+  # the JS lockfile the suite installs from, and devimint-shape.sh, which
+  # setup_test_shell.sh sources. Running it for every queued PR costs few runs,
+  # since most merges touch Android anyway.
+  changes:
+    name: 'Detect changes'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      android: ${{ steps.filter.outputs.android }}
+      e2e: ${{ steps.filter.outputs.e2e }}
+
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          # The pull-request comparison needs the merge base as well as both
+          # endpoint commits, so keep the complete history.
+          fetch-depth: 0
+
+      - name: 'Detect changed paths'
+        id: filter
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          E2E_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ci-android-e2e') }}
+        run: |
+          set -euo pipefail
+
+          android=false
+          e2e=false
+
+          run_everything() {
+            android=true
+            e2e=true
+          }
+
+          emit_outputs() {
+            {
+              echo "android=$android"
+              echo "e2e=$e2e"
+            } >> "$GITHUB_OUTPUT"
+          }
+
+          case "$EVENT_NAME" in
+            pull_request)
+              diff_args=("$PR_BASE_SHA...$PR_HEAD_SHA")
+              # Asking for e2e asks for the chain it needs, whatever the PR
+              # touched.
+              if [[ "$E2E_LABEL" == true ]]; then
+                run_everything
+              fi
+              ;;
+            # A merge group, a manual run, or a release or snapshot call.
+            *)
+              run_everything
+              emit_outputs
+              exit 0
+              ;;
+          esac
+
+          # Do not let Git collapse a rename into its destination path. Treating
+          # it as a deletion plus an addition keeps both sides covered.
+          changed_files="$RUNNER_TEMP/changed-files"
+          if ! git diff --no-renames --name-only -z "${diff_args[@]}" > "$changed_files"; then
+            echo "Could not determine changed paths; building the whole chain." >&2
+            android=true
+            emit_outputs
+            exit 0
+          fi
+
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              # Everything the chain builds from, and the e2e suite and the
+              # workflows that run it. The Nix and flake paths are here because
+              # a change to the derivations is validated by building what they
+              # produce and then generating against it, which is a stronger
+              # check than building the `.so` alone. None of these turns e2e on:
+              # on a pull request only the label does.
+              android/*|rust/fedimint-sdk/*|rust/uniffi-bindgen/*|nix/*|flake.nix|flake.lock|scripts/nix-build-android-so.sh|scripts/generate-android-bindings.sh|scripts/build-android-sdk.sh|scripts/e2e-android/*|js/android/integration-tests/*|scripts/setup_test_shell.sh|scripts/devimint-modules.sh|.github/workflows/android-sdk.yaml|.github/workflows/android-native.yaml|.github/workflows/android-apk.yaml|.github/workflows/android-e2e.yml|.github/workflows/android-e2e-label.yml)
+                android=true
+                ;;
+            esac
+          done < "$changed_files"
+
+          emit_outputs
+
   # The shared half. Builds nothing Kotlin-specific and uploads the `.so`
   # tree as the `jniLibs` artifact for the jobs below.
   native:
     name: 'Native library'
+    needs: changes
+    if: needs.changes.outputs.android == 'true'
     uses: ./.github/workflows/android-native.yaml
     secrets: inherit
 
@@ -148,10 +237,12 @@ jobs:
   # different questions — `aar` that the library packages into an AAR, this
   # one that it works on a device — and an emulator run has no business
   # holding up the AAR. It installs the APK `apk` built rather than building
-  # its own; see that job for why.
+  # its own; see that job for why. Gated by `changes`: the Mac it runs on is
+  # the one machine of its kind, and both shapes take it in turn.
   e2e:
     name: 'Drive the Android example app on a device'
-    needs: apk
+    needs: [changes, apk]
+    if: needs.changes.outputs.e2e == 'true'
     uses: ./.github/workflows/android-e2e.yml
     with:
       apk-artifact: ${{ needs.apk.outputs.apk-artifact }}
@@ -205,3 +296,27 @@ jobs:
           name: fedimint-android-aar
           path: android/fedimint-sdk/build/outputs/aar/*.aar
           if-no-files-found: error
+
+  # The one check branch protection requires from this workflow. It runs on
+  # every pull request and merge group whatever they touched, so the check
+  # always reports: a job `changes` skipped counts as a pass, one that failed
+  # or was cancelled does not. `always()` rather than `!cancelled()`, so a
+  # cancelled run reports a failure instead of a skip that would read as a pass.
+  result:
+    name: 'Android SDK result'
+    needs: [changes, native, bindings, apk, e2e, aar]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: 'Check every Android job passed or was skipped'
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          failed=$(jq -r 'to_entries[] | select(.value.result != "success" and .value.result != "skipped") | "\(.key): \(.value.result)"' <<< "$NEEDS")
+          if [[ -n "$failed" ]]; then
+            echo "$failed" >&2
+            exit 1
+          fi

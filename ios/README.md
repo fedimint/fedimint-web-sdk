@@ -370,8 +370,8 @@ IOS_TARGETS="aarch64-apple-darwin" just build-ios-lib   # host slice only
 ```
 
 That one slice is enough for `swift test`, which runs on macOS and needs no
-simulator. CI ([`swift-sdk.yaml`](../.github/workflows/swift-sdk.yaml)) uses the
-same knob: two targets on a pull request, all four on `main`.
+simulator. CI ([`swift-sdk.yaml`](../.github/workflows/swift-sdk.yaml)) does not
+narrow it: pull requests and the merge queue build all four.
 
 A narrowed build produces a narrowed XCFramework — it does **not** keep slices
 from an earlier run. That is deliberate: `build-ios-lib.sh` records the triples
