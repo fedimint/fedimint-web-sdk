@@ -86,6 +86,7 @@ jobs:
     outputs:
       android: ${{ steps.filter.outputs.android }}
       e2e: ${{ steps.filter.outputs.e2e }}
+      queue-pr: ${{ steps.queue.outputs.pr }}
 
     steps:
       - name: 'Checkout'
@@ -95,6 +96,21 @@ jobs:
           # The pull-request comparison needs the merge base as well as both
           # endpoint commits, so keep the complete history.
           fetch-depth: 0
+
+      # In a merge queue run, the number of the PR this queue build is for, read
+      # from the queue branch, gh-readonly-queue/main/pr-<n>-<base sha>. `e2e`
+      # keys its concurrency on it.
+      - name: 'Find the queued pull request'
+        id: queue
+        if: github.event_name == 'merge_group'
+        shell: bash
+        env:
+          QUEUE_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [[ "$QUEUE_REF" =~ /pr-([0-9]+)- ]]; then
+            echo "pr=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: 'Detect changed paths'
         id: filter
@@ -243,6 +259,15 @@ jobs:
     name: 'Drive the Android example app on a device'
     needs: [changes, apk]
     if: needs.changes.outputs.e2e == 'true'
+    # One e2e per queued PR. A PR has at most one live queue entry, and GitHub
+    # leaves a queue build's runs going after it drops the entry: when the PR
+    # fails and is re-queued, or a PR ahead of it fails and its group is
+    # rebuilt. The newer run's e2e cancels the stale one, so the Mac stops
+    # testing a merge group nothing will read. Different PRs never cancel each
+    # other, and anything other than a queue build keeps its own group.
+    concurrency:
+      group: ${{ github.event_name == 'merge_group' && needs.changes.outputs.queue-pr && format('android-e2e-queue-pr-{0}', needs.changes.outputs.queue-pr) || github.run_id }}
+      cancel-in-progress: true
     uses: ./.github/workflows/android-e2e.yml
     with:
       apk-artifact: ${{ needs.apk.outputs.apk-artifact }}
