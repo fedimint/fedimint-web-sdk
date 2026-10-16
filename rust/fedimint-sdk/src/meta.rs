@@ -12,6 +12,12 @@ use crate::{Error, ErrorCode, Result};
 /// before returning a timeout error.
 const CONSENSUS_FETCH_TIMEOUT: Duration = Duration::from_secs(5);
 
+/// How long `get`/`all` wait for fedimint-client's cached override entries.
+///
+/// Short, because the override is best-effort: once cached, the read is a local database read,
+/// and before that fedimint-client's first fetch can retry for tens of seconds.
+const OVERRIDE_CACHE_TIMEOUT: Duration = Duration::from_millis(500);
+
 /// The metadata facade for one federation.
 ///
 /// Obtained from [`Federation::meta`](crate::Federation::meta). Unlike the
@@ -75,10 +81,12 @@ const CONSENSUS_FETCH_TIMEOUT: Duration = Duration::from_secs(5);
 /// An override document that fedimint-client has not fetched, because the
 /// URL is unreachable, returns something other than a JSON object keyed by
 /// federation id, or has no entry for this federation, contributes nothing.
-/// An override document that has not arrived within the same timeout as the
-/// consensus fetch also contributes nothing to the merged view, rather than
-/// failing it: the override is cached and refreshed in the background, so
-/// the next read picks it up.
+/// The SDK waits only briefly for the override, so it never holds up the
+/// merged view: until fedimint-client has fetched and cached the document,
+/// it contributes nothing. In particular, **the first reads after joining,
+/// or after the app starts with nothing cached, may not include the
+/// override.** It is cached and refreshed in the background, so a later read
+/// picks it up.
 ///
 /// # The merged view is a lossy projection, and these are its exact rules
 ///
@@ -253,7 +261,7 @@ impl Meta {
 
     /// fedimint-client's cached meta entries: the configuration metadata with the override
     /// document laid over it, or `None` if the configuration names no override URL or the
-    /// document has not been fetched.
+    /// document is not cached within [`OVERRIDE_CACHE_TIMEOUT`].
     async fn overridden_config(&self) -> Result<Option<JsonObject>> {
         let client = self.inner.federation.client(false).await?;
         let config = client.config().await.global.meta;
@@ -266,12 +274,15 @@ impl Meta {
         // laid over it and nothing else. The SDK never calls `ClientBuilder::with_meta_service`.
         // Installing `MetaModuleMetaSourceWithFallback` there would put consensus values in this
         // cache, projected by its rules rather than the ones on `Meta`.
+        // `entries` waits for fedimint-client's first fetch when nothing is cached, and that
+        // fetch retries for tens of seconds. The override is best-effort, so give up quickly.
         let entries = fedimint_core::runtime::timeout(
-            CONSENSUS_FETCH_TIMEOUT,
+            OVERRIDE_CACHE_TIMEOUT,
             client.meta_service().entries(client.db()),
         )
         .await
-        .map_err(|_| Error::new(ErrorCode::Timeout, "override metadata fetch timed out"))?;
+        .ok()
+        .flatten();
 
         Ok(entries.map(|entries| entries.into_iter().collect()))
     }
@@ -280,12 +291,7 @@ impl Meta {
         let (consensus, overrides) =
             futures::join!(self.consensus_metadata(), self.overridden_config());
         let consensus = consensus?;
-        // An override that has not arrived in time contributes nothing rather than failing the
-        // view; see "When the override document contributes" on `Meta`.
-        let overrides = match overrides {
-            Err(err) if err.code == ErrorCode::Timeout => None,
-            other => other?,
-        };
+        let overrides = overrides?;
 
         Ok(merge_sources(
             self.inner.federation.config_meta(),
@@ -545,31 +551,6 @@ mod tests {
     }
 
     #[test]
-    fn merge_sources_projects_override_values_like_consensus() {
-        let config = map(&[("nested", "c")]);
-        let overrides = object(json!({
-            "num": 42,
-            "bool": true,
-            "null": null,
-            "nested": {"a": 1},
-            "arr": [1, 2],
-        }));
-
-        let merged = merge_sources(config, Some(overrides), None);
-
-        assert_eq!(
-            merged,
-            map(&[
-                ("num", "42"),
-                ("bool", "true"),
-                ("null", "null"),
-                // Skipped under rule 4, so configuration stands under rule 5.
-                ("nested", "c"),
-            ])
-        );
-    }
-
-    #[test]
     fn merge_sources_skipped_consensus_key_falls_back_to_override() {
         let config = map(&[("welcome", "c")]);
         let overrides = object(json!({"welcome": "o"}));
@@ -600,6 +581,8 @@ mod tests {
             "changed": "o",
             "nested": {"a": [1, 2]},
             "added": 42,
+            "flag": true,
+            "none": null,
         }));
 
         let merged = merge_sources(config, Some(cached), None);
@@ -612,6 +595,8 @@ mod tests {
                 // Skipped under rule 4, so configuration stands under rule 5.
                 ("nested", "c"),
                 ("added", "42"),
+                ("flag", "true"),
+                ("none", "null"),
             ])
         );
     }

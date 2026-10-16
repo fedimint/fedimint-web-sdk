@@ -9390,10 +9390,12 @@ const FfiConverterTypeLightning = new FfiConverterObject(
  * An override document that fedimint-client has not fetched, because the
  * URL is unreachable, returns something other than a JSON object keyed by
  * federation id, or has no entry for this federation, contributes nothing.
- * An override document that has not arrived within the same timeout as the
- * consensus fetch also contributes nothing to the merged view, rather than
- * failing it: the override is cached and refreshed in the background, so
- * the next read picks it up.
+ * The SDK waits only briefly for the override, so it never holds up the
+ * merged view: until fedimint-client has fetched and cached the document,
+ * it contributes nothing. In particular, **the first reads after joining,
+ * or after the app starts with nothing cached, may not include the
+ * override.** It is cached and refreshed in the background, so a later read
+ * picks it up.
  *
  * # The merged view is a lossy projection, and these are its exact rules
  *
@@ -9595,10 +9597,12 @@ export type MetaInterface = MetaLike
  * An override document that fedimint-client has not fetched, because the
  * URL is unreachable, returns something other than a JSON object keyed by
  * federation id, or has no entry for this federation, contributes nothing.
- * An override document that has not arrived within the same timeout as the
- * consensus fetch also contributes nothing to the merged view, rather than
- * failing it: the override is cached and refreshed in the background, so
- * the next read picks it up.
+ * The SDK waits only briefly for the override, so it never holds up the
+ * merged view: until fedimint-client has fetched and cached the document,
+ * it contributes nothing. In particular, **the first reads after joining,
+ * or after the app starts with nothing cached, may not include the
+ * override.** It is cached and refreshed in the background, so a later read
+ * picks it up.
  *
  * # The merged view is a lossy projection, and these are its exact rules
  *
