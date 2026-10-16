@@ -25,11 +25,10 @@ name: Android SDK
 # every job in it has passed.
 #
 # `e2e` is the one job that needs the single self-hosted Mac, so it does not
-# run on every pull request. A pull request gets it when it carries the
-# `ci-android-e2e` label or changes the suite or the example app; the merge
-# queue runs it for every pull request, whatever it touched, so nothing reaches
-# main without it. The `changes` job decides, and `result` is the one check
-# branch protection requires from here.
+# run on every pull request. A pull request gets it only when it carries the
+# `ci-android-e2e` label; the merge queue runs it for every pull request,
+# whatever it touched, so nothing reaches main without it. The `changes` job
+# decides, and `result` is the one check branch protection requires from here.
 
 on:
   workflow_dispatch:
@@ -70,9 +69,10 @@ permissions:
   contents: read
 
 jobs:
-  # Decides what this run builds. A pull request gets only what its diff needs.
-  # Every other event gets the whole chain, e2e included: a merge group, a
-  # manual run, or the release and snapshot workflows calling this one.
+  # Decides what this run builds. A pull request gets the build its diff needs,
+  # and e2e only with the `ci-android-e2e` label. Every other event gets the
+  # whole chain, e2e included: a merge group, a manual run, or the release and
+  # snapshot workflows calling this one.
   #
   # The queue ignores the path list on purpose. It is the last check before
   # main, and e2e also depends on files outside the list: the setup-nix action,
@@ -143,28 +143,21 @@ jobs:
           # it as a deletion plus an addition keeps both sides covered.
           changed_files="$RUNNER_TEMP/changed-files"
           if ! git diff --no-renames --name-only -z "${diff_args[@]}" > "$changed_files"; then
-            echo "Could not determine changed paths; running the whole chain." >&2
-            run_everything
+            echo "Could not determine changed paths; building the whole chain." >&2
+            android=true
             emit_outputs
             exit 0
           fi
 
           while IFS= read -r -d '' path; do
             case "$path" in
-              # The suite, the example app it drives, what stands its federation
-              # up (setup_test_shell.sh is the same entry point the browser
-              # package's tests use), and the workflows that run it. Only the
-              # e2e job exercises how these behave, so a pull request changing
-              # them gets it without the label. Ahead of `android/*` below,
-              # since the first matching pattern wins.
-              scripts/e2e-android/*|js/android/integration-tests/*|android/app/*|scripts/setup_test_shell.sh|scripts/devimint-modules.sh|.github/workflows/android-sdk.yaml|.github/workflows/android-e2e.yml)
-                run_everything
-                ;;
-              # Everything the chain builds from. The Nix and flake paths are
-              # here because a change to the derivations is validated by
-              # building what they produce and then generating against it,
-              # which is a stronger check than building the `.so` alone.
-              android/*|rust/fedimint-sdk/*|rust/uniffi-bindgen/*|nix/*|flake.nix|flake.lock|scripts/nix-build-android-so.sh|scripts/generate-android-bindings.sh|scripts/build-android-sdk.sh|.github/workflows/android-native.yaml|.github/workflows/android-apk.yaml|.github/workflows/android-e2e-label.yml)
+              # Everything the chain builds from, and the e2e suite and the
+              # workflows that run it. The Nix and flake paths are here because
+              # a change to the derivations is validated by building what they
+              # produce and then generating against it, which is a stronger
+              # check than building the `.so` alone. None of these turns e2e on:
+              # on a pull request only the label does.
+              android/*|rust/fedimint-sdk/*|rust/uniffi-bindgen/*|nix/*|flake.nix|flake.lock|scripts/nix-build-android-so.sh|scripts/generate-android-bindings.sh|scripts/build-android-sdk.sh|scripts/e2e-android/*|js/android/integration-tests/*|scripts/setup_test_shell.sh|scripts/devimint-modules.sh|.github/workflows/android-sdk.yaml|.github/workflows/android-native.yaml|.github/workflows/android-apk.yaml|.github/workflows/android-e2e.yml|.github/workflows/android-e2e-label.yml)
                 android=true
                 ;;
             esac
