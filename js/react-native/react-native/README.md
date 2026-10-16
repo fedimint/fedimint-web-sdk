@@ -144,6 +144,48 @@ back, so reopening that directory also means letting go of every other object st
 session, a federation, an operation, a subscription. Opening a directory something still holds
 fails with `StorageInUse`.
 
+## React hooks
+
+`useBalance(federation, onError?)` and `useOperation(operation, onError?)` pull a generated
+`…Updates` cursor for a component and return the latest value, or `undefined` before the first
+one. They take the generated objects directly (`FederationLike`, and any operation such as
+`LnReceiveOperationLike` or `RecoveryOperationLike`) and need no provider.
+
+```tsx
+import { Text } from 'react-native'
+import {
+  LnReceiveState_Tags,
+  useBalance,
+  useOperation,
+  type FederationLike,
+  type LnReceiveOperationLike,
+} from '@fedimint/react-native'
+
+function Balance({ federation }: { federation: FederationLike }) {
+  const msat = useBalance(federation, (err) =>
+    console.warn('balance updates stopped', err),
+  )
+  return <Text>{msat === undefined ? '…' : `${msat / 1000n} sats`}</Text>
+}
+
+function Invoice({ operation }: { operation: LnReceiveOperationLike }) {
+  const state = useOperation(operation)
+  return (
+    <Text>
+      {state?.tag === LnReceiveState_Tags.Claimed ? 'Paid' : 'Waiting'}
+    </Text>
+  )
+}
+```
+
+- Each hook keeps one subscription per `id()`. A new handle for the same federation or operation
+  does not restart it; a different id does, and the old value is dropped.
+- Unmounting, or a new id, aborts the pending `next()` through its `signal`.
+- An operation's final state stays after its stream ends.
+- A failure to observe goes to `onError` once and is not retried, as the SDK reports a stream it
+  cannot re-establish rather than spinning on it. `FederationClosed` means the handle is dead: after
+  reopening, remount the component (for example with a React `key`) to watch the new one.
+
 ## Recovering a wallet
 
 `sdk.recover(invite)` joins a federation and rescans its history for what the seed owns. It

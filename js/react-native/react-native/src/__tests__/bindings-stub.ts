@@ -80,3 +80,12 @@ export async function createFedimintSdk(
   }
   return new Sdk(dataDir, mnemonic)
 }
+
+// The types `react.ts` reads, as narrow as it uses them.
+export type Amount = bigint
+export interface FederationLike {
+  id(): string
+  balanceUpdates(): {
+    next(asyncOpts_?: { signal: AbortSignal }): Promise<Amount>
+  }
+}
