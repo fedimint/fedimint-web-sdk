@@ -53,8 +53,14 @@ on:
   # different concurrency groups, so neither would cancel the other. One PR
   # entry point instead: whatever needs the `.so` asks for it.
 
+# Keyed by the top-level workflow as well as the branch. A pull request runs
+# this from android-sdk.yaml and, once the `ci-android-e2e` label is added,
+# again from android-e2e-label.yml. Both carry the PR's head_ref, so on the
+# branch alone the label run would cancel the ordinary run's build, and with it
+# the required `Android SDK result`. In a called workflow `github.workflow` is
+# the caller's name, so each chain still cancels its own stale runs.
 concurrency:
-  group: android-native-${{ github.head_ref || github.run_id }}
+  group: android-native-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 permissions:
