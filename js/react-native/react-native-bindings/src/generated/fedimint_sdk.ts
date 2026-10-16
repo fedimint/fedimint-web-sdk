@@ -1788,7 +1788,12 @@ export class Notes extends UniffiAbstractObject implements NotesLike {
   }
 
   /**
-   * Parses and validates ecash notes from their canonical string form.
+   * Parses and validates ecash notes from their string form.
+   *
+   * Whitespace anywhere in the input is ignored, so a token wrapped across
+   * lines still parses, and a mintv2 token is accepted in any case. The
+   * result stores the canonical token: [`Notes::display`] returns that,
+   * not the input as written.
    *
    * # Errors
    *
@@ -18272,7 +18277,7 @@ function uniffiEnsureInitialized() {
   }
   if (
     nativeModule().ubrn_uniffi_fedimint_sdk_checksum_constructor_notes_parse() !==
-    9865
+    426
   ) {
     throw new UniffiInternalError.ApiChecksumMismatch(
       'uniffi_fedimint_sdk_checksum_constructor_notes_parse',
