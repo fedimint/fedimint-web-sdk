@@ -8,7 +8,8 @@ set -euo pipefail
 # for exactly one shape — the same ones scripts/devimint-shape.sh uses for the Rust
 # integration tests. A caller's FM_SDK_SHAPE is honoured rather than overwritten:
 # the Android suite runs both v1 and v2 through this script (see
-# js/android/integration-tests/README.md), the wasm suite keeps the v1 default.
+# js/android/integration-tests/README.md), the browser package's tests
+# (js/web/sdk-web) keep the v1 default.
 # shellcheck source=scripts/devimint-modules.sh
 . "$(dirname "${BASH_SOURCE[0]}")/devimint-modules.sh" "${FM_SDK_SHAPE:-v1}"
 echo "devimint federation shape: ${FM_SDK_SHAPE}" \

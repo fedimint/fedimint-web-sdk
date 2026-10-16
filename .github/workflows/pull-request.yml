@@ -18,11 +18,8 @@ jobs:
     name: Detect Changes
     runs-on: ubuntu-latest
     outputs:
-      core: ${{ steps.filter.outputs.core }}
       web: ${{ steps.filter.outputs.web }}
       react-native: ${{ steps.filter.outputs.react-native }}
-      docs: ${{ steps.filter.outputs.docs }}
-      cli: ${{ steps.filter.outputs.cli }}
       rust-sdk: ${{ steps.filter.outputs.rust-sdk }}
     steps:
       - uses: actions/checkout@v7
@@ -43,29 +40,20 @@ jobs:
         run: |
           set -euo pipefail
 
-          core=false
           web=false
           react_native=false
-          docs=false
-          cli=false
           rust_sdk=false
 
           enable_all() {
-            core=true
             web=true
             react_native=true
-            docs=true
-            cli=true
             rust_sdk=true
           }
 
           emit_outputs() {
             {
-              echo "core=$core"
               echo "web=$web"
               echo "react-native=$react_native"
-              echo "docs=$docs"
-              echo "cli=$cli"
               echo "rust-sdk=$rust_sdk"
             } >> "$GITHUB_OUTPUT"
           }
@@ -123,14 +111,6 @@ jobs:
               .github/workflows/*|.github/actions/*)
                 enable_all
                 ;;
-              js/shared/core/*|js/shared/types/*|packages/core/*|packages/types/*)
-                core=true
-                web=true
-                docs=true
-                ;;
-              js/web/react/*|packages/react/*)
-                core=true
-                ;;
               js/react-native/react-native/*|js/react-native/react-native-bindings/*|js/examples/react-native/*|js/examples/expo-app/*|scripts/generate-sdk-rn-bindings.sh|scripts/build-sdk-rn-ios.sh|Justfile)
                 react_native=true
                 # The Justfile also holds the web binding recipe.
@@ -143,31 +123,20 @@ jobs:
                 web=true
                 react_native=true
                 ;;
-              js/web/core-web/*|js/web/wasm-bundler/*|js/web/wasm-web/*|js/web/integration-tests/*|js/web/sdk-web/*|packages/core-web/*|packages/wasm-bundler/*|packages/wasm-web/*|packages/integration-tests/*|scripts/*)
+              js/web/sdk-web/*|scripts/*)
                 web=true
                 ;;
               nix/web-bindgen.nix|nix/ffi.nix|rust/ubrn/*)
                 web=true
                 react_native=true
                 ;;
-              js/vitest.config.ts|js/vitest.workspace.ts)
+              js/vitest.config.ts)
                 web=true
-                cli=true
-                ;;
-              js/web/transport-web/*|packages/transport-web/*)
-                web=true
-                docs=true
                 ;;
               flake.nix|flake.lock)
                 web=true
                 react_native=true
                 rust_sdk=true
-                ;;
-              js/docs/*|docs/*)
-                docs=true
-                ;;
-              js/tools/create-fedimint-app/*|packages/create-fedimint-app/*)
-                cli=true
                 ;;
             esac
           done < "$changed_files"
@@ -181,10 +150,8 @@ jobs:
     uses: ./.github/workflows/verify.yml
     secrets: inherit
     with:
-      run_core: ${{ github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.core == 'true' || needs.detect-changes.outputs.web == 'true' || needs.detect-changes.outputs.cli == 'true' }}
+      run_core: ${{ github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.web == 'true' }}
       run_web: ${{ github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.web == 'true' }}
-      run_docs: ${{ github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.docs == 'true' }}
-      run_cli: ${{ github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.cli == 'true' }}
 
   test-react-native:
     name: Test React Native

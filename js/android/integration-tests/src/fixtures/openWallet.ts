@@ -11,9 +11,7 @@ import { Fixture } from './types'
  * Opens the SDK over the app-private directory, generating and persisting a
  * seed if there isn't one — the state every other fixture builds on.
  *
- * The equivalent of the wasm suite's `wallet` fixture
- * (js/web/integration-tests/src/test/fixtures.ts) up to the point before it
- * joins: create the wallet, generate the mnemonic.
+ * Joining a federation is left to the `joinFederation` fixture.
  */
 export const openWallet: Fixture = {
   produces: 'walletOpen',

@@ -4,8 +4,8 @@ import SwiftUI
 
 import FedimintSdk
 
-/// The mutinynet federation `js/examples/vite-core` and `android/app` pre-fill,
-/// so all three demos start from the same place.
+/// The mutinynet federation `android/app` also pre-fills, so both demos start
+/// from the same place.
 let testnetFederationCode =
     "fed11qgqrgvnhwden5te0v9k8q6rp9ekh2arfdeukuet595cr2ttpd3jhq6rzve6zuer9wchxvetyd938gcewvdhk6tcqq"
     + "ysptkuvknc7erjgf4em3zfh90kffqf9srujn6q53d6r056e4apze5cw27h75"

@@ -17,10 +17,10 @@ on:
       # the check job builds it and lints the crate under `--features uniffi`.
       - 'rust/uniffi-bindgen/**'
       - '.github/workflows/rust-sdk-ci.yaml'
-      # The crate pins the same fedimint revision the flake does, so a flake
+      # The crate requires the fedimint release the flake pins, so a flake
       # bump has to re-run this workflow: pins-agree below checks flake.nix
-      # and flake.lock against the crate's pin, and catches a bump that
-      # moved one of the three and not the others.
+      # and flake.lock against the crate's requirement, and catches a bump
+      # that moved one of the three and not the others.
       - 'flake.nix'
       - 'flake.lock'
   pull_request:
@@ -49,27 +49,27 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: 'Compare the crate pin with the flake input pins'
-        # The SDK compiles against fedimint and the flake runs devimint from
-        # fedimint. If the repository or the revision drifts apart between the
-        # two, the client under test and the federation it is tested against
-        # stop matching, which surfaces as a runtime mystery rather than a
-        # build failure. Cargo.lock and flake.lock are compared too, because
-        # CI builds with --locked and a lock left behind would silently
-        # build the old code.
+      - name: "Compare the crate's fedimint version with the flake's fedimint input"
+        # The SDK compiles against fedimint's crates from crates.io and the
+        # flake runs devimint from fedimint's repository. If the crates'
+        # version and the flake's release tag drift apart, the client under
+        # test and the federation it is tested against stop matching, which
+        # surfaces as a runtime mystery rather than a build failure.
+        # Cargo.lock and flake.lock are compared too, because CI builds with
+        # --locked and a lock left behind would silently build the old code.
         run: |
           set -euo pipefail
 
           manifest=rust/fedimint-sdk/Cargo.toml
           lock=rust/fedimint-sdk/Cargo.lock
+          crates_io=registry+https://github.com/rust-lang/crates.io-index
           fail() { echo "::error::$*"; exit 1; }
 
-          # "<owner>/<repo> <rev>" for one flake input, read from that input's own
-          # block, so a `?rev=` pin on another input cannot be taken for this one.
-          # The scoping relies on the block's multi-line `name = { ... };` shape,
-          # asserted below: a block reformatted onto one line makes the sed range
-          # below run past this input's own end address into the next block.
-          flake_pin() {
+          # The url values in one flake input's own block, so that another input's url cannot be
+          # taken for this one. The sed range ends at the first line starting with `};`, which is
+          # this input's own end only for the multi-line `name = { ... };` shape asserted here: a
+          # block reformatted onto one line would run on into the next input's block.
+          flake_urls() {
             local block
             block=$(sed -n "/^[[:space:]]*$1[[:space:]]*=[[:space:]]*{/,/^[[:space:]]*};/p" \
               flake.nix)
@@ -78,74 +78,74 @@ jobs:
               && printf '%s\n' "$block" | tail -n1 | grep -qE '^[[:space:]]*};[[:space:]]*$' \
               || return 1
             printf '%s\n' "$block" \
-              | grep -oE 'github:[A-Za-z0-9._-]+/[A-Za-z0-9._-]+\?rev=[0-9a-f]{40}' \
-              | sed -E 's|github:(.*)\?rev=([0-9a-f]{40})|\1 \2|' | sort -u
+              | sed -nE 's/^[[:space:]]*url[[:space:]]*=[[:space:]]*"([^"]*)";[[:space:]]*$/\1/p'
           }
 
-          # "<owner>/<repo> <rev>" for one flake.lock node's locked reference.
-          flake_lock_pin() {
-            jq -r --arg name "$1" \
-              '.nodes[$name].locked | select(.owner and .repo and .rev)
-               | "\(.owner)/\(.repo) \(.rev)"' flake.lock
-          }
+          # Only an exact requirement keeps every later `cargo update` on this release.
+          deps=$(grep -E '^[[:space:]]*fedimint-' "$manifest" || true)
+          [ -n "$deps" ] || fail "$manifest has no fedimint-* dependency"
+          bad=$(printf '%s\n' "$deps" \
+            | grep -vE '^fedimint-[A-Za-z0-9_-]+ = "=[0-9][0-9A-Za-z.+-]*"$' | head -n1 || true)
+          [ -z "$bad" ] \
+            || fail "$manifest has a dependency that is not of the form" \
+                    "fedimint-<name> = \"=<version>\": $bad"
+          versions=$(printf '%s\n' "$deps" | sed -E 's/^.* = "=(.*)"$/\1/' | sort -u)
+          [ "$(printf '%s\n' "$versions" | wc -l)" -eq 1 ] \
+            || fail "$manifest requires more than one fedimint version:" \
+                    "$(printf '%s\n' "$versions" | paste -sd ' ')"
+          version=$versions
 
-          manifest_pin=$(grep -oE \
-            'git = "https://github\.com/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+", rev = "[0-9a-f]{40}"' \
-            "$manifest" \
-            | sed -E 's|git = "https://github\.com/(.*)", rev = "(.*)"|\1 \2|' | sort -u || true)
-          lock_pin=$(grep -oE \
-            'git\+https://github\.com/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+\?rev=[0-9a-f]{40}' "$lock" \
-            | sed -E 's|git\+https://github\.com/(.*)\?rev=(.*)|\1 \2|' | sort -u || true)
-          devimint_pin=$(flake_pin fedimint) \
+          crates=$(printf '%s\n' "$deps" | sed -E 's/^(fedimint-[A-Za-z0-9_-]+) = .*/\1/' | sort -u)
+          while IFS= read -r crate; do
+            [ "$(grep -cx "name = \"$crate\"" "$lock")" -eq 1 ] \
+              || fail "$lock does not have exactly one package named $crate"
+            # From the package's `name` line to the blank line that ends its entry.
+            package=$(sed -n "/^name = \"$crate\"\$/,/^\$/p" "$lock")
+            lock_version=$(printf '%s\n' "$package" | sed -n 's/^version = "\(.*\)"$/\1/p')
+            lock_source=$(printf '%s\n' "$package" | sed -n 's/^source = "\(.*\)"$/\1/p')
+            [ "$lock_version" = "$version" ] \
+              || fail "$lock has $crate at ${lock_version:-no version}, $manifest requires" \
+                      "=$version"
+            [ "$lock_source" = "$crates_io" ] \
+              || fail "$lock has $crate from ${lock_source:-no source}, $manifest requires" \
+                      "it from crates.io"
+          done <<< "$crates"
+
+          # This also catches a git source that only a transitive dependency has pulled in.
+          git_source=$(grep -m1 '^source = "git+https://github.com/fedimint/fedimint' \
+            "$lock" || true)
+          [ -z "$git_source" ] \
+            || fail "$lock has a package from the fedimint git repository, $manifest requires" \
+                    "crates.io releases: $git_source"
+
+          urls=$(flake_urls fedimint) \
             || fail "flake.nix input 'fedimint' is not in the expected \`name = { ... };\` shape"
-          wasm_pin=$(flake_pin fedimint-wasm) \
-            || fail "flake.nix input 'fedimint-wasm' is not in the expected" \
-                    "\`name = { ... };\` shape"
-          lock_fedimint_pin=$(flake_lock_pin fedimint || true)
-          lock_wasm_pin=$(flake_lock_pin fedimint-wasm || true)
+          [ "$(printf '%s\n' "$urls" | grep -c .)" -eq 1 ] \
+            || fail "flake.nix input 'fedimint' does not have exactly one url"
+          [ "$urls" = "github:fedimint/fedimint/v$version" ] \
+            || fail "flake.nix input 'fedimint' has url $urls, $manifest requires" \
+                    "github:fedimint/fedimint/v$version"
 
-          [ -n "$manifest_pin" ] || fail "no github git dependency in $manifest"
-          [ "$(printf '%s\n' "$manifest_pin" | wc -l)" -eq 1 ] \
-            || fail "$manifest has more than one github git source: $(echo $manifest_pin)"
-          [ -n "$devimint_pin" ] \
-            || fail "flake.nix input 'fedimint' has no github:<owner>/<repo>?rev=<sha> url"
-          [ -n "$wasm_pin" ] \
-            || fail "flake.nix input 'fedimint-wasm' has no github:<owner>/<repo>?rev=<sha> url"
-          [ "$devimint_pin" = "$wasm_pin" ] \
-            || fail "flake.nix inputs disagree: fedimint $devimint_pin, fedimint-wasm $wasm_pin"
-          [ -n "$lock_pin" ] || fail "$lock records no github git source; run cargo check"
-          [ "$(printf '%s\n' "$lock_pin" | wc -l)" -eq 1 ] \
-            || fail "$lock records more than one github git source: $(echo $lock_pin)"
-          [ -n "$lock_fedimint_pin" ] \
-            || fail "flake.lock node 'fedimint' has no owner/repo/rev in its locked object"
-          [ -n "$lock_wasm_pin" ] \
-            || fail "flake.lock node 'fedimint-wasm' has no owner/repo/rev in its locked object"
-          [ "$lock_fedimint_pin" = "$lock_wasm_pin" ] \
-            || fail "flake.lock nodes disagree: fedimint $lock_fedimint_pin," \
-                    "fedimint-wasm $lock_wasm_pin"
+          # `original` is what flake.nix asked for, `locked` what `nix flake lock` resolved it to
+          # and what Nix fetches, so the repository is checked in both.
+          node=$(jq -r '
+            .nodes.fedimint // empty
+            | [.original.owner, .original.repo, .original.ref,
+               .locked.owner, .locked.repo, .locked.rev]
+            | map(. // "-") | join(" ")' flake.lock) \
+            || fail "flake.lock could not be read"
+          [ -n "$node" ] || fail "flake.lock has no node 'fedimint'"
+          read -r owner repo ref locked_owner locked_repo rev <<< "$node"
+          [ "$owner/$repo $ref" = "fedimint/fedimint v$version" ] \
+            || fail "flake.lock node 'fedimint' is $owner/$repo at $ref, $manifest requires" \
+                    "fedimint/fedimint at v$version"
+          [ "$locked_owner/$locked_repo" = "fedimint/fedimint" ] \
+            || fail "flake.lock node 'fedimint' is locked to $locked_owner/$locked_repo," \
+                    "not to fedimint/fedimint"
+          [[ $rev =~ ^[0-9a-f]{40}$ ]] \
+            || fail "flake.lock node 'fedimint' has no 40 digit locked rev: $rev"
 
-          manifest_repo=${manifest_pin% *}; manifest_rev=${manifest_pin##* }
-          flake_repo=${devimint_pin% *};    flake_rev=${devimint_pin##* }
-          lock_repo=${lock_pin% *};         lock_rev=${lock_pin##* }
-          flake_lock_repo=${lock_fedimint_pin% *}
-          flake_lock_rev=${lock_fedimint_pin##* }
-
-          [ "$manifest_repo" = "$flake_repo" ] \
-            || fail "repo mismatch: $manifest uses $manifest_repo, flake.nix uses $flake_repo"
-          [ "$manifest_rev" = "$flake_rev" ] \
-            || fail "rev mismatch: $manifest is at $manifest_rev, flake.nix is at $flake_rev"
-          [ "$lock_repo" = "$manifest_repo" ] \
-            || fail "repo mismatch: $lock uses $lock_repo, $manifest uses $manifest_repo"
-          [ "$lock_rev" = "$manifest_rev" ] \
-            || fail "rev mismatch: $lock is at $lock_rev, $manifest is at $manifest_rev"
-          [ "$flake_lock_repo" = "$manifest_repo" ] \
-            || fail "repo mismatch: flake.lock 'fedimint' uses $flake_lock_repo," \
-                    "$manifest uses $manifest_repo"
-          [ "$flake_lock_rev" = "$manifest_rev" ] \
-            || fail "rev mismatch: flake.lock 'fedimint' is at $flake_lock_rev," \
-                    "$manifest is at $manifest_rev"
-
-          echo "fedimint pins agree: $manifest_repo at $manifest_rev"
+          echo "fedimint pins agree: $version (fedimint/fedimint at $rev)"
 
   test:
     name: 'Run tests'

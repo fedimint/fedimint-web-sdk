@@ -24,8 +24,7 @@
 # scripts/generate-android-bindings.sh being the one that exists today.
 #
 # Ported from the fedimint-sdk-ffi repo's flake.nix (rev 6873aa3); the crane +
-# flakebox cross-compile scaffold is unchanged, retargeted from
-# fedimint-client-uniffi to fedimint-sdk.
+# flakebox cross-compile scaffold is unchanged, retargeted to fedimint-sdk.
 {
   system,
   nixpkgs,
@@ -41,6 +40,9 @@ let
     };
   };
   lib = nixpkgs.lib;
+
+  # The crate's version, for the derivations built from it.
+  sdkVersion = (lib.importTOML ../rust/fedimint-sdk/Cargo.toml).package.version;
 
   # Used only for `libc++_shared.so` (a target-ABI runtime lib the NDK ships;
   # the exact NDK revision barely matters for it). The cross-compile itself
@@ -149,7 +151,7 @@ let
         buildInputs = [ pkgs.libiconv ];
       } // {
         inherit src pname;
-        version = "0.1.0-alpha.1";
+        version = sdkVersion;
         cargoExtraArgs = "--locked --target ${rustTarget} --lib --features uniffi";
         CARGO_BUILD_TARGET = rustTarget;
         doCheck = false;
@@ -216,7 +218,7 @@ let
       commonArgs = target.args // {
         inherit src;
         pname = "fedimint-sdk-ios-${rustTarget}";
-        version = "0.1.0-alpha.1";
+        version = sdkVersion;
         cargoExtraArgs = "--locked --target ${rustTarget} --lib --features uniffi";
         CARGO_BUILD_TARGET = rustTarget;
         doCheck = false;
