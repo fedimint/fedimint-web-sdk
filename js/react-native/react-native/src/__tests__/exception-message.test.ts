@@ -15,7 +15,11 @@ const generatedPath = new URL(
   import.meta.url,
 ).href
 
-const DEBUG = 'Error { code: InvalidInput, reason: "not an invite code" }'
+// What the crate's `Debug` prints: the same `Code: reason` text as `Display`.
+const DEBUG = 'InvalidInput: not an invite code'
+// The real `Display` text is identical. A different string here shows which of the two
+// methods the runtime called, so the assertion below cannot pass by accident.
+const DISPLAY = 'display, not used for the message'
 
 /**
  * Stands in for the JSI host just far enough to lift an `Exception` handle and call the trait
@@ -33,7 +37,7 @@ function installNative() {
     ubrn_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_debug: () =>
       bytes(DEBUG),
     ubrn_uniffi_fedimint_sdk_fn_method_error_uniffi_trait_display: () =>
-      bytes('InvalidInput: not an invite code'),
+      bytes(DISPLAY),
     rustbuffer_free: () => {},
   }
 }
@@ -52,7 +56,8 @@ describe('a thrown Exception', () => {
     const thrown =
       generated.converters.FfiConverterTypeError__as_error.lift(errorBuffer)
     expect(thrown).toBeInstanceOf(Error)
-    expect(thrown.message).toContain('InvalidInput')
-    expect(thrown.message).toContain('not an invite code')
+    // The runtime prefixes the class name: `Exception: InvalidInput: not an invite code`.
+    expect(thrown.message).toContain(DEBUG)
+    expect(thrown.message).not.toContain(DISPLAY)
   })
 })

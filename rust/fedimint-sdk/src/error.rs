@@ -45,7 +45,7 @@ use crate::{Amount, Network, Timestamp};
 /// [`ErrorCode`] never carries detail either: it is a fieldless `Copy` enum, so it maps onto
 /// a plain Swift, Kotlin, or TypeScript enum. No addition ever removes or repurposes `code`,
 /// `details`, or `message`.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 // UniFFI carries `Error` across the boundary as an opaque *error interface*: it
 // already implements `core::error::Error` + `Display`, so `#[uniffi::export]`
 // methods that return `crate::Result<T>` throw it directly. Foreign code reads
@@ -56,8 +56,8 @@ use crate::{Amount, Network, Timestamp};
 // `Debug` and `Display` are exported too, so the foreign object reads as more than its class
 // name. `Display` (`QuoteExpired: <reason>`) becomes `toString()` in Kotlin and TypeScript and
 // `description` in Swift. `Debug` becomes `toDebugString()` in TypeScript, which is what the
-// thrown wrapper's `message` is built from, so an uncaught failure logs its code and reason.
-// Neither string shows anything `code()`, `reason()` and `details()` do not already return.
+// thrown wrapper's `message` is built from, so `Debug` is written by hand to print the same
+// `Code: reason` text rather than a struct dump. Read `details()` for the structured detail.
 #[cfg_attr(feature = "uniffi", derive(uniffi::Object))]
 #[cfg_attr(feature = "uniffi", uniffi::export(Debug, Display))]
 #[non_exhaustive]
@@ -214,6 +214,15 @@ impl Error {
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{:?}: {}", self.code, self.message)
+    }
+}
+
+/// The same `Code: reason` text as `Display`, not a struct dump: this is the message a thrown
+/// TypeScript `Exception` carries, and what `unwrap` and `{:?}` print. `details` is left out;
+/// read it from the field.
+impl core::fmt::Debug for Error {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Display::fmt(self, f)
     }
 }
 
@@ -1501,17 +1510,23 @@ mod tests {
     }
 
     #[test]
-    fn error_debug_names_the_code_and_the_reason() {
+    fn error_debug_reads_as_code_then_message() {
         // `Debug` is `toDebugString()` in TypeScript, and ubrn's thrown wrapper builds its
         // `message` from it (the generated `toString()` is not an own property, so it is skipped).
-        // An uncaught failure in a React Native app reads as this string.
-        let err = Error::new(
+        // An uncaught failure in a React Native app reads as this string, so it is the
+        // `Display` text, not a struct dump with `details` and raw envelope bytes in it.
+        let err = Error::with_details(
             ErrorCode::InsufficientBalance,
             "need 1000 msat, have 500 msat",
+            ErrorDetails::InsufficientBalance {
+                required: Amount::from_msats(1_000),
+                available: Amount::from_msats(500),
+            },
         );
-        let debug = format!("{err:?}");
-        assert!(debug.contains("InsufficientBalance"), "{debug}");
-        assert!(debug.contains("need 1000 msat, have 500 msat"), "{debug}");
+        assert_eq!(
+            format!("{err:?}"),
+            "InsufficientBalance: need 1000 msat, have 500 msat"
+        );
     }
 
     #[test]
