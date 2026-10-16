@@ -26,10 +26,10 @@ name: Android SDK
 #
 # `e2e` is the one job that needs the single self-hosted Mac, so it does not
 # run on every pull request. A pull request gets it when it carries the
-# `ci-android-e2e` label or changes the suite itself; the merge queue runs it
-# for any group that touches Android, so nothing reaches main without it. The
-# `changes` job decides, and `result` is the one check branch protection
-# requires from here.
+# `ci-android-e2e` label or changes the suite or the example app; the merge
+# queue runs it for every pull request, whatever it touched, so nothing reaches
+# main without it. The `changes` job decides, and `result` is the one check
+# branch protection requires from here.
 
 on:
   workflow_dispatch:
@@ -53,8 +53,7 @@ on:
   # starts on every pull request and the `changes` job holds the path list.
   pull_request:
   # The merge queue's run: main plus the PRs queued ahead, tested before main
-  # moves. `paths:` does not apply to this event, which is one more reason the
-  # path list lives in `changes`.
+  # moves. It always gets the whole chain, e2e included; see `changes`.
   merge_group:
     types: [checks_requested]
 
@@ -71,9 +70,15 @@ permissions:
   contents: read
 
 jobs:
-  # Decides what this run builds. A pull request or a merge group gets only
-  # what its diff needs; every other event (a manual run, or the release and
-  # snapshot workflows calling this one) gets the whole chain, e2e included.
+  # Decides what this run builds. A pull request gets only what its diff needs.
+  # Every other event gets the whole chain, e2e included: a merge group, a
+  # manual run, or the release and snapshot workflows calling this one.
+  #
+  # The queue ignores the path list on purpose. It is the last check before
+  # main, and e2e also depends on files outside the list: the setup-nix action,
+  # the JS lockfile the suite installs from, and devimint-shape.sh, which
+  # setup_test_shell.sh sources. Running it for every queued PR costs few runs,
+  # since most merges touch Android anyway.
   changes:
     name: 'Detect changes'
     runs-on: ubuntu-24.04
@@ -98,8 +103,6 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
-          MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha }}
           E2E_LABEL: ${{ contains(github.event.pull_request.labels.*.name, 'ci-android-e2e') }}
         run: |
           set -euo pipefail
@@ -128,9 +131,7 @@ jobs:
                 run_everything
               fi
               ;;
-            merge_group)
-              diff_args=("$MERGE_GROUP_BASE_SHA" "$MERGE_GROUP_HEAD_SHA")
-              ;;
+            # A merge group, a manual run, or a release or snapshot call.
             *)
               run_everything
               emit_outputs
@@ -150,11 +151,13 @@ jobs:
 
           while IFS= read -r -d '' path; do
             case "$path" in
-              # The suite, what stands its federation up (setup_test_shell.sh is
-              # the same entry point the browser package's tests use), and the
-              # workflows that run it. Nothing but the e2e job exercises these,
-              # so a pull request changing them gets it without the label.
-              scripts/e2e-android/*|js/android/integration-tests/*|scripts/setup_test_shell.sh|scripts/devimint-modules.sh|.github/workflows/android-sdk.yaml|.github/workflows/android-e2e.yml)
+              # The suite, the example app it drives, what stands its federation
+              # up (setup_test_shell.sh is the same entry point the browser
+              # package's tests use), and the workflows that run it. Only the
+              # e2e job exercises how these behave, so a pull request changing
+              # them gets it without the label. Ahead of `android/*` below,
+              # since the first matching pattern wins.
+              scripts/e2e-android/*|js/android/integration-tests/*|android/app/*|scripts/setup_test_shell.sh|scripts/devimint-modules.sh|.github/workflows/android-sdk.yaml|.github/workflows/android-e2e.yml)
                 run_everything
                 ;;
               # Everything the chain builds from. The Nix and flake paths are
@@ -166,12 +169,6 @@ jobs:
                 ;;
             esac
           done < "$changed_files"
-
-          # The queue is the last check before main, so any group that touches
-          # Android gets the device run.
-          if [[ "$EVENT_NAME" == merge_group && "$android" == true ]]; then
-            e2e=true
-          fi
 
           emit_outputs
 
