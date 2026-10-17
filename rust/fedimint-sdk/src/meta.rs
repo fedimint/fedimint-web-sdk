@@ -86,7 +86,20 @@ const OVERRIDE_CACHE_TIMEOUT: Duration = Duration::from_millis(500);
 /// it contributes nothing. In particular, **the first reads after joining,
 /// or after the app starts with nothing cached, may not include the
 /// override.** It is cached and refreshed in the background, so a later read
-/// picks it up.
+/// picks it up. Until that first fetch finishes, each `get` or `all` call can
+/// wait up to 500 ms for it.
+///
+/// **Known limitation: after the federation's configuration changes, old
+/// configuration values can show for a while.** fedimint-client caches the
+/// configuration metadata together with the override document, as one set of
+/// entries, and the SDK lays that cache over the current configuration. The
+/// cache does not record which entries came from the override, so the SDK
+/// cannot drop only the old configuration values. Until fedimint-client
+/// fetches the override document again, the old values, and keys the new
+/// configuration removed, win over the current configuration. That is
+/// briefly after the app starts, or for as long as the override URL stays
+/// unreachable. This happens only for federations whose configuration names a
+/// `meta_override_url`, and consensus values are not affected.
 ///
 /// # The merged view is a lossy projection, and these are its exact rules
 ///
