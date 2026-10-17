@@ -9275,33 +9275,82 @@ const FfiConverterTypeLightning = new FfiConverterObject(
  * capability facades this is unconditional: every federation has
  * configuration metadata, so there is always something here to read.
  *
- * # Two sources, one merged view
+ * # Three sources, one merged view
  *
- * A federation can describe itself in two places, and they are genuinely
+ * A federation can describe itself in three places, and they are genuinely
  * different things:
  *
  * - **Configuration metadata** is baked into the federation's consensus
  * configuration. It is fixed for the life of that configuration, is
  * available locally without asking anyone, and is what a
  * [`FederationPreview`](crate::FederationPreview) shows before joining.
+ * - **Override metadata** is a JSON document the federation publishes at
+ * the URL its configuration names under `meta_override_url`, keyed by
+ * federation id. Whoever hosts that URL can change it without a new
+ * configuration. fedimint-client fetches it for every client the SDK
+ * builds and refreshes it in the background; the SDK reads that cached
+ * copy and does not fetch it itself. Only `meta_override_url` is read:
+ * the older `meta_external_url` key is not, because fedimint-client does
+ * not read it either.
  * - **Consensus metadata** lives in the federation's meta module, is
  * agreed by the guardians at runtime, and is *revisioned*: the
  * guardians can change it, and each change bumps a revision number.
  * Not every federation runs a meta module.
  *
- * Most applications want neither of those specifically; they want to know
+ * Most applications want none of those specifically; they want to know
  * "what is this federation's welcome message" and to get the current
  * answer. [`Meta::get`] and [`Meta::all`] provide that as a merged view,
- * with a single precedence rule: **consensus metadata overrides
- * configuration metadata, per key**. A key present in both takes its value
- * from consensus, because consensus metadata is the one the guardians can
- * update; keys present in only one source appear unchanged.
+ * with a single precedence order, applied **per key**:
  *
- * The raw sources stay available separately:
+ * **consensus metadata, then override metadata, then configuration
+ * metadata.**
+ *
+ * A key takes its value from the first source in that order that defines
+ * it; keys present in only one source appear unchanged. This is the order
+ * fedimint-client itself uses: its legacy meta source lays the override
+ * document over the configuration metadata, and its meta-module source
+ * prefers the meta module's consensus value over that legacy source. The
+ * SDK applies both steps per key rather than per document, so a key the
+ * meta module does not define still shows the override or configuration
+ * value.
+ *
+ * The configuration and consensus sources stay available separately:
  * [`Meta::config_metadata`] and [`Meta::consensus_metadata`], so an
  * application that needs to know *where* a value came from, or that needs
  * the consensus revision, is not forced to work backwards from the merged
- * result.
+ * result. The override document has no accessor of its own: fedimint-client
+ * caches it already laid over the configuration metadata, so which source a
+ * value came from is gone by the time the SDK reads it.
+ *
+ * # When the override document contributes
+ *
+ * The override document is a JSON object, and its entries are projected by
+ * rules 4 and 5 below, exactly like the consensus document's: one set of
+ * rules for both JSON sources. A nested object or array in the override is
+ * skipped, and the configuration value for that key stands.
+ *
+ * An override document that fedimint-client has not fetched, because the
+ * URL is unreachable, returns something other than a JSON object keyed by
+ * federation id, or has no entry for this federation, contributes nothing.
+ * The SDK waits only briefly for the override, so it never holds up the
+ * merged view: until fedimint-client has fetched and cached the document,
+ * it contributes nothing. In particular, **the first reads after joining,
+ * or after the app starts with nothing cached, may not include the
+ * override.** It is cached and refreshed in the background, so a later read
+ * picks it up. Until that first fetch finishes, each `get` or `all` call can
+ * wait up to 500 ms for it.
+ *
+ * **Known limitation: after the federation's configuration changes, old
+ * configuration values can show for a while.** fedimint-client caches the
+ * configuration metadata together with the override document, as one set of
+ * entries, and the SDK lays that cache over the current configuration. The
+ * cache does not record which entries came from the override, so the SDK
+ * cannot drop only the old configuration values. Until fedimint-client
+ * fetches the override document again, the old values, and keys the new
+ * configuration removed, win over the current configuration. That is
+ * briefly after the app starts, or for as long as the override URL stays
+ * unreachable. This happens only for federations whose configuration names a
+ * `meta_override_url`, and consensus values are not affected.
  *
  * # The merged view is a lossy projection, and these are its exact rules
  *
@@ -9314,7 +9363,7 @@ const FfiConverterTypeLightning = new FfiConverterObject(
  *
  * 1. **Decode as UTF-8.** If the bytes are not valid UTF-8, the consensus
  * document contributes **nothing**: no keys at all, and the merged view
- * is the configuration metadata alone.
+ * is the override and configuration metadata alone.
  * 2. **Parse as JSON.** If the decoded text does not parse as JSON, the
  * consensus document again contributes nothing.
  * 3. **Require a top-level object.** If the document parses to anything
@@ -9326,13 +9375,14 @@ const FfiConverterTypeLightning = new FfiConverterObject(
  * or **`null`** contributes its JSON text (`42`, `true`, `null`) and
  * stops being distinguishable from a string that happens to read the
  * same. A **nested object or array** cannot be projected to a string and
- * is **skipped**: that key contributes nothing from consensus.
+ * is **skipped**: that key contributes nothing from that document.
  * 5. **Skipped is "not defined", never "defined as empty".** A key skipped
- * by rule 4 is treated exactly as though consensus had not defined it:
- * the configuration value for that key stands if there is one, and if
- * there is none the key is absent from the merged view entirely. An
- * unprojectable value never surfaces as an empty string and never blanks
- * out a configuration value it would otherwise have overridden.
+ * by rule 4 is treated exactly as though that document had not defined
+ * it: the value from the next source down in the precedence order stands
+ * if there is one, and if there is none the key is absent from the
+ * merged view entirely. An unprojectable value never surfaces as an
+ * empty string and never blanks out a value it would otherwise have
+ * overridden.
  *
  * Note what rules 1 to 3 mean in practice: a consensus document that is not
  * UTF-8 JSON with an object at its root is *invisible* to the merged view.
@@ -9349,14 +9399,15 @@ export interface MetaLike {
   /**
    * The whole merged view.
    *
-   * Every key from either source, with consensus values winning where both
-   * define one, subject to the same projection rules as [`Meta::get`]. A
-   * key is present here only if the projection could
+   * Every key from any source, with consensus values winning over override
+   * values and override values winning over configuration values where
+   * more than one defines a key, subject to the same projection rules as
+   * [`Meta::get`]. A key is present here only if the projection could
    * represent it as a string: an undecodable, unparseable, or non-object
    * consensus document contributes no keys, and a key whose consensus
    * value is a nested object or array is skipped in favour of the
-   * configuration value, or omitted if there is none. This map is
-   * therefore a view for rendering, never an inventory of what the
+   * override or configuration value, or omitted if there is neither. This
+   * map is therefore a view for rendering, never an inventory of what the
    * federation's metadata contains; [`Meta::consensus_metadata`] is that.
    *
    * Ordered by key: the map is a
@@ -9376,7 +9427,7 @@ export interface MetaLike {
    *
    * Synchronous and infallible: this comes from configuration the SDK
    * already holds locally, so there is nothing to fetch and nothing to
-   * fail. No consensus values are merged in.
+   * fail. No override or consensus values are merged in.
    */
   configMetadata(): MetaMap
   /**
@@ -9404,19 +9455,21 @@ export interface MetaLike {
    * Looks up one key in the merged view.
    *
    * Returns the consensus value if the meta module defines this key with
-   * a value the projection can represent, the configuration value if only
-   * the configuration does, and `None` if neither does. Asynchronous and
-   * fallible because reading consensus metadata may require contacting the
-   * federation.
+   * a value the projection can represent, otherwise the override value if
+   * the override document defines it, otherwise the configuration value,
+   * and `None` if no source does. Asynchronous and fallible because
+   * reading consensus metadata may require contacting the federation.
    *
    * **`None` is not proof the key is unset.** The projection is governed
    * by the rules on [`Meta`] and it declines rather than guesses: a
    * consensus document that is not valid UTF-8, does not parse as JSON, or
    * is not a JSON object contributes no keys at all, and a key whose value
    * is a nested object or array is skipped as though consensus had not
-   * defined it (the configuration value, if any, then stands). A caller
-   * that needs to distinguish "absent" from "present but not projectable"
-   * must read [`Meta::consensus_metadata`] and interpret
+   * defined it (the override or configuration value, if any, then
+   * stands). The override document follows the same rules, and an
+   * override document that has not been fetched contributes nothing. A
+   * caller that needs to distinguish "absent" from "present but not
+   * projectable" must read [`Meta::consensus_metadata`] and interpret
    * [`ConsensusMetadata::value`] itself.
    *
    * # Errors
@@ -9442,33 +9495,82 @@ export type MetaInterface = MetaLike
  * capability facades this is unconditional: every federation has
  * configuration metadata, so there is always something here to read.
  *
- * # Two sources, one merged view
+ * # Three sources, one merged view
  *
- * A federation can describe itself in two places, and they are genuinely
+ * A federation can describe itself in three places, and they are genuinely
  * different things:
  *
  * - **Configuration metadata** is baked into the federation's consensus
  * configuration. It is fixed for the life of that configuration, is
  * available locally without asking anyone, and is what a
  * [`FederationPreview`](crate::FederationPreview) shows before joining.
+ * - **Override metadata** is a JSON document the federation publishes at
+ * the URL its configuration names under `meta_override_url`, keyed by
+ * federation id. Whoever hosts that URL can change it without a new
+ * configuration. fedimint-client fetches it for every client the SDK
+ * builds and refreshes it in the background; the SDK reads that cached
+ * copy and does not fetch it itself. Only `meta_override_url` is read:
+ * the older `meta_external_url` key is not, because fedimint-client does
+ * not read it either.
  * - **Consensus metadata** lives in the federation's meta module, is
  * agreed by the guardians at runtime, and is *revisioned*: the
  * guardians can change it, and each change bumps a revision number.
  * Not every federation runs a meta module.
  *
- * Most applications want neither of those specifically; they want to know
+ * Most applications want none of those specifically; they want to know
  * "what is this federation's welcome message" and to get the current
  * answer. [`Meta::get`] and [`Meta::all`] provide that as a merged view,
- * with a single precedence rule: **consensus metadata overrides
- * configuration metadata, per key**. A key present in both takes its value
- * from consensus, because consensus metadata is the one the guardians can
- * update; keys present in only one source appear unchanged.
+ * with a single precedence order, applied **per key**:
  *
- * The raw sources stay available separately:
+ * **consensus metadata, then override metadata, then configuration
+ * metadata.**
+ *
+ * A key takes its value from the first source in that order that defines
+ * it; keys present in only one source appear unchanged. This is the order
+ * fedimint-client itself uses: its legacy meta source lays the override
+ * document over the configuration metadata, and its meta-module source
+ * prefers the meta module's consensus value over that legacy source. The
+ * SDK applies both steps per key rather than per document, so a key the
+ * meta module does not define still shows the override or configuration
+ * value.
+ *
+ * The configuration and consensus sources stay available separately:
  * [`Meta::config_metadata`] and [`Meta::consensus_metadata`], so an
  * application that needs to know *where* a value came from, or that needs
  * the consensus revision, is not forced to work backwards from the merged
- * result.
+ * result. The override document has no accessor of its own: fedimint-client
+ * caches it already laid over the configuration metadata, so which source a
+ * value came from is gone by the time the SDK reads it.
+ *
+ * # When the override document contributes
+ *
+ * The override document is a JSON object, and its entries are projected by
+ * rules 4 and 5 below, exactly like the consensus document's: one set of
+ * rules for both JSON sources. A nested object or array in the override is
+ * skipped, and the configuration value for that key stands.
+ *
+ * An override document that fedimint-client has not fetched, because the
+ * URL is unreachable, returns something other than a JSON object keyed by
+ * federation id, or has no entry for this federation, contributes nothing.
+ * The SDK waits only briefly for the override, so it never holds up the
+ * merged view: until fedimint-client has fetched and cached the document,
+ * it contributes nothing. In particular, **the first reads after joining,
+ * or after the app starts with nothing cached, may not include the
+ * override.** It is cached and refreshed in the background, so a later read
+ * picks it up. Until that first fetch finishes, each `get` or `all` call can
+ * wait up to 500 ms for it.
+ *
+ * **Known limitation: after the federation's configuration changes, old
+ * configuration values can show for a while.** fedimint-client caches the
+ * configuration metadata together with the override document, as one set of
+ * entries, and the SDK lays that cache over the current configuration. The
+ * cache does not record which entries came from the override, so the SDK
+ * cannot drop only the old configuration values. Until fedimint-client
+ * fetches the override document again, the old values, and keys the new
+ * configuration removed, win over the current configuration. That is
+ * briefly after the app starts, or for as long as the override URL stays
+ * unreachable. This happens only for federations whose configuration names a
+ * `meta_override_url`, and consensus values are not affected.
  *
  * # The merged view is a lossy projection, and these are its exact rules
  *
@@ -9481,7 +9583,7 @@ export type MetaInterface = MetaLike
  *
  * 1. **Decode as UTF-8.** If the bytes are not valid UTF-8, the consensus
  * document contributes **nothing**: no keys at all, and the merged view
- * is the configuration metadata alone.
+ * is the override and configuration metadata alone.
  * 2. **Parse as JSON.** If the decoded text does not parse as JSON, the
  * consensus document again contributes nothing.
  * 3. **Require a top-level object.** If the document parses to anything
@@ -9493,13 +9595,14 @@ export type MetaInterface = MetaLike
  * or **`null`** contributes its JSON text (`42`, `true`, `null`) and
  * stops being distinguishable from a string that happens to read the
  * same. A **nested object or array** cannot be projected to a string and
- * is **skipped**: that key contributes nothing from consensus.
+ * is **skipped**: that key contributes nothing from that document.
  * 5. **Skipped is "not defined", never "defined as empty".** A key skipped
- * by rule 4 is treated exactly as though consensus had not defined it:
- * the configuration value for that key stands if there is one, and if
- * there is none the key is absent from the merged view entirely. An
- * unprojectable value never surfaces as an empty string and never blanks
- * out a configuration value it would otherwise have overridden.
+ * by rule 4 is treated exactly as though that document had not defined
+ * it: the value from the next source down in the precedence order stands
+ * if there is one, and if there is none the key is absent from the
+ * merged view entirely. An unprojectable value never surfaces as an
+ * empty string and never blanks out a value it would otherwise have
+ * overridden.
  *
  * Note what rules 1 to 3 mean in practice: a consensus document that is not
  * UTF-8 JSON with an object at its root is *invisible* to the merged view.
@@ -9526,14 +9629,15 @@ export class Meta extends UniffiAbstractObject implements MetaLike {
   /**
    * The whole merged view.
    *
-   * Every key from either source, with consensus values winning where both
-   * define one, subject to the same projection rules as [`Meta::get`]. A
-   * key is present here only if the projection could
+   * Every key from any source, with consensus values winning over override
+   * values and override values winning over configuration values where
+   * more than one defines a key, subject to the same projection rules as
+   * [`Meta::get`]. A key is present here only if the projection could
    * represent it as a string: an undecodable, unparseable, or non-object
    * consensus document contributes no keys, and a key whose consensus
    * value is a nested object or array is skipped in favour of the
-   * configuration value, or omitted if there is none. This map is
-   * therefore a view for rendering, never an inventory of what the
+   * override or configuration value, or omitted if there is neither. This
+   * map is therefore a view for rendering, never an inventory of what the
    * federation's metadata contains; [`Meta::consensus_metadata`] is that.
    *
    * Ordered by key: the map is a
@@ -9591,7 +9695,7 @@ export class Meta extends UniffiAbstractObject implements MetaLike {
    *
    * Synchronous and infallible: this comes from configuration the SDK
    * already holds locally, so there is nothing to fetch and nothing to
-   * fail. No consensus values are merged in.
+   * fail. No override or consensus values are merged in.
    */
   configMetadata(): MetaMap {
     const __rb: Uint8Array = uniffiCaller.rustCall(
@@ -9673,19 +9777,21 @@ export class Meta extends UniffiAbstractObject implements MetaLike {
    * Looks up one key in the merged view.
    *
    * Returns the consensus value if the meta module defines this key with
-   * a value the projection can represent, the configuration value if only
-   * the configuration does, and `None` if neither does. Asynchronous and
-   * fallible because reading consensus metadata may require contacting the
-   * federation.
+   * a value the projection can represent, otherwise the override value if
+   * the override document defines it, otherwise the configuration value,
+   * and `None` if no source does. Asynchronous and fallible because
+   * reading consensus metadata may require contacting the federation.
    *
    * **`None` is not proof the key is unset.** The projection is governed
    * by the rules on [`Meta`] and it declines rather than guesses: a
    * consensus document that is not valid UTF-8, does not parse as JSON, or
    * is not a JSON object contributes no keys at all, and a key whose value
    * is a nested object or array is skipped as though consensus had not
-   * defined it (the configuration value, if any, then stands). A caller
-   * that needs to distinguish "absent" from "present but not projectable"
-   * must read [`Meta::consensus_metadata`] and interpret
+   * defined it (the override or configuration value, if any, then
+   * stands). The override document follows the same rules, and an
+   * override document that has not been fetched contributes nothing. A
+   * caller that needs to distinguish "absent" from "present but not
+   * projectable" must read [`Meta::consensus_metadata`] and interpret
    * [`ConsensusMetadata::value`] itself.
    *
    * # Errors
@@ -17971,14 +18077,14 @@ function uniffiEnsureInitialized() {
       'uniffi_fedimint_sdk_checksum_method_lnsendoperationupdates_next',
     )
   }
-  if (nativeModule().uniffi_fedimint_sdk_checksum_method_meta_all() !== 17691) {
+  if (nativeModule().uniffi_fedimint_sdk_checksum_method_meta_all() !== 28170) {
     throw new UniffiInternalError.ApiChecksumMismatch(
       'uniffi_fedimint_sdk_checksum_method_meta_all',
     )
   }
   if (
     nativeModule().uniffi_fedimint_sdk_checksum_method_meta_config_metadata() !==
-    5102
+    3949
   ) {
     throw new UniffiInternalError.ApiChecksumMismatch(
       'uniffi_fedimint_sdk_checksum_method_meta_config_metadata',
@@ -17992,7 +18098,7 @@ function uniffiEnsureInitialized() {
       'uniffi_fedimint_sdk_checksum_method_meta_consensus_metadata',
     )
   }
-  if (nativeModule().uniffi_fedimint_sdk_checksum_method_meta_get() !== 53450) {
+  if (nativeModule().uniffi_fedimint_sdk_checksum_method_meta_get() !== 35728) {
     throw new UniffiInternalError.ApiChecksumMismatch(
       'uniffi_fedimint_sdk_checksum_method_meta_get',
     )
