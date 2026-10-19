@@ -11,6 +11,9 @@ packages:
 nodeLinker: hoisted
 
 allowBuilds:
+  # Uses the platform optional dependency directly; its install script only
+  # rebuilds when npm_config_build_from_source=true.
+  '@parcel/watcher': false
   # Appium's CLI works fine without its postinstall (verified with
   # `appium --version`); uiautomator2 is installed explicitly via
   # `appium driver install` at test-run time instead, not via this build
@@ -24,6 +27,9 @@ allowBuilds:
   geckodriver: false
   sharp: true
   simple-git-hooks: true
+  # Loads the platform optional binding directly. The postinstall only repairs
+  # missing bindings via npm/downloads, which normal pnpm installs do not need.
+  unrs-resolver: false
 
 overrides:
   'dom-serializer@2.0.0>entities': '4.4.0'

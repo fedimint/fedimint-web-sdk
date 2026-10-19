@@ -5056,8 +5056,7 @@ type LightningRoute_Gateway_interface = {
   inner: Readonly<{ gatewayId: GatewayId }>
 }
 export type LightningRoute =
-  | LightningRoute_Internal_interface
-  | LightningRoute_Gateway_interface
+  LightningRoute_Internal_interface | LightningRoute_Gateway_interface
 
 export const LightningRoute = (() => {
   /**
