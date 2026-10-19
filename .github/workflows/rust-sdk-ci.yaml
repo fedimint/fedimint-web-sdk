@@ -2,13 +2,20 @@ name: Rust SDK Continuous Integration
 
 # Continuous integration for the fedimint-sdk crate: build, test, clippy
 # (default + `--features uniffi`), rustfmt, doc, and the wasm-target check,
-# with and without `--features uniffi`, path-filtered to rust/fedimint-sdk.
+# with and without `--features uniffi`.
 # The `--features uniffi` clippy is the cheap Android-surface gate: it
 # compiles the `#[uniffi::export]` blocks and type derives on the host, no
 # cross-compile. The real Android build (2 ABIs) lives in android-native.yaml,
 # and the `uniffi-bindgen` run over its output in android-sdk.yaml.
+#
+# A pull request or a merge group starts this workflow whatever it touches. The
+# `changes` job decides whether the crate is checked, and `result` is the one
+# check of this workflow for branch protection to require.
 
 on:
+  # On main as well, although the merge queue checks the commit that lands: the
+  # build cache that a run on main saves is the one other runs can restore,
+  # while the cache of a pull request's run serves only its re-runs.
   push:
     branches: [main]
     paths:
@@ -23,13 +30,17 @@ on:
       # that moved one of the three and not the others.
       - 'flake.nix'
       - 'flake.lock'
+
+  # No `paths:` filter, so that `result` can be a required check: a workflow
+  # that a filter never started leaves a required check waiting forever. The
+  # `changes` job holds the path list.
   pull_request:
-    paths:
-      - 'rust/fedimint-sdk/**'
-      - 'rust/uniffi-bindgen/**'
-      - '.github/workflows/rust-sdk-ci.yaml'
-      - 'flake.nix'
-      - 'flake.lock'
+
+  # The merge queue's run: main plus the pull requests queued ahead, checked
+  # before main moves. A required check has to report here as well, or the queue
+  # waits for it until it gives up.
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -38,8 +49,78 @@ concurrency:
 permissions: {}
 
 jobs:
+  # Decides whether this run checks the crate. A pull request or a merge group
+  # does when its diff touches the path list below. A push to main always does:
+  # the `paths` filter under `push` has already matched it.
+  changes:
+    name: 'Detect changes'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      rust: ${{ steps.filter.outputs.rust }}
+
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          # The pull-request comparison needs the merge base as well as both
+          # endpoint commits, so keep the complete history.
+          fetch-depth: 0
+
+      - name: 'Detect changed paths'
+        id: filter
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+        run: |
+          set -euo pipefail
+
+          case "$EVENT_NAME" in
+            pull_request)
+              diff_args=("$PR_BASE_SHA...$PR_HEAD_SHA")
+              ;;
+            merge_group)
+              diff_args=("$MERGE_GROUP_BASE_SHA" "$MERGE_GROUP_HEAD_SHA")
+              ;;
+            # A push to main.
+            *)
+              echo "rust=true" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+
+          # Do not let Git collapse a rename into its destination path. Treating
+          # it as a deletion plus an addition keeps both sides covered.
+          changed_files="$RUNNER_TEMP/changed-files"
+          if ! git diff --no-renames --name-only -z "${diff_args[@]}" > "$changed_files"; then
+            echo "Could not determine changed paths; checking the crate." >&2
+            echo "rust=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          rust=false
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              # The list under `on.push.paths`, whose comments say why each
+              # entry is in it.
+              rust/fedimint-sdk/* | rust/uniffi-bindgen/* | \
+                .github/workflows/rust-sdk-ci.yaml | flake.nix | flake.lock)
+                rust=true
+                ;;
+            esac
+          done < "$changed_files"
+
+          echo "rust=$rust" >> "$GITHUB_OUTPUT"
+
   pins-agree:
     name: 'Check the fedimint pins agree'
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
@@ -149,6 +230,8 @@ jobs:
 
   test:
     name: 'Run tests'
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     defaults:
@@ -189,6 +272,8 @@ jobs:
 
   check:
     name: 'Run clippy, fmt, docs and wasm'
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     defaults:
@@ -238,3 +323,33 @@ jobs:
         # Android build of it is also what js/react-native/react-native-bindings is generated
         # from.
         run: cargo check --locked --target wasm32-unknown-unknown --features uniffi
+
+  # The one check of this workflow for branch protection to require. It runs on
+  # every pull request and merge group whatever they touched, so the check
+  # always reports: a job `changes` skipped counts as a pass, one that failed or
+  # was cancelled does not. Accepting a skip is safe because no job here has a
+  # condition other than the answer of `changes`: when that job fails, the jobs
+  # after it are skipped, and its own failure fails this check. `always()`
+  # rather than `!cancelled()`, so a cancelled run reports a failure instead of
+  # a skip that would read as a pass.
+  result:
+    name: 'Rust SDK result'
+    needs: [changes, pins-agree, test, check]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: 'Check every Rust SDK job passed or was skipped'
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          set -euo pipefail
+          failed=$(jq -r '
+            to_entries[]
+            | select(.value.result != "success" and .value.result != "skipped")
+            | "\(.key): \(.value.result)"' <<< "$NEEDS")
+          if [[ -n "$failed" ]]; then
+            echo "$failed" >&2
+            exit 1
+          fi
