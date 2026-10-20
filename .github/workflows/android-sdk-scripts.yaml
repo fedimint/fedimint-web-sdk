@@ -12,7 +12,8 @@ name: SDK Release Scripts
 #     a tarball must contain), scripts/react-native-sdk-publish.sh (what gets
 #     published, and when not), scripts/react-native-sdk-example.sh and
 #     scripts/react-native-sdk-smoke.sh (how the tarballs are tested),
-#     scripts/assemble-rn-ios-xcframework.sh and scripts/build-sdk-rn-ios.sh.
+#     scripts/assemble-rn-ios-xcframework.sh, scripts/build-sdk-rn-ios.sh and
+#     scripts/hide-ios-symbols.sh (what the iOS libraries still export).
 #
 # The release workflows only run these scripts once something is being
 # released, so this is what checks them on a pull request. It needs no build
@@ -38,6 +39,8 @@ on:
       - 'scripts/test-assemble-rn-ios-xcframework.sh'
       - 'scripts/build-sdk-rn-ios.sh'
       - 'scripts/test-build-sdk-rn-ios.sh'
+      - 'scripts/hide-ios-symbols.sh'
+      - 'scripts/test-hide-ios-symbols.sh'
       - 'scripts/rn-android-emulator.sh'
       # scripts/react-native-sdk-example.sh stages the example and pins its
       # dependencies from the lockfile; its tests run against both.
@@ -75,6 +78,7 @@ jobs:
           scripts/test-react-native-sdk-scripts.sh
           scripts/test-assemble-rn-ios-xcframework.sh
           scripts/test-build-sdk-rn-ios.sh
+          scripts/test-hide-ios-symbols.sh
 
       - name: 'Check the committed Android SDK version and its notes'
         run: |
