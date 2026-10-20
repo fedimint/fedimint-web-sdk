@@ -220,8 +220,8 @@ cc = "1"
 # Tuned for the artifact this crate ships as on mobile: the `cdylib` goes
 # inside an application's APK or IPA, where every megabyte is one the user
 # downloads. Without these the Android library is ~82 MB per ABI; with them,
-# ~61 MB — and AGP cannot strip it further, because the NDK's strip is not
-# where it looks for it in the nix shell.
+# ~61 MB. The shipped copy is then stripped of its symbol table as well, in
+# nix/ffi.nix and scripts/build-android-sdk.sh, which about halves it again.
 #
 # `panic = "abort"` is also a correctness setting, not only a size one: the
 # UniFFI response path must not unwind across the FFI boundary, which is the

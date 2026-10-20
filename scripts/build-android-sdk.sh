@@ -108,6 +108,19 @@ else
         }
         cp "$src" "$dest/"
     done
+
+    # Strips the symbol table as nix/ffi.nix does, keeping the UNIFFI_META_*
+    # symbols the Kotlin bindings are generated from.
+    echo "==> Stripping the symbol table"
+    LLVM_STRIP="$(find "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt" -path '*/bin/llvm-strip' | head -n1)"
+    [[ -x "$LLVM_STRIP" ]] || {
+        echo "no llvm-strip in $ANDROID_NDK_HOME" >&2
+        exit 1
+    }
+    for abi in arm64-v8a x86_64; do
+        "$LLVM_STRIP" --strip-all --wildcard --keep-symbol='UNIFFI_META_*' \
+            "$JNI_LIBS/$abi/lib${LIB_NAME}.so"
+    done
 fi
 
 for abi in arm64-v8a x86_64; do

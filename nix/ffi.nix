@@ -391,6 +391,10 @@ let
   # `libc++_shared.so` is the NDK's shared C++ runtime; rocksdb and aws-lc link
   # it, and nothing else puts it in an APK, so without it the app dies at load
   # with `UnsatisfiedLinkError: ... "libc++_shared.so" not found`.
+  #
+  # The library's symbol table is stripped, all but the `UNIFFI_META_*` symbols
+  # the binding generators read: 73 MB to 33 MB on arm64. The loader only reads
+  # the dynamic symbols. The unstripped library stays in the per-target package.
   androidJni = pkgs.runCommand "fedimint-sdk-android-jni" { } ''
     ${lib.concatMapStringsSep "\n" (t: ''
       mkdir -p "$out/jniLibs/${t.abi}"
@@ -399,6 +403,8 @@ let
       test -n "$libcxx" || { echo "no libc++_shared.so for ${t.ndkTriple} in the NDK" >&2; exit 1; }
       cp "$libcxx" "$out/jniLibs/${t.abi}/"
       chmod u+w "$out/jniLibs/${t.abi}"/*.so
+      ${pkgs.llvm}/bin/llvm-strip --strip-all --wildcard --keep-symbol='UNIFFI_META_*' \
+        "$out/jniLibs/${t.abi}/libfedimint_sdk.so"
     '') androidShipped}
   '';
 
