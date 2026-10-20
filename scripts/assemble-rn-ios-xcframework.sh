@@ -118,6 +118,9 @@ for triple in $TRIPLES; do
     echo "==> llvm-bitcode-strip $triple"
     mkdir -p "$TMP/$triple"
     llvm-bitcode-strip -r "$TARGET_DIR/$triple/release/$LIB_NAME" -o "$TMP/$triple/$LIB_NAME"
+    # Hides the Rust symbols, which every app linking the library would otherwise export.
+    echo "==> hide-ios-symbols.sh $triple"
+    "$ROOT/scripts/hide-ios-symbols.sh" "$TMP/$triple/$LIB_NAME"
 done
 
 echo "==> lipo -create (aarch64-apple-ios-sim, x86_64-apple-ios)"

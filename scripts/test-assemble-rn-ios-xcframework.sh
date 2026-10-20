@@ -23,7 +23,7 @@ BUNDLE_PATH="js/react-native/react-native-bindings/FedimintReactNativeBindingsFr
 TRIPLES=(aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios)
 FAKES=(xcodebuild lipo otool llvm-bitcode-strip)
 # The system programs the script uses. The fakes use them too.
-SYSTEM_TOOLS=(bash basename cat cp cut dirname du find grep mkdir mktemp rm sed sort tr)
+SYSTEM_TOOLS=(bash basename cat cp cut dirname du find grep mkdir mktemp mv rm sed sort tr)
 
 passed=0
 failed=0
@@ -153,6 +153,21 @@ if [[ -n "${FAKE_XCODE_HEADERS:-}" ]]; then
     mkdir "$bundle/ios-arm64/Headers"
 fi
 EOF
+
+# Stands in for scripts/hide-ios-symbols.sh, which make_repo puts next to the script. It marks
+# each line of the library it is given as hidden. FAKE_HIDE_FAILS makes it fail.
+cat >"$FAKES_DIR/hide-ios-symbols.sh" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "hide-ios-symbols.sh $*" >>"$FAKE_LOG"
+[[ $# -eq 1 ]]
+if [[ -n "${FAKE_HIDE_FAILS:-}" ]]; then
+    echo "error: the result still exports 7 Rust symbols" >&2
+    exit 1
+fi
+sed 's/^/hidden /' "$1" >"$1.hidden"
+mv "$1.hidden" "$1"
+EOF
 chmod +x "$FAKES_DIR"/*
 
 # A directory of symbolic links to the system programs, plus to the fakes except the one named
@@ -183,6 +198,7 @@ make_repo() {
     target="$repo/rust/fedimint-sdk/target"
     mkdir -p "$repo/scripts" "$repo/$(dirname "$BUNDLE_PATH")" "$case_dir/tmp"
     cp "$ROOT/scripts/assemble-rn-ios-xcframework.sh" "$repo/scripts/"
+    cp "$FAKES_DIR/hide-ios-symbols.sh" "$repo/scripts/"
     for triple in "${TRIPLES[@]}" aarch64-apple-darwin; do
         mkdir -p "$target/$triple/release"
         printf 'machine code of %s BITCODE\n' "$triple" >"$target/$triple/release/$LIB_NAME"
@@ -236,6 +252,20 @@ log_count() {
     echo "$count"
 }
 
+# The number of the first line of <repo>'s call log that matches the glob pattern $2, or 0.
+line_of() {
+    local pattern="$2" line n=0
+    while IFS= read -r line; do
+        n=$((n + 1))
+        # shellcheck disable=SC2053 # The pattern is a glob on purpose.
+        if [[ "$line" == $pattern ]]; then
+            echo "$n"
+            return
+        fi
+    done <"$(dirname "$1")/calls.log"
+    echo 0
+}
+
 # The names of everything in <dir>, one per line, relative to it. Nothing if it is empty.
 entries() {
     (cd "$1" && find . -mindepth 1 | sort)
@@ -284,6 +314,17 @@ for triple in "${TRIPLES[@]}"; do
     check "$triple is stripped from target/$triple/release into the temporary directory" \
         test "$(log_count "$r" "$strip_call")" = 1
 done
+check "one hide call per triple, 3 in all" \
+    test "$(log_count "$r" 'hide-ios-symbols.sh *')" = 3
+for triple in "${TRIPLES[@]}"; do
+    check "$triple has its symbols hidden in the temporary directory, after the strip" \
+        test "$(line_of "$r" "llvm-bitcode-strip -r $target/$triple/release/$LIB_NAME *")" \
+        -lt "$(line_of "$r" "hide-ios-symbols.sh $tmp/$triple/$LIB_NAME")"
+done
+check "the device library is the hidden one" \
+    grep -q "^hidden machine code of aarch64-apple-ios " "$bundle/ios-arm64/$LIB_NAME"
+check "the simulator library is merged from the two hidden libraries" \
+    test "$(grep -c '^hidden ' "$bundle/ios-arm64_x86_64-simulator/$LIB_NAME")" = 2
 sim="$tmp/aarch64-apple-ios-sim/$LIB_NAME $tmp/x86_64-apple-ios/$LIB_NAME"
 check "lipo merges the two stripped simulator libraries" \
     test "$(log_count "$r" "lipo -create $sim -output $tmp/ios-simulator/$LIB_NAME")" = 1
@@ -391,6 +432,16 @@ expect_fail "the failure lists what the bundle holds instead" "./ios-arm64-simul
 
 r="$(make_repo)"
 expect_fail "a Headers directory in the bundle fails" "Headers" -- run "$r" FAKE_XCODE_HEADERS=1
+
+echo
+echo "hiding the symbols"
+
+r="$(make_repo)"
+expect_fail "a failing hide-ios-symbols.sh fails the run with its message" \
+    "still exports 7 Rust symbols" -- run "$r" FAKE_HIDE_FAILS=1
+check "a failing hide-ios-symbols.sh leaves no bundle and starts neither lipo nor xcodebuild" \
+    test ! -e "$r/$BUNDLE_PATH" -a "$(log_count "$r" 'lipo *')" = 0 \
+    -a "$(log_count "$r" 'xcodebuild *')" = 0
 
 echo
 echo "the tools"
