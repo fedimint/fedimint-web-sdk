@@ -153,6 +153,13 @@ let
         inherit src pname;
         version = sdkVersion;
         cargoExtraArgs = "--locked --target ${rustTarget} --lib --features uniffi";
+        # The manifest lists no `cdylib` (rust/fedimint-sdk/Cargo.toml says why), so
+        # this build asks for one, with `lib` beside it so that rustc compiles the
+        # crate as it does for every other build of it. The types are part of the
+        # command and not of `cargoExtraArgs`, because the deps-only derivation also
+        # passes those to `cargo check`, which has no `--crate-type`. crane copies
+        # the library from the build log into `$out/lib` and skips the rlib.
+        cargoBuildCommand = "cargoWithProfile rustc --crate-type lib --crate-type cdylib";
         CARGO_BUILD_TARGET = rustTarget;
         doCheck = false;
         strictDeps = true;
@@ -220,6 +227,9 @@ let
         pname = "fedimint-sdk-ios-${rustTarget}";
         version = sdkVersion;
         cargoExtraArgs = "--locked --target ${rustTarget} --lib --features uniffi";
+        # The `staticlib` the XCFramework holds, asked for on the command line for the
+        # reasons given at `cargoBuildCommand` in `buildOne` above.
+        cargoBuildCommand = "cargoWithProfile rustc --crate-type lib --crate-type staticlib";
         CARGO_BUILD_TARGET = rustTarget;
         doCheck = false;
         strictDeps = true;
@@ -368,7 +378,7 @@ let
   # (js/web/sdk-web) is generated from and ships. Same shape as the Android targets above:
   # the costly build is cached here, and reading the bindings out of it is a separate, cheap
   # step (scripts/generate-sdk-web-bindings.sh). The crate's release profile already sets
-  # `opt-level = "z"`, `lto` and `panic = "abort"`.
+  # `opt-level = "z"` and `panic = "abort"`.
   wasm = buildOne {
     pname = "fedimint-sdk-wasm";
     targetKey = "wasm32-unknown";
@@ -381,6 +391,10 @@ let
   # `libc++_shared.so` is the NDK's shared C++ runtime; rocksdb and aws-lc link
   # it, and nothing else puts it in an APK, so without it the app dies at load
   # with `UnsatisfiedLinkError: ... "libc++_shared.so" not found`.
+  #
+  # The library's symbol table is stripped, all but the `UNIFFI_META_*` symbols
+  # the binding generators read: 73 MB to 33 MB on arm64. The loader only reads
+  # the dynamic symbols. The unstripped library stays in the per-target package.
   androidJni = pkgs.runCommand "fedimint-sdk-android-jni" { } ''
     ${lib.concatMapStringsSep "\n" (t: ''
       mkdir -p "$out/jniLibs/${t.abi}"
@@ -389,6 +403,8 @@ let
       test -n "$libcxx" || { echo "no libc++_shared.so for ${t.ndkTriple} in the NDK" >&2; exit 1; }
       cp "$libcxx" "$out/jniLibs/${t.abi}/"
       chmod u+w "$out/jniLibs/${t.abi}"/*.so
+      ${pkgs.llvm}/bin/llvm-strip --strip-all --wildcard --keep-symbol='UNIFFI_META_*' \
+        "$out/jniLibs/${t.abi}/libfedimint_sdk.so"
     '') androidShipped}
   '';
 

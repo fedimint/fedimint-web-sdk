@@ -19,9 +19,9 @@
       url = "github:NixOS/nixpkgs/76701a179d3a98b07653e2b0409847499b2a07d3";
     };
     # nixpkgs, fenix, flakebox and android-nixpkgs feed the Android cross-compile
-    # derivations in nix/ffi.nix (`.#fedimint-sdk-android*`). Pinned to the same
-    # revisions the fedimint-sdk-ffi repo's flake.lock used before it was merged
-    # in here, since that combination is known to build.
+    # derivations in nix/ffi.nix (`.#fedimint-sdk-android*`). All but fenix are
+    # pinned to the revisions the fedimint-sdk-ffi repo's flake.lock used before
+    # it was merged in here; fenix moved on, to the stable Rust CI tests with.
     nixpkgs = {
       # nixos-25.05
       url = "github:NixOS/nixpkgs/ac62194c3917d5f474c1a844b6fd6da2db95077d";
@@ -29,7 +29,7 @@
     fenix = {
       # Pinned like the inputs below: fenix moves nightly, and every bump
       # invalidates all toolchain and cross-compile derivations.
-      url = "github:nix-community/fenix/298b12d701ef0d12c0f2e4858d4208bee24d14e5";
+      url = "github:nix-community/fenix/2e026d014f384f27929ff1e92a6c1c8d0af1ed2b";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flakebox = {
@@ -450,8 +450,9 @@
           rn-android-emulator = mkAndroidShell rnAndroidEmulatorSdk;
 
           # macOS only. Cargo cross-compiles rust/fedimint-sdk for the three iOS slices with
-          # Xcode's toolchain; ubrn assembles the xcframework and regenerates the bindings
-          # (just build-rn-ios).
+          # Xcode's toolchain; ubrn then assembles the xcframework from those libraries and
+          # regenerates the bindings, building nothing itself (just build-rn-ios, which runs
+          # scripts/build-sdk-rn-ios.sh).
           ios = pkgs.mkShellNoCC {
             # Set as derivation env var so it can't be overridden by user shell profiles
             LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
@@ -596,9 +597,10 @@
             # See nix/web-bindgen.nix.
             ubrn = webBindgen.ubrn;
             wasm-bindgen-cli = webBindgen.wasm-bindgen-cli;
-            # Removes the LLVM bitcode rustc embeds in every object of an Apple static library;
-            # scripts/assemble-rn-ios-xcframework.sh runs it. Only this one tool is exposed: all
-            # of LLVM on PATH would put its dsymutil ahead of Xcode's.
+            # Removes the LLVM bitcode from an Apple static library, where the prebuilt objects
+            # of Rust's standard library carry it; scripts/assemble-rn-ios-xcframework.sh runs
+            # it. Only this one tool is exposed: all of LLVM on PATH would put its dsymutil
+            # ahead of Xcode's.
             llvm-bitcode-strip = pkgs.runCommand "llvm-bitcode-strip" { } ''
               mkdir -p $out/bin
               ln -s ${pkgs.llvm}/bin/llvm-bitcode-strip $out/bin/llvm-bitcode-strip

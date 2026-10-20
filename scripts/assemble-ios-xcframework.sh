@@ -48,6 +48,11 @@ built_this_run() {
 # an earlier run left behind. The file check stays as a sanity assert: by this
 # point the library is supposed to exist, and its absence is a bug worth
 # shouting about rather than silently dropping a slice.
+#
+# Each library is bundled with its Rust symbols hidden (hide-ios-symbols.sh),
+# from a copy, as assemble-rn-ios-xcframework.sh reads the same files.
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
 args=()
 slices=()
 add_slice() {
@@ -60,7 +65,10 @@ add_slice() {
                 echo "built $triple this run but $lib is missing" >&2
                 exit 1
             }
-            args+=(-library "$lib" -headers "$HEADERS")
+            echo "==> hide-ios-symbols.sh ($label)"
+            mkdir -p "$TMP/$label"
+            "$ROOT/scripts/hide-ios-symbols.sh" "$lib" "$TMP/$label/$LIB_NAME"
+            args+=(-library "$TMP/$label/$LIB_NAME" -headers "$HEADERS")
             slices+=("$label")
             return 0
         fi

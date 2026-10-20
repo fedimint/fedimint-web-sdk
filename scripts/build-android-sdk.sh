@@ -69,6 +69,11 @@ else
         exit 1
     }
 
+    # The manifest lists no `cdylib` (rust/fedimint-sdk/Cargo.toml says why), so
+    # this build asks for one, with `lib` beside it so that rustc compiles the
+    # crate as it does for every other build of it. cargo-ndk passes the
+    # subcommand on to cargo, and copies the library out of the artifacts cargo
+    # reports whichever subcommand it was.
     echo "==> Building arm64-v8a + x86_64 .so via cargo-ndk (release)"
     rm -rf "$JNI_LIBS"
     (cd "$CRATE_DIR" && cargo ndk \
@@ -76,7 +81,7 @@ else
         --target x86_64 \
         --platform "$MIN_SDK" \
         --output-dir "$JNI_LIBS" \
-        build --release --lib --features uniffi)
+        rustc --release --lib --features uniffi --crate-type lib --crate-type cdylib)
 
     # cargo-ndk copies every cdylib it finds in the target dir, which sweeps up
     # a few dependency cdylibs (iroh's, at the time of writing) alongside ours.
@@ -102,6 +107,19 @@ else
             exit 1
         }
         cp "$src" "$dest/"
+    done
+
+    # Strips the symbol table as nix/ffi.nix does, keeping the UNIFFI_META_*
+    # symbols the Kotlin bindings are generated from.
+    echo "==> Stripping the symbol table"
+    LLVM_STRIP="$(find "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt" -path '*/bin/llvm-strip' | head -n1)"
+    [[ -x "$LLVM_STRIP" ]] || {
+        echo "no llvm-strip in $ANDROID_NDK_HOME" >&2
+        exit 1
+    }
+    for abi in arm64-v8a x86_64; do
+        "$LLVM_STRIP" --strip-all --wildcard --keep-symbol='UNIFFI_META_*' \
+            "$JNI_LIBS/$abi/lib${LIB_NAME}.so"
     done
 fi
 
