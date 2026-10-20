@@ -29,7 +29,7 @@
     fenix = {
       # Pinned like the inputs below: fenix moves nightly, and every bump
       # invalidates all toolchain and cross-compile derivations.
-      url = "github:nix-community/fenix/298b12d701ef0d12c0f2e4858d4208bee24d14e5";
+      url = "github:nix-community/fenix/2e026d014f384f27929ff1e92a6c1c8d0af1ed2b";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     flakebox = {
