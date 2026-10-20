@@ -355,6 +355,13 @@ reverse_devimint_ports() {
 # scripts/run-sdk-examples-inner.sh, except once per guardian: this federation
 # has FM_FED_SIZE of them, and the client reads every guardian's list.
 #
+# `--peer` asks the guardian for its own list. Without it `list` answers with
+# the union of the first three guardians to reply, which once three are clean
+# no longer shows the fourth's entries, so that guardian kept its LDK gateways
+# and the SDK, which prefers the gateway that issued an invoice, sometimes paid
+# the faucet through the faucet's own gateway: a self-payment it cancels, and
+# lightningSend's intermittent `Refunded`.
+#
 # FM_MINT_CLIENT is a ready-to-run command line, deliberately left unquoted so
 # it splits into a program and its arguments. `pass` is the admin password
 # devimint sets everywhere.
@@ -362,10 +369,10 @@ pin_lnv2_gateways() {
   [[ "$FM_SDK_SHAPE" == v2 ]] || return 0
   local fed_size="${FM_FED_SIZE:-4}"
   local lnd_needle=":${FM_PORT_GW_LND:?FM_PORT_GW_LND is not set}/"
-  local peer listed url
+  local peer listed url remaining
   for ((peer = 0; peer < fed_size; peer++)); do
     # shellcheck disable=SC2086
-    listed="$($FM_MINT_CLIENT --our-id "$peer" --password pass module lnv2 gateways list)"
+    listed="$($FM_MINT_CLIENT --our-id "$peer" --password pass module lnv2 gateways list --peer "$peer")"
     if ! grep -qF "$lnd_needle" <<<"$listed"; then
       echo "Guardian $peer does not list the LND gateway among its lnv2 gateways: $listed" >&2
       exit 1
@@ -376,6 +383,15 @@ pin_lnv2_gateways() {
       # shellcheck disable=SC2086
       $FM_MINT_CLIENT --our-id "$peer" --password pass module lnv2 gateways remove "$url" >/dev/null
     done < <(grep -o '"http[^"]*"' <<<"$listed" | tr -d '"')
+    # Read back from the same guardian: a removal that did nothing fails the
+    # run here rather than as a refunded payment in lightningSend.
+    # shellcheck disable=SC2086
+    listed="$($FM_MINT_CLIENT --our-id "$peer" --password pass module lnv2 gateways list --peer "$peer")"
+    remaining="$(grep -o '"http[^"]*"' <<<"$listed" | grep -vF "$lnd_needle" || true)"
+    if [[ -n "$remaining" ]]; then
+      echo "Guardian $peer still lists lnv2 gateways not on LND after the pin: $remaining" >&2
+      exit 1
+    fi
   done
 }
 pin_lnv2_gateways
