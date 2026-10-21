@@ -177,8 +177,7 @@ jobs:
   xcframework:
     name: 'Assemble the iOS xcframework'
     needs: ios-native
-    # xcodebuild needs macOS. Pinned like ios-native.yaml, so that both use
-    # the same Xcode.
+    # xcodebuild needs macOS.
     runs-on: macos-15
     timeout-minutes: 30
 
