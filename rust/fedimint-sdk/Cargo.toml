@@ -23,6 +23,17 @@ exclude = ["/AGENTS.md"]
 # the way it does for every other build of it, with every public item kept. A `cdylib` asked
 # for alone is compiled from its exported symbols only.
 
+# Compiling RocksDB's C++ sources takes more memory than docs.rs gives a build. Documenting this
+# crate needs only the bindings librocksdb-sys generates from RocksDB's headers, not the library.
+# With `ROCKSDB_LIB_DIR` set, librocksdb-sys links a prebuilt RocksDB from that directory instead
+# of compiling one, and a documentation build links nothing against it, so the directory does
+# not have to exist.
+#
+# The public API is the same on every native target, so documenting one covers all of them.
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+cargo-args = ["--config", 'env.ROCKSDB_LIB_DIR="/nonexistent"']
+
 [features]
 # The UniFFI surface: `#[uniffi::export]` on the real methods plus the adapters in
 # `src/ffi/`. Off by default so plain-Rust users compile none of it. The `uniffi` crate is
