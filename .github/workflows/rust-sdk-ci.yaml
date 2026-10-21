@@ -13,6 +13,9 @@ name: Rust SDK Continuous Integration
 # check of this workflow for branch protection to require.
 
 on:
+  # For rust-sdk-release.yaml, which runs all of this on the release commit.
+  workflow_call:
+
   # On main as well, although the merge queue checks the commit that lands: the
   # build cache that a run on main saves is the one other runs can restore,
   # while the cache of a pull request's run serves only its re-runs.
@@ -51,7 +54,9 @@ permissions: {}
 jobs:
   # Decides whether this run checks the crate. A pull request or a merge group
   # does when its diff touches the path list below. A push to main always does:
-  # the `paths` filter under `push` has already matched it.
+  # the `paths` filter under `push` has already matched it. So does a call from
+  # rust-sdk-release.yaml, which checks the commit it publishes. A called
+  # workflow sees the event of its caller, a tag push or a manual run.
   changes:
     name: 'Detect changes'
     runs-on: ubuntu-24.04
@@ -87,7 +92,7 @@ jobs:
             merge_group)
               diff_args=("$MERGE_GROUP_BASE_SHA" "$MERGE_GROUP_HEAD_SHA")
               ;;
-            # A push to main.
+            # A push to main, or a workflow calling this one.
             *)
               echo "rust=true" >> "$GITHUB_OUTPUT"
               exit 0

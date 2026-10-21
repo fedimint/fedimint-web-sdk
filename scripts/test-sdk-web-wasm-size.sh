@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Tests scripts/sdk-web-wasm-size.sh, which measures the browser SDK's wasm module, reports its
-# size and checks its growth on pull requests. .github/workflows/android-sdk-scripts.yaml runs
+# size and checks its growth on pull requests. .github/workflows/sdk-release-scripts.yaml runs
 # this on pull requests that change either script.
 #
 #   scripts/test-sdk-web-wasm-size.sh
