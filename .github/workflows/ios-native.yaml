@@ -58,11 +58,18 @@ jobs:
   build:
     name: 'Cross-compile the Apple slices via Nix'
     # Apple Silicon, and it must be a macOS runner: every slice here compiles
-    # against the SDK inside Xcode. Unlike android-native.yaml there is no
-    # self-hosted mac with a persistent /nix/store, so a cold run downloads
-    # everything from Cachix — fast once warm, a full source build when not.
-    runs-on: macos-15
+    # against the SDK inside Xcode. Self-hosted, like android-native.yaml, for
+    # the persistent /nix/store. It is android-e2e.yml's Mac; see its header
+    # on fork runs and what a job leaves behind.
+    runs-on: [self-hosted, macOS, ARM64]
     timeout-minutes: 180
+    env:
+      # `relaxed` is what lets a derivation opt out of the sandbox with
+      # `__noChroot`. Without it these builds cannot see /usr/bin/clang or
+      # the Xcode SDK and fail at the first C dependency. Set here, not in
+      # install-nix-action, which skips its config where Nix is installed;
+      # the runner's user is trusted, so the daemon takes it.
+      NIX_CONFIG: sandbox = relaxed
     outputs:
       slices-artifact: apple-slices
 
@@ -76,11 +83,6 @@ jobs:
         uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-          # `relaxed` is what lets a derivation opt out of the sandbox with
-          # `__noChroot`. Without it these builds cannot see /usr/bin/clang or
-          # the Xcode SDK and fail at the first C dependency.
-          extra_nix_config: |
-            sandbox = relaxed
 
       - name: 'Setup Cachix'
         uses: cachix/cachix-action@v17
