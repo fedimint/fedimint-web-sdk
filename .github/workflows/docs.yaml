@@ -1,0 +1,90 @@
+name: Docs
+
+# Checks the documentation site in docs/ and the agent skills in skills/:
+#
+#   * the tools that build and check the pages pass their tests;
+#   * every install command on the React Native pages pins docs/react-native/VERSION, and
+#     VERSION is not older than the newest react-native-sdk-v* release tag;
+#   * every code block on the pages is extracted to a file, and the files type-check against
+#     this repository's own React Native packages;
+#   * the site builds, with no dead link.
+#
+# VERSION may be newer than every tag: the pages can document a release that is still to
+# come. It must never fall behind one. Nothing updates it on its own; when this fails, run
+# `python3 tools/set_version.py <version>` from docs/ and open a pull request with the result.
+#
+# It runs on a pull request that touches the docs, the skills or the React Native packages, and
+# on every release tag push, so a release that leaves the pages behind fails here. Nothing
+# deploys the site yet.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'skills/**'
+      - 'js/react-native/**'
+      - '.github/workflows/docs.yaml'
+  push:
+    tags:
+      - 'react-native-sdk-v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  tools:
+    name: 'Test the tools and check the version'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: docs
+
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: 'Fetch the release tags'
+        run: git fetch --no-tags --depth=1 origin '+refs/tags/react-native-sdk-v*:refs/tags/react-native-sdk-v*'
+
+      - name: 'Test the tools'
+        run: python3 -m unittest discover -s tests
+
+      - name: 'Check the pages and VERSION against the newest release'
+        run: python3 tools/set_version.py --check
+
+  pages:
+    name: 'Check the code on the pages and build the site'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # The fixtures link to js/react-native/*, whose dependencies come from the js/ workspace.
+      - name: 'Install the js workspace'
+        uses: ./.github/actions/install-deps
+
+      - name: 'Install the fixture project'
+        working-directory: docs/fixtures/react-native
+        run: npm ci --no-audit --no-fund
+
+      - name: 'Extract the code blocks from the pages, and type-check them'
+        working-directory: docs/fixtures/react-native
+        run: npm run check
+
+      - name: 'Install the site'
+        run: pnpm --dir docs install --frozen-lockfile
+
+      - name: 'Build the site'
+        run: pnpm --dir docs build
