@@ -17,7 +17,7 @@ cd ios && pod install
 const session = await openSdk({ dataDir })
 const fed = await session.sdk.join(InviteCode.parse(code))
 const msat = useBalance(fed)
-;<Text>{`${msat / 1000n} sats`}</Text>
+return <Text>{`${msat / 1000n} sats`}</Text>
 ```
 
 ## What is Fedimint {#what-is-fedimint}
