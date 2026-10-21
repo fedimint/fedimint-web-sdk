@@ -432,7 +432,12 @@
             fi
           '';
         in {
-          default = pkgs.mkShell {
+          # Without a C toolchain, so that cargo run in this shell (the one `.envrc` loads) builds
+          # with the host's compiler, libclang and CMake, as rust/fedimint-sdk/README.md asks.
+          # With Nix's `cc` on PATH, build scripts would run under Nix's dynamic loader, which
+          # cannot resolve the host libclang's dependencies, and bindgen in aws-lc-sys and
+          # librocksdb-sys would fail with "Unable to find libclang".
+          default = pkgs.mkShellNoCC {
             nativeBuildInputs = commonNativeBuildInputs;
           };
 
