@@ -11,41 +11,62 @@ release" in [RELEASING.md](../RELEASING.md).
 
 ## 0.1.0-beta.2
 
-<!-- draft: the commits since 0.1.0-beta.1 that touched the SDK.
-     Rewrite them for users: what was added, changed or fixed, and anything that
-     breaks callers. Then delete this comment; the release refuses a draft. -->
+### Breaking
 
-- build(sdk): let docs.rs document the crate without compiling RocksDB (#493) (a848777)
-- ci(release): release the crate and both bindings through one process (#464) (221ba39)
-- fix(flake): leave the C toolchain out of the default shell (#491) (bc8003c)
-- build(sdk): ask for the shared and static libraries on the command line (#468) (baae941)
-- feat(sdk): merge the meta override document into Meta::get and Meta::all (#466) (c470a72)
-- feat(types): add Nostr NIP 87 discovery types, parser & dev fixture (#470) (1e56a6f)
-- feat(sdk): export Debug and Display on Error to the bindings (#467) (99add07)
-- fix(sdk): trim v2 ecash notes and accept a lightning: scheme on invoices (#465) (a2a720a)
-- chore(js): remove the old TypeScript SDK and what was built on it (#469) (d4bc536)
-- build(sdk): depend on fedimint 0.13.0-beta.1 from crates.io (#462) (37aee57)
-- chore(rust): remove legacy fedimint-client-uniffi crate (#463) (e4c7c59)
-- refactor(sdk): identify a walletv2 deposit by a typed outpoint (#458) (d11c145)
-- feat(sdk): make a deposit an operation when the wallet finds it (#453) (1f411cf)
-- fix(sdk): wait on fedimint for a rejected funding's recovery to settle (#444) (8cc1084)
-- ci(react-native): release the React Native packages to npm from tags (#451) (3eb0c48)
-- docs(sdk): drop the finished plan and fix stale docs (#454) (124dd9b)
-- fix(sdk): take the lnv2 funding shortfall from its typed error (#443) (307c1d3)
-- build(sdk): take ubrn from fedimint's fork (#442) (a066ca3)
-- build(sdk): bump fedimint to master and adopt its typed errors (#441) (d335a90)
-- fix(ios): on-device security posture (data protection class, backup exclusion, biometric seed gating, pasteboard TTL) (#437) (4747020)
-- build(sdk): pin ubrn through a Cargo crate (#439) (873b183)
-- fix(sdk): type the activity cursor as a string in TypeScript (#420) (d536cd7)
-- feat(ios): route tracing logs and panic hook to os_log on Apple targets (#433) (b2ebe1a)
-- fix(walletv2): replace guardian timeout with dedicated scanner wait timeout (#428) (576957b)
-- fix(sdk): retry the storage claim briefly to outlast a forking child (#422) (10df129)
-- fix(react-native): run the SDK's JNI_OnLoad on Android (#423) (4cb1545)
-- fix(flake): provide ubrn in the Darwin iOS shell (#427) (421fd33)
-- fix(sdk): report recovery progress, and reach Done once the wallet holds what was found (#413) (74b8db9)
-- chore(sdk): stop tying the uniffi pin to fedimint's workspace (#426) (2efb77e)
-- chore(flake): stop provisioning Git in dev shells (#421) (35813e7)
-- chore(flake): stop provisioning GitHub CLI in dev shells (#414) (e92fcb2)
+- `Onchain.receive()` returns the address alone. A payment to it becomes an
+  operation once the wallet finds it, starting in the `Confirmed` state.
+  `Onchain.deposits()` opens a subscription whose `next()` returns each
+  deposit found after it was opened, so open it before showing the address.
+  `OnchainReceiveHandle` and the `WaitingForTransaction` and
+  `WaitingForConfirmation` states are gone, and `activity()` no longer lists
+  an address before it is paid.
+- `RecoveryState.Running` is a class with a `progress` property: a
+  `RecoveryProgress` with how much of the rescan is `complete` out of its
+  `total`, or `null` until that is known. Check for it with `is`.
+- On-chain receives that 0.1.0-beta.1 recorded are not migrated. An address
+  it handed out that was never paid is listed in `activity()` with an unknown
+  status, and `forgetFederation` refuses to forget its federation with
+  `PENDING_OPERATIONS`.
+
+### Added
+
+- `Exception.toString()` gives the error's code and reason.
+
+### Changed
+
+- Built against fedimint 0.13.0-beta.1, where 0.1.0-beta.1 was built against
+  an unreleased fedimint.
+- `Meta.get(key)` and `Meta.all()` also read the document the federation
+  publishes at its `meta_override_url`. A key takes its value from the
+  consensus metadata first, then from that document, then from the
+  configuration.
+- More failures report an `ErrorCode` of their own. A Lightning v1 send
+  reports `GATEWAY_UNAVAILABLE`, `FEDERATION_UNREACHABLE`,
+  `AMOUNTLESS_INVOICE`, `INVALID_INPUT` or `STORAGE` where it reported
+  `INTERNAL`. Joining, reopening or recovering a federation reports `STORAGE`
+  only for a problem with the stored data, and `FEDERATION_UNREACHABLE` or
+  `INTERNAL` otherwise.
+- A DNS lookup made to reach the guardians goes to the public DNS servers of
+  Cloudflare, Google and Quad9 when every DNS server of the device refuses it
+  or fails it with a server error.
+- On a federation with wallet v2, `Onchain.receive()` fails with `TIMEOUT`
+  when the wallet has not derived an address within 120 seconds.
+- The native libraries are about half the size.
+
+### Fixed
+
+- A recovery reaches `Done` only once the wallet holds everything the rescan
+  found, so the balance is complete by then.
+- A recovery no longer keeps the data directory locked after every handle to
+  the SDK is released without `shutdown()`.
+- A Lightning v2 receive picks a gateway that accepts incoming payments,
+  rather than the first one that answers.
+- A Lightning v2 send that fails with `INSUFFICIENT_BALANCE` gives the amount
+  it needed and the balance in its details.
+- `Notes.parse` accepts a v2 ecash token that is wrapped across lines or in
+  another letter case, and an invoice may start with `lightning:`.
+- Opening a data directory that another process is about to release waits
+  for it briefly, instead of failing with `STORAGE_IN_USE` at once.
 
 ## 0.1.0-beta.1
 

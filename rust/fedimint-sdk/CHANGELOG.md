@@ -10,12 +10,12 @@ missing or still a draft. See "Making a release" in [RELEASING.md](../../RELEASI
 
 ## 0.1.0-beta.2
 
-<!-- draft: the commits since 0.1.0-beta.1 that touched the SDK.
-     Rewrite them for users: what was added, changed or fixed, and anything that
-     breaks callers. Then delete this comment; the release refuses a draft. -->
+No change to the API.
 
-- build(sdk): let docs.rs document the crate without compiling RocksDB (#493) (a848777)
-- ci(release): release the crate and both bindings through one process (#464) (221ba39)
+### Changed
+
+- docs.rs no longer compiles RocksDB to document the crate. Compiling it ran out of memory for
+  0.1.0-beta.1.
 
 ## 0.1.0-beta.1
 

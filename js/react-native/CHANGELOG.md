@@ -11,22 +11,27 @@ missing or still a draft. See "Making a release" in [RELEASING.md](../../RELEASI
 
 ## 0.1.0-beta.2
 
-<!-- draft: the commits since 0.1.0-beta.1 that touched the SDK.
-     Rewrite them for users: what was added, changed or fixed, and anything that
-     breaks callers. Then delete this comment; the release refuses a draft. -->
+### Added
 
-- build(sdk): let docs.rs document the crate without compiling RocksDB (#493) (a848777)
-- ci(release): release the crate and both bindings through one process (#464) (221ba39)
-- fix(flake): leave the C toolchain out of the default shell (#491) (bc8003c)
-- build(sdk): ask for the shared and static libraries on the command line (#468) (baae941)
-- feat(sdk): merge the meta override document into Meta::get and Meta::all (#466) (c470a72)
-- feat(types): add Nostr NIP 87 discovery types, parser & dev fixture (#470) (1e56a6f)
-- feat(sdk): export Debug and Display on Error to the bindings (#467) (99add07)
-- feat(react-native): useBalance and useOperation hooks over the generated types (#461) (0949e60)
-- fix(sdk): trim v2 ecash notes and accept a lightning: scheme on invoices (#465) (a2a720a)
-- chore(js): remove the old TypeScript SDK and what was built on it (#469) (d4bc536)
-- build(sdk): depend on fedimint 0.13.0-beta.1 from crates.io (#462) (37aee57)
-- refactor(sdk): identify a walletv2 deposit by a typed outpoint (#458) (d11c145)
+- `useBalance(federation)` and `useOperation(operation)`, React hooks that keep a component up to
+  date with a federation's balance and an operation's state. Each takes an optional `onError`.
+- `Exception.toString()` and `Exception.toDebugString()` give the error's code and reason, and the
+  `message` of a thrown error includes them.
+
+### Changed
+
+- Built against fedimint 0.13.0-beta.1, where 0.1.0-beta.1 was built against an unreleased
+  fedimint.
+- `Meta.get(key)` and `Meta.all()` also read the document the federation publishes at its
+  `meta_override_url`. A key takes its value from the consensus metadata first, then from that
+  document, then from the configuration.
+- The Android libraries are about half the size, and the iOS library no longer exports the Rust
+  symbols in it to the app.
+
+### Fixed
+
+- `Notes.parse` accepts a v2 ecash token that is wrapped across lines or in another letter case,
+  and an invoice may start with `lightning:`.
 
 ## 0.1.0-beta.1
 
