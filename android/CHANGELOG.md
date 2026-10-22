@@ -9,6 +9,65 @@ Fixed and Breaking as they apply, and remove the draft comment. The release
 refuses a version whose section is missing or still a draft. See "Making a
 release" in [RELEASING.md](../RELEASING.md).
 
+## 0.1.0-beta.2
+
+### Breaking
+
+- `Onchain.receive()` returns the address alone. A payment to it becomes an
+  operation once the wallet finds it, starting in the `Confirmed` state.
+  `Onchain.deposits()` opens a subscription whose `next()` returns each
+  deposit found after it was opened, so open it before showing the address.
+  `OnchainReceiveHandle` and the `WaitingForTransaction` and
+  `WaitingForConfirmation` states are gone, and `activity()` no longer lists
+  an address before it is paid.
+- `RecoveryState.Running` is a class with a `progress` property: a
+  `RecoveryProgress` with how much of the rescan is `complete` out of its
+  `total`, or `null` until that is known. Check for it with `is`.
+- On-chain receives that 0.1.0-beta.1 recorded are not migrated. An address
+  it handed out that was never paid is listed in `activity()` with an unknown
+  status, and `forgetFederation` refuses to forget its federation with
+  `PENDING_OPERATIONS`.
+
+### Added
+
+- `Exception.toString()` gives the error's code and reason.
+
+### Changed
+
+- Built against fedimint 0.13.0-beta.1, where 0.1.0-beta.1 was built against
+  an unreleased fedimint.
+- `Meta.get(key)` and `Meta.all()` also read the document the federation
+  publishes at its `meta_override_url`. A key takes its value from the
+  consensus metadata first, then from that document, then from the
+  configuration.
+- More failures report an `ErrorCode` of their own. A Lightning v1 send
+  reports `GATEWAY_UNAVAILABLE`, `FEDERATION_UNREACHABLE`,
+  `AMOUNTLESS_INVOICE`, `INVALID_INPUT` or `STORAGE` where it reported
+  `INTERNAL`. Joining, reopening or recovering a federation reports `STORAGE`
+  only for a problem with the stored data, and `FEDERATION_UNREACHABLE` or
+  `INTERNAL` otherwise.
+- A DNS lookup made to reach the guardians goes to the public DNS servers of
+  Cloudflare, Google and Quad9 when every DNS server of the device refuses it
+  or fails it with a server error.
+- On a federation with wallet v2, `Onchain.receive()` fails with `TIMEOUT`
+  when the wallet has not derived an address within 120 seconds.
+- The native libraries are about half the size.
+
+### Fixed
+
+- A recovery reaches `Done` only once the wallet holds everything the rescan
+  found, so the balance is complete by then.
+- A recovery no longer keeps the data directory locked after every handle to
+  the SDK is released without `shutdown()`.
+- A Lightning v2 receive picks a gateway that accepts incoming payments,
+  rather than the first one that answers.
+- A Lightning v2 send that fails with `INSUFFICIENT_BALANCE` gives the amount
+  it needed and the balance in its details.
+- `Notes.parse` accepts a v2 ecash token that is wrapped across lines or in
+  another letter case, and an invoice may start with `lightning:`.
+- Opening a data directory that another process is about to release waits
+  for it briefly, instead of failing with `STORAGE_IN_USE` at once.
+
 ## 0.1.0-beta.1
 
 The first release of the Android SDK, for testing. The API can still

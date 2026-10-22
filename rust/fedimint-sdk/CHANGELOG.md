@@ -8,6 +8,15 @@ release. Rewrite it there for users, grouped under Added, Changed, Fixed and Bre
 they apply, and remove the draft comment. The release refuses a version whose section is
 missing or still a draft. See "Making a release" in [RELEASING.md](../../RELEASING.md).
 
+## 0.1.0-beta.2
+
+No change to the API.
+
+### Changed
+
+- docs.rs no longer compiles RocksDB to document the crate. Compiling it ran out of memory for
+  0.1.0-beta.1.
+
 ## 0.1.0-beta.1
 
 The first release of the Rust SDK, for testing. The API can still change before 0.1.0.

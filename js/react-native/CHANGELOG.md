@@ -9,6 +9,30 @@ release. Rewrite it there for users, grouped under Added, Changed, Fixed and Bre
 they apply, and remove the draft comment. The release refuses a version whose section is
 missing or still a draft. See "Making a release" in [RELEASING.md](../../RELEASING.md).
 
+## 0.1.0-beta.2
+
+### Added
+
+- `useBalance(federation)` and `useOperation(operation)`, React hooks that keep a component up to
+  date with a federation's balance and an operation's state. Each takes an optional `onError`.
+- `Exception.toString()` and `Exception.toDebugString()` give the error's code and reason, and the
+  `message` of a thrown error includes them.
+
+### Changed
+
+- Built against fedimint 0.13.0-beta.1, where 0.1.0-beta.1 was built against an unreleased
+  fedimint.
+- `Meta.get(key)` and `Meta.all()` also read the document the federation publishes at its
+  `meta_override_url`. A key takes its value from the consensus metadata first, then from that
+  document, then from the configuration.
+- The Android libraries are about half the size, and the iOS library no longer exports the Rust
+  symbols in it to the app.
+
+### Fixed
+
+- `Notes.parse` accepts a v2 ecash token that is wrapped across lines or in another letter case,
+  and an invoice may start with `lightning:`.
+
 ## 0.1.0-beta.1
 
 The first release of the React Native SDK, for testing. The API can still change before 0.1.0.
