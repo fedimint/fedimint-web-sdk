@@ -29,14 +29,28 @@ need no Nix, and the copy step only warns.
 
 ## Testing
 
-The browser test that exercises the package against a running federation is run with:
+Two kinds of tests live under `web-sdk/src/__tests__`.
+
+The unit tests (`*.test.ts`) run in Node against a fake worker and cover the main-thread half
+of the package on its own: the proxies, the wire protocol, errors and aborts, and `openSdk`'s
+teardown. `pnpm --dir js test:unit` runs them in seconds.
+
+The browser tests (`*.browser.test.ts`) run the real package in headless Chromium against a
+federation devimint stands up, with the faucet paying and issuing invoices:
 
 ```sh
 just test
 ```
 
-from the repository root. It imports the package through its `exports`, so the worker, the glue
-and the module are loaded from `dist`, as an application loads them.
+from the repository root. They import the package through its `exports`, so the worker, the
+glue and the module are loaded from `dist`, as an application loads them. `fixtures.ts` gives
+every test a session of its own on a fresh storage name, and on request the federation joined
+and funded over Lightning. The files are one per part of the API: the session, the seed and
+parsing; the federation's lifecycle, meta, balance and activity; Lightning; ecash, including a
+transfer between two wallets; on-chain, up to what settles without a mined block; and recovery
+from the seed. They test what crosses the worker boundary, every facade, the tagged and plain
+enums, the error codes and the subscriptions, rather than the money logic, which the crate's
+own integration tests cover against the same devimint setup.
 
 ## Size of the wasm module
 

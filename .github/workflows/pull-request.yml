@@ -1,7 +1,8 @@
 name: Pull Request
 on:
   pull_request:
-    # `labeled` lets the ci-ios label start the otherwise gated iOS build.
+    # `labeled` lets the ci-ios label start the otherwise gated iOS build, and the ci-web
+    # label the whole of Verify, browser tests included.
     types: [opened, reopened, synchronize, ready_for_review, labeled]
   push:
     branches: [main]
@@ -10,12 +11,14 @@ on:
   # moves. Branch protection's required checks (the Verify jobs and the iOS
   # build) have to report here too, or the queue waits on them until it times
   # out. Only those run: the queue waits for nothing else, and the rest run on
-  # the push to main that follows, as they always have.
+  # the push to main that follows, as they always have. Verify runs in full
+  # there, the devimint-backed browser tests included, whatever the queued
+  # changes touched: it is the last gate before main moves.
   merge_group:
     types: [checks_requested]
 
 concurrency:
-  # Label events only need to consider the gated iOS lane. Give each one its own group so
+  # Label events only need to consider the gated lanes. Give each one its own group so
   # ordinary label churn cannot cancel a full verification run.
   group: ${{ github.workflow }}-${{ github.event.action == 'labeled' && github.run_id || github.head_ref || github.run_id }}
   cancel-in-progress: true
@@ -158,12 +161,23 @@ jobs:
   verify:
     name: Verify
     needs: detect-changes
-    if: ${{ github.event.action != 'labeled' }}
+    # Every event but a label change, and the one label change that asks for it: adding
+    # `ci-web` to a pull request runs Verify in full, the devimint-backed browser tests
+    # included, on a pull request that did not touch the web domain.
+    if: ${{ github.event.action != 'labeled' || github.event.label.name == 'ci-web' }}
     uses: ./.github/workflows/verify.yml
     secrets: inherit
     with:
-      run_core: ${{ github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.web == 'true' }}
-      run_web: ${{ github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.web == 'true' }}
+      # A manual run, the merge queue and a pull request labelled `ci-web` run everything; any
+      # other pull request runs what it touched.
+      run_core: >-
+        ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group'
+        || contains(github.event.pull_request.labels.*.name, 'ci-web')
+        || needs.detect-changes.outputs.web == 'true' }}
+      run_web: >-
+        ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group'
+        || contains(github.event.pull_request.labels.*.name, 'ci-web')
+        || needs.detect-changes.outputs.web == 'true' }}
 
   test-react-native:
     name: Test React Native
