@@ -8,6 +8,15 @@ release. Rewrite it there for users, grouped under Added, Changed, Fixed and Bre
 they apply, and remove the draft comment. The release refuses a version whose section is
 missing or still a draft. See "Making a release" in [RELEASING.md](../../RELEASING.md).
 
+## 0.1.0-beta.2
+
+<!-- draft: the commits since 0.1.0-beta.1 that touched the SDK.
+     Rewrite them for users: what was added, changed or fixed, and anything that
+     breaks callers. Then delete this comment; the release refuses a draft. -->
+
+- build(sdk): let docs.rs document the crate without compiling RocksDB (#493) (a848777)
+- ci(release): release the crate and both bindings through one process (#464) (221ba39)
+
 ## 0.1.0-beta.1
 
 The first release of the Rust SDK, for testing. The API can still change before 0.1.0.
