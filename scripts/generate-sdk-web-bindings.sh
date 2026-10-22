@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# Generates js/web/sdk-web's TypeScript bindings from an already built rust/fedimint-sdk wasm
+# Generates js/web/web-sdk's TypeScript bindings from an already built rust/fedimint-sdk wasm
 # module, and stages that module beside them.
 #
 #   scripts/generate-sdk-web-bindings.sh [fedimint_sdk.wasm]
-#     -> js/web/sdk-web/src/generated/{index.ts,fedimint_sdk.ts,fedimint_sdk-ffi.ts,
+#     -> js/web/web-sdk/src/generated/{index.ts,fedimint_sdk.ts,fedimint_sdk-ffi.ts,
 #                                       fedimint_sdk_bg.js,*.d.ts,fedimint_sdk.wasm}
 #
 # The module defaults to the Nix build (scripts/nix-build-sdk-wasm.sh), which is what CI reads
@@ -32,7 +32,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PKG="$ROOT/js/web/sdk-web"
+PKG="$ROOT/js/web/web-sdk"
 WASM="${1:-$("$ROOT/scripts/nix-build-sdk-wasm.sh")}"
 
 if [[ ! -f "$WASM" ]]; then

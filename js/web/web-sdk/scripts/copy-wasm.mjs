@@ -11,7 +11,7 @@ mkdirSync(genDir, { recursive: true })
 const glueSrc = new URL('../src/generated/fedimint_sdk_bg.js', import.meta.url)
 if (!existsSync(glueSrc)) {
   throw new Error(
-    'sdk-web: missing src/generated/fedimint_sdk_bg.js (committed; checkout is broken)',
+    'web-sdk: missing src/generated/fedimint_sdk_bg.js (committed; checkout is broken)',
   )
 }
 copyFileSync(glueSrc, new URL('fedimint_sdk_bg.js', genDir))
@@ -19,7 +19,7 @@ copyFileSync(glueSrc, new URL('fedimint_sdk_bg.js', genDir))
 const wasmSrc = new URL('../src/generated/fedimint_sdk.wasm', import.meta.url)
 if (!existsSync(wasmSrc)) {
   console.warn(
-    'sdk-web: no src/generated/fedimint_sdk.wasm; run pnpm generate (needs nix)',
+    'web-sdk: no src/generated/fedimint_sdk.wasm; run pnpm generate (needs nix)',
   )
 } else {
   copyFileSync(wasmSrc, new URL('fedimint_sdk.wasm', genDir))

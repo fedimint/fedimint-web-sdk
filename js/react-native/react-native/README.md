@@ -1,7 +1,7 @@
 # @fedimint/react-native
 
 The Fedimint SDK for React Native: `rust/fedimint-sdk` through its JSI turbo-module bindings
-(`@fedimint/react-native-bindings`), the same API `@fedimint/sdk-web` exposes over a worker, but
+(`@fedimint/react-native-bindings`), the same API `@fedimint/web-sdk` exposes over a worker, but
 called directly since there is no worker boundary to cross here.
 
 ## Implementation Options

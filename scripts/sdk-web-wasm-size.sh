@@ -9,7 +9,7 @@
 #
 # `measure` prints one line, `<bytes> <gzip bytes>`: the size of the file and its size after
 # `gzip -9`, which is about what a browser downloads from a server that compresses. The module to
-# measure is the one js/web/sdk-web ships, js/web/sdk-web/src/generated/fedimint_sdk.wasm, as
+# measure is the one js/web/web-sdk ships, js/web/web-sdk/src/generated/fedimint_sdk.wasm, as
 # scripts/generate-sdk-web-bindings.sh leaves it, optimised for size. The compressed size comes
 # from the `gzip` on PATH, and another gzip can compress a little differently, so only compare
 # sizes that came from the same gzip. Even then the compressed size moves by a hundred bytes or
@@ -51,7 +51,7 @@ SIZES_RE='^(0|[1-9][0-9]{0,14}) (0|[1-9][0-9]{0,14})$'
 
 # How much a pull request may make the module grow, as a percentage of the base's size. It holds
 # for the module as it is and after gzip -9 alike, and `check` fails on more. The README of
-# js/web/sdk-web and the `wasm-size` job of .github/workflows/verify.yml give the value too.
+# js/web/web-sdk and the `wasm-size` job of .github/workflows/verify.yml give the value too.
 MAX_GROWTH_PERCENT=5
 
 die() {
@@ -145,7 +145,7 @@ report() {
     cat <<'EOF'
 ### Size of the browser SDK's wasm module
 
-The size of `fedimint_sdk.wasm`, the module that `@fedimint/sdk-web` ships, as it is and after
+The size of `fedimint_sdk.wasm`, the module that `@fedimint/web-sdk` ships, as it is and after
 `gzip -9`.
 
 EOF

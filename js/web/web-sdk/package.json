@@ -1,14 +1,30 @@
 {
-  "name": "@fedimint/sdk-web",
+  "name": "@fedimint/web-sdk",
   "version": "0.0.1",
   "private": true,
   "description": "The Fedimint SDK for browsers: rust/fedimint-sdk as WebAssembly in a worker",
+  "keywords": [
+    "fedimint",
+    "bitcoin",
+    "lightning",
+    "ecash",
+    "wallet",
+    "wasm",
+    "browser"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/fedimint/fedimint-sdk.git",
-    "directory": "js/web/sdk-web"
+    "url": "git+https://github.com/fedimint/fedimint-sdk.git",
+    "directory": "js/web/web-sdk"
   },
+  "bugs": {
+    "url": "https://github.com/fedimint/fedimint-sdk/issues"
+  },
+  "homepage": "https://github.com/fedimint/fedimint-sdk/tree/main/js/web/web-sdk#readme",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,11 +36,11 @@
     "./worker": {
       "types": "./dist/worker.d.ts",
       "default": "./dist/worker.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "sideEffects": [
     "./dist/worker.js"

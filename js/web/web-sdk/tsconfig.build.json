@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // The package ships `dist` alone, so a map would point at sources that are not there.
+    "sourceMap": false,
+    "declarationMap": false
+  },
+  "exclude": ["node_modules", "dist", "src/__tests__"]
+}

@@ -25,7 +25,7 @@ them is a view of that API and not a copy of it.
 | Android SDK (Kotlin) | [`android`](../android)                     | [`org.fedimint:sdk`](https://central.sonatype.com/artifact/org.fedimint/sdk) on Maven Central                                                                                                  |
 | iOS SDK (Swift)      | [`ios`](../ios)                             | Not published yet                                                                                                                                                                              |
 | React Native         | [`js/react-native`](../js/react-native)     | [`@fedimint/react-native`](https://www.npmjs.com/package/@fedimint/react-native) and [`@fedimint/react-native-bindings`](https://www.npmjs.com/package/@fedimint/react-native-bindings) on npm |
-| Browser SDK          | [`js/web/sdk-web`](../js/web/sdk-web)       | Not published yet                                                                                                                                                                              |
+| Browser SDK          | [`js/web/web-sdk`](../js/web/web-sdk)       | Not published yet                                                                                                                                                                              |
 
 The README in each of these directories has the details for its component.
 
@@ -52,7 +52,7 @@ fedimint-sdk
 │   │   ├── react-native
 │   │   └── react-native-bindings
 │   └── web
-│       └── sdk-web
+│       └── web-sdk
 ├── nix
 └── scripts
 ```

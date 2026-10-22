@@ -18,7 +18,7 @@ binding is a view of this API rather than a copy that can drift:
 
 - [the Android SDK](../../android), in Kotlin
 - [the iOS SDK](../../ios), in Swift
-- [the browser SDK](../../js/web/sdk-web), in TypeScript
+- [the browser SDK](../../js/web/web-sdk), in TypeScript
 - the React Native bindings
   ([`js/react-native/react-native-bindings`](../../js/react-native/react-native-bindings))
   and the [`@fedimint/react-native`](../../js/react-native/react-native)

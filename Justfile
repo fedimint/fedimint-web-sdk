@@ -31,7 +31,7 @@ build-android-apk:
 # Boot an emulator, install the example app and drive it with the Appium suite
 # (js/android/integration-tests) against a devimint federation — the Android
 # counterpart of `just test`, which does the same for the browser package's
-# tests (js/web/sdk-web), through the same scripts/setup_test_shell.sh. There is
+# tests (js/web/web-sdk), through the same scripts/setup_test_shell.sh. There is
 # deliberately no federation-free variant: one way to run this suite, so what CI
 # does and what you can reproduce are the same thing. Builds the APK first (see
 # build-android-apk); the script itself only installs one. `shape` picks the

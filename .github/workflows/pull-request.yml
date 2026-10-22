@@ -135,7 +135,7 @@ jobs:
                 web=true
                 react_native=true
                 ;;
-              js/web/sdk-web/*|scripts/*)
+              js/web/*|scripts/*)
                 web=true
                 ;;
               nix/web-bindgen.nix|nix/ffi.nix|rust/ubrn/*)

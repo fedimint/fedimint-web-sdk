@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 // Imported through the package's `exports` (not a relative path into `src`) so the worker
 // entry, the wasm-bindgen glue and the module are loaded from `dist`, exactly as an
 // application would load them.
-import { ErrorCode, LnReceiveState_Tags, openSdk } from '@fedimint/sdk-web'
+import { ErrorCode, LnReceiveState_Tags, openSdk } from '@fedimint/web-sdk'
 
 const faucet = import.meta.env.FAUCET
 
@@ -23,9 +23,9 @@ async function payInvoice(invoice: string): Promise<void> {
     )
 }
 
-const storage = `sdk-web-test-${Date.now()}`
+const storage = `web-sdk-test-${Date.now()}`
 
-describe('@fedimint/sdk-web against devimint', () => {
+describe('@fedimint/web-sdk against devimint', () => {
   it('joins, receives over lightning, and comes back after a restart', async () => {
     const session = await openSdk({ storage })
     try {
@@ -46,7 +46,7 @@ describe('@fedimint/sdk-web against devimint', () => {
 
       const lightning = await federation.lightning()
       expect(lightning).toBeDefined()
-      const receive = await lightning!.receive(100_000n, 'sdk-web test')
+      const receive = await lightning!.receive(100_000n, 'web-sdk test')
       const updates = await receive.operation.updates()
       await payInvoice(receive.invoice)
       let state = await receive.operation.state()

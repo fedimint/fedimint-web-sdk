@@ -16,8 +16,8 @@ export default defineConfig({
         plugins: [wasm()],
         test: {
           environment: 'happy-dom',
-          name: 'sdk-web',
-          include: ['web/sdk-web/src/**/*.browser.test.ts'],
+          name: 'web-sdk',
+          include: ['web/web-sdk/src/**/*.browser.test.ts'],
           browser: {
             enabled: true,
             provider: playwright(),
@@ -48,7 +48,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
-          include: ['web/sdk-web/src/**/*.test.ts'],
+          include: ['web/web-sdk/src/**/*.test.ts'],
           exclude: ['**/*.browser.test.ts'],
         },
       },
@@ -74,6 +74,6 @@ export default defineConfig({
     ],
   },
   optimizeDeps: {
-    exclude: ['@fedimint/sdk-web'],
+    exclude: ['@fedimint/web-sdk'],
   },
 })
