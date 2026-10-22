@@ -13,17 +13,30 @@ name: Android SDK Release
 # Gradle assembles the published AAR from them. So what is uploaded is a
 # fresh AAR from the tested native libraries and bindings, not the archive
 # chain assembled.
-# `github-release` then drafts the version's GitHub Release from its
+# `github-release` then creates the version's GitHub Release from its
 # android/CHANGELOG.md section.
 #
-# The upload is not a release. The Gradle build uses
-# `publishToMavenCentral(automaticRelease = false)`, so the job ends once the
-# upload is done. Central then validates the deployment (signatures, POM,
-# sources and javadoc jars) on its own, and this workflow does not wait for
-# that. A green run means uploaded, not validated. The deployment then waits
-# on central.sonatype.com (Publishing → Deployments) until someone presses
-# Publish. That is the last chance to drop a bad upload, because a version
-# released to Central can never be changed or deleted.
+# The upload is published as soon as Central validates it (signatures, POM,
+# sources and javadoc jars): the Gradle build uses
+# `publishToMavenCentral(automaticRelease = true)`. The `publish` job waits
+# until Central reports the version published, so a green run means the
+# version is on Maven Central, and `github-release` runs only then. A
+# deployment that fails validation fails the job with Central's reasons, and
+# nothing is published. The approval of the `maven-central` environment is the
+# decision to publish: nothing is uploaded before it, and a version published
+# to Central can never be changed or deleted.
+#
+# If the wait runs out (SONATYPE_CLOSE_TIMEOUT_SECONDS in
+# android/gradle.properties), the job fails although Central may still
+# publish the version. Then check
+# https://repo1.maven.org/maven2/org/fedimint/sdk/<version>/. If the POM is
+# there, the release is out and only the GitHub Release is missing. Create it
+# by hand with the notes from
+# `scripts/sdk-changelog.sh release-notes android <version>`, as the
+# `github-release` job would. Re-running the `publish` job cannot help then:
+# Central refuses a version it has. If the POM is not there yet, the
+# deployment under Publishing → Deployments on central.sonatype.com shows
+# whether Central is still publishing it or why it failed.
 #
 # To release:
 #
@@ -36,9 +49,6 @@ name: Android SDK Release
 #      sdk-tag.yaml then tags the merge commit `android-sdk-v<version>`
 #      and starts this workflow on the tag.
 #   3. Approve the `maven-central` environment when the run asks.
-#   4. On central.sonatype.com, wait for the deployment to show VALIDATED
-#      (FAILED comes with the reason), then press Publish.
-#   5. Publish the version's draft GitHub Release.
 #
 # RELEASING.md, at the repository root, describes the whole process, and
 # which bump to pick. Pushing an `android-sdk-v*` tag by hand starts a release
@@ -49,7 +59,7 @@ name: Android SDK Release
 # which is uploaded as the `maven-central-dry-run` artifact for inspection.
 # It may run on a branch, such as the one of a version bump pull request: the
 # version in the tree is then checked as a release would, and a version that
-# could not be released only warns. With `publish` ticked it uploads to
+# could not be released only warns. With `publish` ticked it publishes to
 # Central like a tag push, and only from an `android-sdk-v*` tag. That is how
 # sdk-tag.yaml starts a release, and how to re-run one whose tag
 # already exists.
@@ -80,7 +90,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Upload to Maven Central (unticked: dry run into a local Maven repository)'
+        description: 'Publish to Maven Central (unticked: dry run into a local Maven repository)'
         type: boolean
         default: false
 
@@ -171,7 +181,10 @@ jobs:
     name: ${{ (github.event_name == 'push' || inputs.publish) && 'Publish to Maven Central' || 'Dry run' }}
     needs: chain
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    # Long enough for the setup and the build, and for the wait for Central to
+    # publish the version, which lasts at most 50 minutes
+    # (SONATYPE_CLOSE_TIMEOUT_SECONDS in android/gradle.properties).
+    timeout-minutes: 75
     # The `maven-central` environment holds the Central token and the
     # signing key, and its required reviewers approve the upload. See the
     # secrets note at the top of this file.
@@ -237,12 +250,12 @@ jobs:
           if-no-files-found: error
 
   # The version's GitHub Release, with its android/CHANGELOG.md section as the
-  # notes, so the tag has a page saying what changed. It is a draft because
-  # this workflow cannot see Central's Publish button: publish the draft once
-  # the version is published on Central. A beta is marked as a pre-release.
-  # Re-running a release updates the draft's notes rather than failing.
+  # notes, so the tag has a page saying what changed. It runs only after
+  # `publish`, which waited for Central, so the version is on Maven Central by
+  # then. A beta is marked as a pre-release. Re-running a release updates the
+  # release's notes rather than failing.
   github-release:
-    name: 'Draft the GitHub Release'
+    name: 'Create the GitHub Release'
     needs: publish
     if: github.ref_type == 'tag' && (github.event_name == 'push' || inputs.publish)
     runs-on: ubuntu-24.04
@@ -256,7 +269,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: 'Create or update the draft'
+      - name: 'Create or update the release'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
@@ -279,5 +292,5 @@ jobs:
           if [[ "$version" == *-beta.* ]]; then
             prerelease=(--prerelease)
           fi
-          gh release create "$TAG" --draft --verify-tag "${prerelease[@]}" \
+          gh release create "$TAG" --verify-tag "${prerelease[@]}" \
             --title "Android SDK $version" --notes-file "$notes"

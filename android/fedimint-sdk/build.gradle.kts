@@ -135,13 +135,13 @@ mavenPublishing {
         ),
     )
 
-    // Uploads the deployment, but does not release it. It then waits in the
-    // Central Portal until it is published there by hand, so a bad upload can
-    // still be dropped. Release on Central cannot be undone. The build also
-    // does not wait for Central to validate the deployment, so check its
-    // status in the portal. A snapshot has no deployment: it goes straight to
-    // the snapshots repository.
-    publishToMavenCentral(automaticRelease = false)
+    // Central publishes the deployment as soon as it validates it, and the
+    // build waits until Central reports it published (the plugin's
+    // `validateDeployment`, on by default). A deployment that fails
+    // validation fails the build with Central's reasons, and nothing is
+    // published. gradle.properties says how long the wait lasts. A snapshot
+    // has no deployment: it goes straight to the snapshots repository.
+    publishToMavenCentral(automaticRelease = true)
 
     // Central rejects unsigned releases.
     signAllPublications()
