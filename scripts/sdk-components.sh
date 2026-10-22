@@ -86,8 +86,8 @@ component_workflow() {
 # What the component $1 is built from, one path per line, relative to the repository. A commit
 # that touches none of them cannot change the component, so it does not belong in its notes. The
 # directories include their Cargo lockfiles (rust/fedimint-sdk/Cargo.lock,
-# rust/uniffi-bindgen/Cargo.lock, rust/ubrn/Cargo.lock), so a dependency-only bump is listed too;
-# scripts/test-sdk-release-scripts.sh checks that.
+# rust/uniffi-bindgen/Cargo.lock, rust/ubrn/Cargo.lock), so a commit that only changes a dependency
+# touches the component too; scripts/test-sdk-release-scripts.sh checks that.
 component_paths() {
     case "${1:-}" in
         rust)

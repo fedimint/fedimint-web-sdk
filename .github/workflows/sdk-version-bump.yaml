@@ -1,6 +1,6 @@
 name: SDK Version Bump
 
-# Bumps the version of the SDK's components, drafts their release notes and
+# Bumps the version of the SDK's components, writes their release notes and
 # opens a pull request with both. The components are the Rust crate, the
 # Android SDK and the React Native packages, and they share one line of
 # versions: a release takes the next version of the line and gives it to the
@@ -33,10 +33,10 @@ name: SDK Version Bump
 # crates.io, so this cannot propose a version that is taken. Nothing is
 # written unless every check passed.
 #
-# The drafted notes list the commits since the last release that touched the
-# component (scripts/sdk-changelog.sh), as a section of the CHANGELOG.md of
-# each component that gets the version. Rewrite them for users in the pull
-# request and remove the draft comments; the release refuses a draft.
+# The notes of each component that gets the version are written from the
+# commits since its last release that touched it (scripts/sdk-changelog.sh):
+# the breaking ones, `feat` and `fix`, as a section of its CHANGELOG.md.
+# Editing them in the pull request is optional.
 #
 # Merging the pull request starts the release: sdk-tag.yaml then tags the
 # merge commit for each component that got the version and starts that
@@ -123,8 +123,8 @@ jobs:
 
       # Credentials kept, unlike the other workflows: this job pushes the
       # bump branch. The full history and tags are for the checks, which read
-      # the release tags, and for drafting the notes, which list the commits
-      # since the last release's tag.
+      # the release tags, and for writing the notes, which are made from the
+      # commits since the last release's tag.
       - name: 'Checkout'
         uses: actions/checkout@v7
         with:
@@ -132,7 +132,7 @@ jobs:
 
       # npm and curl, which the checks ask for the versions on the registries,
       # are on the runner. The new version is the only line on stdout.
-      - name: 'Bump the versions and draft the notes'
+      - name: 'Bump the versions and write the notes'
         id: bump
         env:
           GROUP: ${{ inputs.components }}
@@ -207,13 +207,11 @@ jobs:
             echo
             printf '%s' "$bumped"
             echo
-            echo "**Before merging:** in each of these files, rewrite the drafted" \
-              "\`## $NEXT\` notes for users (what was added, changed or fixed, and anything that" \
-              "breaks callers) and delete the draft comment:"
+            echo "The \`## $NEXT\` notes in these files are written from the breaking," \
+              "\`feat\` and \`fix\` commits since each component's last release, and can be" \
+              "edited in this pull request before merging:"
             echo
             printf '%s' "$notes"
-            echo
-            echo "The release refuses a draft."
             echo
             if [[ -z "$unreleased" ]]; then
               echo "**Merging this starts the release of \`$NEXT\`** of those components. The SDK" \

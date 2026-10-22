@@ -79,20 +79,18 @@ A beta is always either continued (`beta`) or released (`release`). There is no 
    The `beta` box is ticked by default and only matters for `patch`, `minor` and `major`.
 
    The workflow opens a pull request from the branch `sdk/version-<version>`. It sets the new
-   version for the chosen components and drafts their release notes: one `## <version>` section
-   in each chosen component's `CHANGELOG.md`, listing the commits since that component's last
-   release that touched what it is built from. It refuses a bump that does not fit, such as
+   version for the chosen components and writes their release notes: one `## <version>` section
+   in each chosen component's `CHANGELOG.md`, made from the commits since that component's last
+   release, as "Release notes" below describes. It refuses a bump that does not fit, such as
    `patch` in the middle of a beta, or a version that is already taken, before it writes anything.
 
-2. Rewrite the drafted notes for users, in each file, in that component's own terms: what was
-   added, changed or fixed, and anything that breaks callers. Delete the draft comments. The
-   pull request check (step 3) refuses a draft, and so does the release.
+2. Read the notes in the pull request, in each file, and edit them there if they need more, for
+   example to explain how to adapt to a breaking change. This is optional.
 3. A pull request opened by a workflow does not start other workflows, so close and reopen it
    to start its checks, and let all of them finish before you merge. They also build the native
    libraries that the release then takes from the cache. One of them, **SDK Release Scripts**,
    runs `scripts/sdk-release.sh check-tree` on every pull request that changes a version or a
-   `CHANGELOG.md`, so a version bump whose notes are still drafts fails there, before it is
-   merged.
+   `CHANGELOG.md`.
 4. Merge it. Merging starts the release: the **SDK Tag** workflow runs when a push to `main`
    changes a file that holds a version. For each component whose version the push changed from a
    released one, it tags the merge commit and starts that component's release workflow on the
@@ -112,6 +110,34 @@ Each workflow first checks its tag, then builds and tests the tagged commit, and
 if all of that passed. The header of each workflow file says what it does in detail.
 [`android/README.md`](android/README.md) and
 [`js/react-native/README.md`](js/react-native/README.md) say what is particular to those two.
+
+### Release notes
+
+The version bump writes the notes of each component from the subjects of the commits since that
+component's last release that touched what it is built from, newest first. A subject is read as a
+conventional commit, `<type>(<scope>)!: <summary>` with the scope and the `!` optional, and its
+type decides where the commit goes:
+
+- `### Breaking`: any type with a `!` before the colon, such as `feat(sdk)!: ...`.
+- `### Added`: `feat`.
+- `### Fixed`: `fix`.
+
+A section has the headings that have entries, in that order. An entry is a list item holding the
+subject without its `<type>(<scope>)!: ` prefix and otherwise as it is, so the number of the pull
+request, which a squash merge appends to the title as `(#123)`, stays. Commits of any other type
+are left out: `chore` (which includes the `chore(release): ...` commit of a version bump), `build`,
+`ci`, `docs`, `test`, `refactor` and so on. Subjects that are not in this form are left out too.
+
+Two cases give a section of a single line:
+
+- `No changes for users since <previous version>.` when no commit is left;
+- `The first release of the <title>.` for a component that has never been released, such as
+  `The first release of the Android SDK.`
+
+Pull requests are squash-merged, so the subject of a commit on `main` is the title of its pull
+request. A pull request that changes what users see is therefore titled `feat(<scope>): ...` or
+`fix(<scope>): ...`, in words users understand, and one that breaks callers marks its type with
+`!`, as in `feat(sdk)!: ...`.
 
 ### The first release of a component
 
@@ -134,11 +160,11 @@ components. The release rules would refuse it, and the component would need the 
   workflow again.
 - **The tag workflow fails.** Its error says what to do. Once the tags are pushed, the summary
   of the run lists them, the releases it started and the ones it did not.
-  - A check refused a version, typically notes that were merged as a draft. Nothing is tagged
-    then, for any component. Fix it in a pull request, then run SDK Tag by hand on `main`
-    (Actions → SDK Tag → Run workflow, which skips any other branch) for the same components. A
-    manual run tags the components that have no tag for their version yet. The pull request that
-    fixes it changes no version, so it does not start the workflow by itself.
+  - A check refused a version. Nothing is tagged then, for any component. Fix it in a pull
+    request, then run SDK Tag by hand on `main` (Actions → SDK Tag → Run workflow, which skips
+    any other branch) for the same components. A manual run tags the components that have no tag
+    for their version yet. The pull request that fixes it changes no version, so it does not
+    start the workflow by itself.
   - The workflow could not decide what to release. Nothing is tagged then either. Once the cause
     is fixed, run SDK Tag by hand on `main` in the same way. A release whose automatic run was
     skipped or lost is started like this too.
@@ -168,9 +194,9 @@ components. The release rules would refuse it, and the component would need the 
   component's own, name the version in the tree and be on `main`. The version must be newer than
   the earlier releases of every component, not only this one's, and than the versions on the
   registry this component is published to, if it has one. It must not be tagged on another commit
-  by another component, and its notes must be finished. A tag pushed by hand starts a release
-  too, under the same rules. A tag cannot be moved or deleted and no registry takes a version
-  twice, so the fix is the next version: bump again, for the components concerned.
+  by another component, and its notes must have a section for it. A tag pushed by hand starts a
+  release too, under the same rules. A tag cannot be moved or deleted and no registry takes a
+  version twice, so the fix is the next version: bump again, for the components concerned.
 - **A version bump pull request is merged after another one.** Keep one version bump pull
   request open at a time. One that was opened from the same version is no longer the next version
   of the line once the first is merged: after `react-native` went from `0.1.0-beta.1` to `0.1.0`,
@@ -178,7 +204,7 @@ components. The release rules would refuse it, and the component would need the 
   the same, the tag workflow refuses to tag a version that is lower than a release that is out,
   and nothing is released. Bump again for those components, which gives them the next version of
   the line, and move the notes of the version that was not released into the section of the new
-  one: the bump drafts that section above the old one and leaves the old one in place. The merge
+  one: the bump writes that section above the old one and leaves the old one in place. The merge
   of this second bump changes a version that was never released, so run SDK Tag by hand for the
   components right after it (see "The first release of a component").
 - **A version bump whose release went out was reverted.** Do not revert such a bump: the tree

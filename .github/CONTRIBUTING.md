@@ -20,5 +20,11 @@ The JavaScript packages are a pnpm workspace rooted at `js/`. Run `pnpm --dir js
 and `pnpm --dir js lint:fix` before committing: it formats the repository with prettier, which
 continuous integration checks.
 
+Pull requests are squash-merged, so a pull request's title becomes its commit subject on `main`.
+Write the title as `<type>(<scope>): <summary>`. The `feat` and `fix` titles become the release
+notes of the components the change reaches (see "Release notes" in
+[`RELEASING.md`](../RELEASING.md#release-notes)), so write them for the people who use the SDK. A
+change that breaks callers marks its type with `!`, as in `feat(sdk)!: ...`.
+
 Please enable "Allow edits from maintainers" on a pull request, so that the core team can update
 it if necessary.
