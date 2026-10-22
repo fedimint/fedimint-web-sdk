@@ -9,7 +9,7 @@ repository, all built from the Rust crate in `rust/fedimint-sdk`:
 | `android`      | [`org.fedimint:sdk`](https://central.sonatype.com/artifact/org.fedimint/sdk) on Maven Central                                                                                                  | `fedimintSdk` in `android/gradle/libs.versions.toml` | `android-sdk-v<version>`      | [`android/CHANGELOG.md`](android/CHANGELOG.md)                     |
 | `react-native` | [`@fedimint/react-native`](https://www.npmjs.com/package/@fedimint/react-native) and [`@fedimint/react-native-bindings`](https://www.npmjs.com/package/@fedimint/react-native-bindings) on npm | both `package.json` files under `js/react-native`    | `react-native-sdk-v<version>` | [`js/react-native/CHANGELOG.md`](js/react-native/CHANGELOG.md)     |
 
-The Swift SDK in `ios/` and the browser package in `js/web/sdk-web` are not published yet.
+The Swift SDK in `ios/` and the browser package in `js/web/web-sdk` are not published yet.
 
 ## Versions
 

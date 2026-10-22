@@ -103,7 +103,7 @@ The federation runs one generation of the mint, wallet and lightning modules. `F
 picks it, and `scripts/setup_test_shell.sh` turns it into the `FM_ENABLE_MODULE_*` flags devimint
 starts fedimintd with (through `scripts/devimint-modules.sh`, which the Rust integration tests'
 `scripts/devimint-shape.sh` shares, so a shape means the same modules everywhere). It defaults to
-`v1`, which is what the browser package's tests (`js/web/sdk-web`) run through the same script.
+`v1`, which is what the browser package's tests (`js/web/web-sdk`) run through the same script.
 
 | shape   | modules                      | Android E2E | CI (`android-e2e.yml` matrix) |
 | ------- | ---------------------------- | ----------- | ----------------------------- |
@@ -188,7 +188,7 @@ federation, and a matrix of devices or API levels (CI runs one `android-34` emul
 ## The federation
 
 `scripts/setup_test_shell.sh` is the same entry point the browser
-package's tests (`js/web/sdk-web`) run through (`js/package.json`'s
+package's tests (`js/web/web-sdk`) run through (`js/package.json`'s
 `test:setup`): it execs the run inside `devimint wasm-test-setup`, which
 stands up bitcoind, four guardians and two gateways, and exports their
 ports. Tests reach the faucet through `src/faucet/FaucetClient.ts` over

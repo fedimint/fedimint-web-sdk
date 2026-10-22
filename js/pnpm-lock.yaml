@@ -287,7 +287,7 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  web/sdk-web:
+  web/web-sdk:
     dependencies:
       '@ubjs/core':
         specifier: 0.31.0-6

@@ -180,9 +180,9 @@ jobs:
         run: |
           timeout -k 10 450 nix develop --accept-flake-config .#wasm --command bash << 'EOF'
             set -euo pipefail
-            trap 'git checkout --quiet -- js/web/sdk-web/src/generated' EXIT
+            trap 'git checkout --quiet -- js/web/web-sdk/src/generated' EXIT
             scripts/generate-sdk-web-bindings.sh "$BASE_MODULE"
-            scripts/sdk-web-wasm-size.sh measure js/web/sdk-web/src/generated/fedimint_sdk.wasm \
+            scripts/sdk-web-wasm-size.sh measure js/web/web-sdk/src/generated/fedimint_sdk.wasm \
               >"$RUNNER_TEMP/sdk-web-wasm-size-base.txt"
           EOF
           echo "sizes=$(<"$RUNNER_TEMP/sdk-web-wasm-size-base.txt")" >>"$GITHUB_OUTPUT"
@@ -202,7 +202,7 @@ jobs:
         run: |
           timeout -k 10 150 nix develop --accept-flake-config .#wasm --command bash << 'EOF'
             set -euo pipefail
-            scripts/sdk-web-wasm-size.sh measure js/web/sdk-web/src/generated/fedimint_sdk.wasm \
+            scripts/sdk-web-wasm-size.sh measure js/web/web-sdk/src/generated/fedimint_sdk.wasm \
               >"$RUNNER_TEMP/sdk-web-wasm-size-head.txt"
           EOF
           echo "sizes=$(<"$RUNNER_TEMP/sdk-web-wasm-size-head.txt")" >>"$GITHUB_OUTPUT"

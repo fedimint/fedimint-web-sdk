@@ -375,7 +375,7 @@ let
   );
 
   # `rust/fedimint-sdk --features uniffi` for the browser: the module the web binding
-  # (js/web/sdk-web) is generated from and ships. Same shape as the Android targets above:
+  # (js/web/web-sdk) is generated from and ships. Same shape as the Android targets above:
   # the costly build is cached here, and reading the bindings out of it is a separate, cheap
   # step (scripts/generate-sdk-web-bindings.sh). The crate's release profile already sets
   # `opt-level = "z"` and `panic = "abort"`.

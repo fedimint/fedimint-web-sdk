@@ -12,7 +12,7 @@ These READMEs describe the parts of the repository:
 - [`rust/fedimint-sdk`](../rust/fedimint-sdk): the SDK crate.
 - [`android`](../android) and [`ios`](../ios): the Android and iOS SDKs.
 - [`js/react-native`](../js/react-native): the React Native packages.
-- [`js/web/sdk-web`](../js/web/sdk-web): the browser SDK.
+- [`js/web`](../js/web): the browser SDK.
 - [`js/android/integration-tests`](../js/android/integration-tests): the tests that drive the
   Android example app on a device.
 

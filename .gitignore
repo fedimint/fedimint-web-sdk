@@ -153,8 +153,8 @@ rust_modules/
 # The module the web binding is generated from and staged beside its committed TypeScript;
 # a build artifact copied in from the nix build (scripts/generate-sdk-web-bindings.sh), not
 # checked in like the rest of src/generated.
-js/web/sdk-web/src/generated/*.wasm
-js/web/sdk-web/dist/
+js/web/web-sdk/src/generated/*.wasm
+js/web/web-sdk/dist/
 
 # React Native Codegen
 js/react-native/react-native-bindings/ios/generated

@@ -1,6 +1,6 @@
 name: Build SDK web bindings
 description:
-  Builds rust/fedimint-sdk for wasm32 via Nix, regenerates js/web/sdk-web's bindings
+  Builds rust/fedimint-sdk for wasm32 via Nix, regenerates js/web/web-sdk's bindings
   from it, and fails if the committed TypeScript is stale.
 
 # Cachix is already authenticated by setup-nix earlier in the calling job, so this action takes
@@ -35,10 +35,10 @@ runs:
       # first and last of them differently from run to run.
       shell: bash
       run: |
-        if ! git diff --exit-code -- js/web/sdk-web/src/generated/index.ts \
-            js/web/sdk-web/src/generated/fedimint_sdk.ts \
-            js/web/sdk-web/src/generated/fedimint_sdk-ffi.ts; then
-          echo "::error::js/web/sdk-web/src/generated is stale; run" \
+        if ! git diff --exit-code -- js/web/web-sdk/src/generated/index.ts \
+            js/web/web-sdk/src/generated/fedimint_sdk.ts \
+            js/web/web-sdk/src/generated/fedimint_sdk-ffi.ts; then
+          echo "::error::js/web/web-sdk/src/generated is stale; run" \
             "scripts/generate-sdk-web-bindings.sh" >&2
           exit 1
         fi

@@ -167,7 +167,7 @@ NL=$'\n'
 IFS= read -r -d '' FULL_REPORT <<'EOF' || true
 ### Size of the browser SDK's wasm module
 
-The size of `fedimint_sdk.wasm`, the module that `@fedimint/sdk-web` ships, as it is and after
+The size of `fedimint_sdk.wasm`, the module that `@fedimint/web-sdk` ships, as it is and after
 `gzip -9`.
 
 | | Base | Pull request | Difference (bytes) | Difference (% of base) |
@@ -191,7 +191,7 @@ FULL_REPORT="${FULL_REPORT%"$NL"}"
 IFS= read -r -d '' NO_BASE_REPORT <<'EOF' || true
 ### Size of the browser SDK's wasm module
 
-The size of `fedimint_sdk.wasm`, the module that `@fedimint/sdk-web` ships, as it is and after
+The size of `fedimint_sdk.wasm`, the module that `@fedimint/web-sdk` ships, as it is and after
 `gzip -9`.
 
 | | Pull request |

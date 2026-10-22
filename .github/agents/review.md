@@ -17,7 +17,7 @@ Repository layout:
 - `js/react-native/react-native-bindings` — the generated React Native
   bindings and their native module
 - `js/react-native/react-native` — the React Native API apps use
-- `js/web/sdk-web` — the browser SDK: the crate compiled to WebAssembly and
+- `js/web/web-sdk` — the browser SDK: the crate compiled to WebAssembly and
   hosted in a dedicated worker
 - `js/android/integration-tests` — Appium tests that drive the Android
   example app against a real devimint federation

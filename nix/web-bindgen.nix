@@ -3,7 +3,7 @@
 #
 #   ubrn              uniffi-bindgen-react-native, built from rust/ubrn, whose Cargo.toml and
 #                     Cargo.lock pin the tool's version. Its `wasm2` flavor generates the
-#                     TypeScript in js/web/sdk-web/src/generated from the built `.wasm`, and the
+#                     TypeScript in js/web/web-sdk/src/generated from the built `.wasm`, and the
 #                     React Native bindings come from the same build.
 #   wasm-bindgen-cli  exactly the `wasm-bindgen` crate version the SDK's dependency tree links
 #                     (`=0.2.106` in rust/fedimint-sdk/Cargo.toml); ubrn shells out to it to
