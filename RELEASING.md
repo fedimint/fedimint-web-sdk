@@ -128,6 +128,37 @@ request, which a squash merge appends to the title as `(#123)`, stays. Commits o
 are left out: `chore` (which includes the `chore(release): ...` commit of a version bump), `build`,
 `ci`, `docs`, `test`, `refactor` and so on. Subjects that are not in this form are left out too.
 
+A commit that touched what a component is built from can still be about something else. Its scope,
+the text in the parentheses, says so: a commit whose scope is foreign to a component is left out of
+that component's notes, whatever its type and with or without a `!`. A scope is foreign to a
+component when it names the development environment or the repository's tooling, or a part of the
+repository that the component does not ship:
+
+- `flake`, `ci`, `workflows`, `tests`, `examples` and `release` are foreign to every component.
+- So are `web`, `sdk-web` and `vite-core` (the web SDK) and `swift` (the Swift SDK), which none of
+  them ships.
+- `react-native`, `rn-bindings` and `js` (the JavaScript workspace) are foreign to the crate and to
+  the Android SDK, but not to the React Native SDK.
+- `ios` is foreign to the Android SDK only. The React Native packages ship for iOS, and the crate
+  runs on it.
+- `android` is foreign to none of them, because the crate's Android code is in `rust/fedimint-sdk`,
+  which all three ship.
+
+`component_foreign_scopes` in [`scripts/sdk-components.sh`](scripts/sdk-components.sh) has the
+lists, and `component_paths` in the same file what each component is built from. The scope is
+compared whole, so `sdk-web` is not `web`. A commit with no scope, or with any other scope, is
+listed as its type says, so a scope that is in none of the lists puts a commit in the notes rather
+than losing it.
+
+A revert is never listed, and it takes away the entry of the commit it reverts. GitHub titles a
+revert `Revert "<subject>"`, and a squash merge adds the pull request number, as in
+`Revert "<subject>" (#123)`. Among the commits since the component's last release, it takes away the
+entry of one whose subject is exactly `<subject>`, so a commit and its revert leave nothing in the
+notes. A revert that is itself reverted takes away nothing, so the commit stays in the notes. A
+revert of a commit that an earlier release listed takes away nothing either, because the notes of
+that release are written already: if users need to hear about it, write a line by hand in the
+version bump pull request.
+
 Two cases give a section of a single line:
 
 - `No changes for users since <previous version>.` when no commit is left;

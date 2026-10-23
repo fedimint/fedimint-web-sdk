@@ -50,14 +50,33 @@
 # is otherwise, so that the number of a pull request, which a squash merge
 # appends to its title, stays. A commit of any other type, such as the
 # `chore(release): ` commit of a version bump, is left out, and so is a commit
-# whose subject is not in that form. A section that has no entry says `No
-# changes for users since <previous version>.`, and the section of a component
-# that was never released, which is written without <previous version>, says
-# `The first release of the <title>.`, with the title that sdk-components.sh
-# gives the component. Nothing goes to stdout. One line on stderr gives the
-# number of commits it looked at and how many of them are in the notes. The bump
-# workflow runs it for the version bump pull request. It needs the git history
-# back to that tag.
+# whose subject is not in that form.
+#
+# A commit can touch what the component is built from and still not be about
+# it, such as a change of the development environment that edits flake.nix.
+# Its scope says so. A commit whose scope is one of the component's foreign
+# scopes, which `component_foreign_scopes` in sdk-components.sh lists with what
+# makes a scope foreign, is left out whatever its type, a `!` included. The
+# scope is compared whole, so `sdk-web` is not `web`. A commit with no scope,
+# or with any other scope, is read as above, so a commit with a scope that is
+# not listed is listed rather than lost.
+#
+# A revert, `Revert "<subject>"` with ` (#<number>)` optionally after it, is
+# never an entry. It takes away one entry, the one of the commit in the same
+# range whose subject is exactly <subject>. `git log` lists the newest commit
+# first, so a revert is read before the commit it reverts. A revert that was
+# itself reverted, by a later `Revert "Revert "<subject>""`, is skipped and
+# takes away nothing, so the entry of the commit stays. A revert of a commit
+# from an earlier release takes away nothing either and is left out: write a
+# line about it by hand in the version bump pull request.
+#
+# A section that has no entry says `No changes for users since <previous
+# version>.`, and the section of a component that was never released, which is
+# written without <previous version>, says `The first release of the <title>.`,
+# with the title that sdk-components.sh gives the component. Nothing goes to
+# stdout. One line on stderr gives the number of commits it looked at and how
+# many of them are in the notes. The bump workflow runs it for the version bump
+# pull request. It needs the git history back to that tag.
 #
 # `commits` prints the commits `write` selects, for any SDK: the non-merge
 # commits from the tag `<prefix><version>` up to <commit> (HEAD when not given)
@@ -73,10 +92,15 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # The commit subjects `write` lists, by the heading they go under: any type
 # with a `!` before the colon is Breaking, `feat` is Added and `fix` is Fixed.
 # Each pattern ends with the space after the colon, so what it matches is the
-# prefix to remove.
-BREAKING_SUBJECT='^[a-z]+(\([^)]*\))?!: '
-ADDED_SUBJECT='^feat(\([^)]*\))?: '
-FIXED_SUBJECT='^fix(\([^)]*\))?: '
+# prefix to remove, and its second group is the scope, which is empty when the
+# subject has none.
+BREAKING_SUBJECT='^[a-z]+(\(([^)]*)\))?!: '
+ADDED_SUBJECT='^feat(\(([^)]*)\))?: '
+FIXED_SUBJECT='^fix(\(([^)]*)\))?: '
+# A revert as git and GitHub write it, followed by the number of its pull
+# request when a squash merge added one. Its first group is the subject it
+# reverts.
+REVERT_SUBJECT='^Revert "(.+)"( \(#[0-9]+\))?$'
 # The component the command is about, and where its notes are: the file
 # relative to the repository, and the path to it. select_component sets them.
 COMPONENT=""
@@ -217,6 +241,7 @@ notes_group() {
 # release when $2 is empty. See the header.
 write() {
     local version="$1" previous="${2:-}" prefix path subjects subject entry summary tmp
+    local group scope item foreign reverted nl=$'\n'
     local looked=0 listed=0 breaking="" added="" fixed=""
     local -a paths=()
     if grep -qxF "## $version" "$CHANGELOG"; then
@@ -224,6 +249,15 @@ write() {
     fi
     if [[ -n "$previous" ]]; then
         prefix="$(component_tag_prefix "$COMPONENT")" || exit 1
+        # `git log` lists the newest commit first, so a revert is read before
+        # the commit it reverts. `reverted` holds the subjects that the
+        # reverts read so far name, and `foreign` the scopes that are not
+        # about the component. Each has one item per line and starts and ends
+        # with a newline, so that `*"$nl$item$nl"*` finds a whole item and
+        # nothing else.
+        foreign="$(component_foreign_scopes "$COMPONENT")" || exit 1
+        foreign="$nl$foreign$nl"
+        reverted="$nl"
         while IFS= read -r path; do
             paths+=("$path")
         done < <(component_paths "$COMPONENT")
@@ -234,15 +268,36 @@ write() {
         if [[ -n "$subjects" ]]; then
             while IFS= read -r subject; do
                 looked=$((looked + 1))
+                # A commit that a revert named is not an entry. Neither
+                # is a revert that a newer one named, which takes away
+                # nothing. Each name is used up by one commit.
+                if [[ "$reverted" == *"$nl$subject$nl"* ]]; then
+                    reverted="${reverted/"$nl$subject$nl"/$nl}"
+                    continue
+                fi
+                if [[ "$subject" =~ $REVERT_SUBJECT ]]; then
+                    reverted+="${BASH_REMATCH[1]}$nl"
+                    continue
+                fi
                 if [[ "$subject" =~ $BREAKING_SUBJECT ]]; then
-                    breaking+="- ${subject#"${BASH_REMATCH[0]}"}"$'\n'
+                    group=breaking
                 elif [[ "$subject" =~ $ADDED_SUBJECT ]]; then
-                    added+="- ${subject#"${BASH_REMATCH[0]}"}"$'\n'
+                    group=added
                 elif [[ "$subject" =~ $FIXED_SUBJECT ]]; then
-                    fixed+="- ${subject#"${BASH_REMATCH[0]}"}"$'\n'
+                    group=fixed
                 else
                     continue
                 fi
+                scope="${BASH_REMATCH[2]}"
+                item="- ${subject#"${BASH_REMATCH[0]}"}"$nl
+                if [[ -n "$scope" && "$foreign" == *"$nl$scope$nl"* ]]; then
+                    continue
+                fi
+                case "$group" in
+                    breaking) breaking+="$item" ;;
+                    added) added+="$item" ;;
+                    fixed) fixed+="$item" ;;
+                esac
                 listed=$((listed + 1))
             done <<<"$subjects"
         fi

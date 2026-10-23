@@ -24,7 +24,11 @@ Pull requests are squash-merged, so a pull request's title becomes its commit su
 Write the title as `<type>(<scope>): <summary>`. The `feat` and `fix` titles become the release
 notes of the components the change reaches (see "Release notes" in
 [`RELEASING.md`](../RELEASING.md#release-notes)), so write them for the people who use the SDK. A
-change that breaks callers marks its type with `!`, as in `feat(sdk)!: ...`.
+change that breaks callers marks its type with `!`, as in `feat(sdk)!: ...`. Scope a title by what
+the change is about: the notes of a component leave out the changes scoped to a platform it does
+not ship, such as `ios` for the Android SDK, and to the development environment, such as `flake` or
+`ci`. [`scripts/sdk-components.sh`](../scripts/sdk-components.sh) lists the scopes that each
+component leaves out.
 
 Please enable "Allow edits from maintainers" on a pull request, so that the core team can update
 it if necessary.

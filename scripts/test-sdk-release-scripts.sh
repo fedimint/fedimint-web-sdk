@@ -510,7 +510,7 @@ android/settings.gradle.kts
 android/gradle.properties
 rust/fedimint-sdk
 rust/uniffi-bindgen
-nix
+nix/ffi.nix
 flake.nix
 flake.lock
 scripts/generate-android-bindings.sh
@@ -528,6 +528,61 @@ flake.lock
 scripts/generate-sdk-rn-bindings.sh
 scripts/assemble-rn-ios-xcframework.sh
 scripts/react-native-sdk-pack.sh
+EOF
+            ;;
+    esac
+}
+
+# The scopes that mark a commit as not about each component, one per line.
+expected_foreign_scopes() {
+    case "$1" in
+        rust)
+            cat <<'EOF'
+flake
+ci
+workflows
+tests
+examples
+release
+web
+sdk-web
+vite-core
+react-native
+rn-bindings
+js
+swift
+EOF
+            ;;
+        android)
+            cat <<'EOF'
+flake
+ci
+workflows
+tests
+examples
+release
+web
+sdk-web
+vite-core
+react-native
+rn-bindings
+js
+swift
+ios
+EOF
+            ;;
+        react-native)
+            cat <<'EOF'
+flake
+ci
+workflows
+tests
+examples
+release
+web
+sdk-web
+vite-core
+swift
 EOF
             ;;
     esac
@@ -581,10 +636,13 @@ for component in rust android react-native; do
             fail "$component path $path exists in this checkout" "git ls-files lists nothing there"
         fi
     done < <(expected_paths "$component")
+    expect_ok "component_foreign_scopes $component lists the scopes that are not about it" \
+        "$(expected_foreign_scopes "$component")" -- \
+        sourced "component_foreign_scopes $component"
 done
 
 for fn in is_component component_title component_tag_prefix component_changelog \
-    component_workflow component_paths; do
+    component_workflow component_paths component_foreign_scopes; do
     expect_fail "$fn refuses an unknown name" \
         "sideways is not a component: it must be one of rust, android, react-native" -- \
         sourced "$fn sideways"
@@ -1291,7 +1349,7 @@ subjects=(
     "feat(sdk): a call of the crate"
     "fix(nix): pin the toolchain"
     "feat(web): unrelated to every component"
-    "feat(release)!: rename a call of the crate"
+    "feat(sdk)!: rename a call of the crate"
     "fix(deps): bump a crate in the SDK lockfile"
     "fix(deps): bump uniffi-bindgen's lockfile"
     "fix(deps): bump ubrn's lockfile"
@@ -1307,7 +1365,7 @@ files=(rust/fedimint-sdk/CHANGELOG.md android/CHANGELOG.md js/react-native/CHANG
 change "$r" js/react-native/react-native/src/index.ts "${subjects[0]}"
 change "$r" android/fedimint-sdk/src/Sdk.kt "${subjects[1]}"
 change "$r" rust/fedimint-sdk/src/lib.rs "${subjects[2]}"
-change "$r" nix/sdk.nix "${subjects[3]}"
+change "$r" nix/ffi.nix "${subjects[3]}"
 change "$r" js/web/index.ts "${subjects[4]}"
 change "$r" rust/fedimint-sdk/src/release.rs "${subjects[5]}"
 change "$r" rust/fedimint-sdk/Cargo.lock "${subjects[6]}"
@@ -1403,19 +1461,26 @@ for row in "rust|rust/fedimint-sdk/CHANGELOG.md|rust-sdk-v|Rust SDK" \
         "$file has notes for 0.1.0-beta.2" -- "$c" check "$component" 0.1.0-beta.2
 done
 
-# written <subject>...: the notes that `write` makes for the Android SDK from commits with these
-# subjects, oldest first, each of them a change to the sources of the crate, in a fresh repository
-# in which the Android SDK was released at 0.1.0-beta.1. Prints them, as `section` does.
-written() {
-    local dir subject
+# written_for <component> <path> <subject>...: the notes that `write` makes for the component from
+# commits with these subjects, oldest first, each of them a change to the file <path>, in a fresh
+# repository in which every component was released at 0.1.0-beta.1. Prints them, as `section`
+# does.
+written_for() {
+    local component="$1" path="$2" dir subject
+    shift 2
     dir="$(repo 0.1.0-beta.1 < <(finished_notes))"
+    git -C "$dir" tag rust-sdk-v0.1.0-beta.1
     git -C "$dir" tag android-sdk-v0.1.0-beta.1
+    git -C "$dir" tag react-native-sdk-v0.1.0-beta.1
     for subject in "$@"; do
-        change "$dir" rust/fedimint-sdk/src/lib.rs "$subject"
+        change "$dir" "$path" "$subject"
     done
-    "$dir/scripts/sdk-changelog.sh" write android 0.1.0-beta.2 0.1.0-beta.1 2>/dev/null
-    "$dir/scripts/sdk-changelog.sh" section android 0.1.0-beta.2
+    "$dir/scripts/sdk-changelog.sh" write "$component" 0.1.0-beta.2 0.1.0-beta.1 2>/dev/null
+    "$dir/scripts/sdk-changelog.sh" section "$component" 0.1.0-beta.2
 }
+
+# written <subject>...: the same for the Android SDK, with changes to the sources of the crate.
+written() { written_for android rust/fedimint-sdk/src/lib.rs "$@"; }
 
 # A `!` before the colon makes a breaking change of any type, which is listed under Breaking only.
 expect_ok "write lists a breaking refactor under Breaking only" \
@@ -1503,6 +1568,158 @@ expect_split "write counts the merged commits and not the merge" "" \
 expect_ok "write lists a merged commit but not the merge" "$(lines \
     '### Added' '' '- on main' '' '### Fixed' '' '- on a side branch')" -- \
     "$c" section android 0.1.0-beta.2
+
+# A commit whose scope is foreign to the component is left out whatever its type, a `!` included,
+# although it touched what the component is built from. All three components are built from the
+# crate's sources, so a change to them under each scope shows which components leave it out. Only
+# a scope that is exactly a foreign one counts: a commit with another scope, or none, is listed.
+r="$(repo 0.1.0-beta.1 < <(finished_notes))"
+c="$r/scripts/sdk-changelog.sh"
+git -C "$r" tag rust-sdk-v0.1.0-beta.1
+git -C "$r" tag android-sdk-v0.1.0-beta.1
+git -C "$r" tag react-native-sdk-v0.1.0-beta.1
+# Each row is a subject, and whether the notes of rust, android and react-native list it.
+rows=(
+    "feat(flake): a change scoped (flake)|n n n"
+    "fix(ci): a change scoped (ci)|n n n"
+    "fix(workflows): a change scoped (workflows)|n n n"
+    "fix(tests): a change scoped (tests)|n n n"
+    "fix(examples): a change scoped (examples)|n n n"
+    "feat(release): a change scoped (release)|n n n"
+    "feat(web): a change scoped (web)|n n n"
+    "fix(sdk-web): a change scoped (sdk-web)|n n n"
+    "fix(vite-core): a change scoped (vite-core)|n n n"
+    "fix(react-native): a change scoped (react-native)|n n y"
+    "fix(rn-bindings): a change scoped (rn-bindings)|n n y"
+    "fix(js): a change scoped (js)|n n y"
+    "fix(swift): a change scoped (swift)|n n n"
+    "fix(ios): a change scoped (ios)|y n y"
+    "feat(android): a change scoped (android)|y y y"
+    "fix(sdk): a change scoped (sdk)|y y y"
+    "fix(nix): a change scoped (nix)|y y y"
+    "fix: a change without a scope|y y y"
+    "feat(flake)!: a breaking change scoped (flake)|n n n"
+    "refactor(react-native)!: a breaking change scoped (react-native)|n n y"
+    "fix(ios)!: a breaking change scoped (ios)|y n y"
+    "fix(web,sdk): a change scoped (web,sdk)|y y y"
+    "fix(Web): a change scoped (Web)|y y y"
+    "fix(websocket): a change scoped (websocket)|y y y"
+    "fix(somewhere): a change scoped (somewhere)|y y y"
+    "fix(*): a change scoped (*)|y y y"
+)
+# How many of the commits are in the notes of rust, android and react-native.
+counts=("11 of 26" "9 of 26" "15 of 26")
+files=(rust/fedimint-sdk/CHANGELOG.md android/CHANGELOG.md js/react-native/CHANGELOG.md)
+for row in "${rows[@]}"; do
+    change "$r" rust/fedimint-sdk/src/lib.rs "${row%|*}"
+done
+index=0
+for component in rust android react-native; do
+    line="${files[$index]} has notes for 0.1.0-beta.2"
+    line="$line from ${counts[$index]} commits since 0.1.0-beta.1"
+    expect_split "write $component counts a commit with a foreign scope as looked at only" "" \
+        "$line" -- "$c" write "$component" 0.1.0-beta.2 0.1.0-beta.1
+    notes="$("$c" section "$component" 0.1.0-beta.2)"
+    for row in "${rows[@]}"; do
+        subject="${row%|*}"
+        read -ra want <<<"${row##*|}"
+        text="${subject#*: }"
+        if [[ "${want[$index]}" == y ]] && grep -qxF -- "- $text" <<<"$notes"; then
+            pass "write $component lists: $subject"
+        elif [[ "${want[$index]}" == n && "$notes" != *"$text"* ]]; then
+            pass "write $component leaves out: $subject"
+        else
+            fail "write $component: $subject (expected ${want[$index]})" "$notes"
+        fi
+    done
+    index=$((index + 1))
+done
+
+# nix/ffi.nix builds the native library that the Android SDK and the React Native packages share,
+# and nix/web-bindgen.nix provides the binding generators of the React Native packages and the web
+# SDK. A change that touched only the second is not a change to the Android SDK.
+expect_ok "write leaves a change that only touched web-bindgen.nix out of the crate's notes" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    written_for rust nix/web-bindgen.nix "fix(sdk): update the binding generators"
+expect_ok "write leaves a change that only touched web-bindgen.nix out of the Android SDK's" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    written_for android nix/web-bindgen.nix "fix(sdk): update the binding generators"
+expect_ok "write lists a change that only touched web-bindgen.nix for the React Native SDK" \
+    "$(lines '### Fixed' '' '- update the binding generators')" -- \
+    written_for react-native nix/web-bindgen.nix "fix(sdk): update the binding generators"
+
+# A revert is never an entry. It takes away the entry of the commit in the same range whose subject
+# is exactly the one it names, with or without the number that a squash merge adds to its own.
+expect_ok "write takes a revert and the commit it reverts out of the notes" \
+    "$(lines '### Added' '' '- add another call (#13)')" -- \
+    written "feat(sdk): add a call (#12)" "feat(sdk): add another call (#13)" \
+    'Revert "feat(sdk): add a call (#12)" (#14)'
+expect_ok "write takes a revert without a number and the commit it reverts out of the notes" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    written "fix(sdk): stop a crash (#12)" 'Revert "fix(sdk): stop a crash (#12)"'
+expect_ok "write takes a reverted breaking change out of the notes" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    written "feat(sdk)!: remove a call (#12)" 'Revert "feat(sdk)!: remove a call (#12)" (#13)'
+expect_ok "write does not take away a commit that comes after its revert" \
+    "$(lines '### Added' '' '- add a call')" -- \
+    written "feat(sdk): add a call" 'Revert "feat(sdk): add a call"' "feat(sdk): add a call"
+expect_ok "write lets a revert take away one commit" "$(lines '### Fixed' '' '- stop a crash')" -- \
+    written "fix(sdk): stop a crash" "fix(sdk): stop a crash" 'Revert "fix(sdk): stop a crash"'
+expect_ok "write lets two reverts take away two commits" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    written "fix(sdk): stop a crash" "fix(sdk): stop a crash" 'Revert "fix(sdk): stop a crash"' \
+    'Revert "fix(sdk): stop a crash"'
+expect_ok "write takes away nothing for a revert that names another subject" \
+    "$(lines '### Added' '' '- add a call (#12)')" -- \
+    written "feat(sdk): add a call (#12)" 'Revert "feat(sdk): add a call"'
+# The subject a revert names is compared as it is, not as a pattern.
+expect_ok "write compares the subject of a revert as text, characters of a pattern included" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    written 'fix(sdk): handle a/b, [x], * and ? (#12)' \
+    'Revert "fix(sdk): handle a/b, [x], * and ? (#12)"'
+expect_ok "write does not take a pattern in a subject for what a revert names" \
+    "$(lines '### Fixed' '' '- handle * (#13)')" -- \
+    written "fix(sdk): handle a (#12)" "fix(sdk): handle * (#13)" \
+    'Revert "fix(sdk): handle a (#12)"'
+
+# A revert that is itself reverted takes away nothing, so the commit stays, and one more revert
+# takes it away again.
+expect_ok "write keeps a commit whose revert was reverted" \
+    "$(lines '### Added' '' '- add a call (#12)')" -- \
+    written "feat(sdk): add a call (#12)" 'Revert "feat(sdk): add a call (#12)" (#13)' \
+    'Revert "Revert "feat(sdk): add a call (#12)" (#13)" (#14)'
+expect_ok "write takes a commit away again when the revert of its revert is reverted" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    written "feat(sdk): add a call (#12)" 'Revert "feat(sdk): add a call (#12)" (#13)' \
+    'Revert "Revert "feat(sdk): add a call (#12)" (#13)" (#14)' \
+    'Revert "Revert "Revert "feat(sdk): add a call (#12)" (#13)" (#14)" (#15)'
+
+# A revert, and the commit it reverts, are commits that `write` looked at and did not take into
+# the notes.
+r="$(repo 0.1.0-beta.1 < <(finished_notes))"
+c="$r/scripts/sdk-changelog.sh"
+git -C "$r" tag android-sdk-v0.1.0-beta.1
+change "$r" rust/fedimint-sdk/src/lib.rs "feat(sdk): add a call (#12)"
+change "$r" rust/fedimint-sdk/src/lib.rs "feat(sdk): add another call (#13)"
+change "$r" rust/fedimint-sdk/src/lib.rs 'Revert "feat(sdk): add a call (#12)" (#14)'
+expect_split "write counts a revert and the commit it reverts as looked at only" "" \
+    "android/CHANGELOG.md has notes for 0.1.0-beta.2 from 1 of 3 commits since 0.1.0-beta.1" -- \
+    "$c" write android 0.1.0-beta.2 0.1.0-beta.1
+
+# The notes of the release that has a commit are written already, so a revert of that commit in
+# the next release takes away nothing. It is left out like any other subject that is not a feat or
+# a fix, and does not take away a commit of the range.
+r="$(repo 0.1.0-beta.1 < <(finished_notes))"
+c="$r/scripts/sdk-changelog.sh"
+change "$r" rust/fedimint-sdk/src/lib.rs "feat(sdk): add a call (#12)"
+git -C "$r" tag android-sdk-v0.1.0-beta.1
+change "$r" rust/fedimint-sdk/src/lib.rs 'Revert "feat(sdk): add a call (#12)" (#13)'
+change "$r" rust/fedimint-sdk/src/lib.rs "feat(sdk): add another call (#14)"
+expect_split "write counts a revert of an earlier release as looked at only" "" \
+    "android/CHANGELOG.md has notes for 0.1.0-beta.2 from 1 of 2 commits since 0.1.0-beta.1" -- \
+    "$c" write android 0.1.0-beta.2 0.1.0-beta.1
+expect_ok "write lists the commits since the release and not a revert of an earlier one" \
+    "$(lines '### Added' '' '- add another call (#14)')" -- "$c" section android 0.1.0-beta.2
 
 echo
 echo "sdk-changelog.sh release-notes"
@@ -5266,7 +5483,7 @@ counts=("1 of 2" "3 of 4" "3 of 4")
 change "$r" js/react-native/react-native/src/index.ts "${subjects[0]}"
 change "$r" android/fedimint-sdk/src/Sdk.kt "${subjects[1]}"
 change "$r" rust/fedimint-sdk/src/lib.rs "${subjects[2]}"
-change "$r" nix/sdk.nix "${subjects[3]}"
+change "$r" nix/ffi.nix "${subjects[3]}"
 change "$r" js/web/index.ts "${subjects[4]}"
 change "$r" rust/fedimint-sdk/src/release.rs "${subjects[5]}"
 run_split "$rel" bump all patch --beta
