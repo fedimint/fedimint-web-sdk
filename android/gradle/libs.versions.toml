@@ -22,6 +22,10 @@ fedimintSdk = "0.1.0-beta.2"
 # Publishes :fedimint-sdk to Maven Central through the Sonatype Central
 # Portal (OSSRH is gone). 0.35.0 is the newest release that still supports
 # this build's Gradle 8.13 and Kotlin 2.0; 0.36 needs Gradle 9 and Kotlin 2.2.
+# 0.36 also ends the publish's wait at VALIDATED by default, so a bump to it
+# has to pass `validateDeployment = DeploymentValidation.PUBLISHED` for the
+# build to wait until the version is on Maven Central. The GitHub Release job
+# of android-sdk-release.yaml relies on that wait.
 mavenPublish = "0.35.0"
 
 [libraries]

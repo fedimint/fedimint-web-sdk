@@ -4620,8 +4620,8 @@ expect_equal "the summary has no release that was not started" "" \
     "$(grep 'Not started' <<<"$SUMMARY" || true)"
 next="Next: each started release waits for a reviewer of its environment to approve the job"
 expect_contains "the summary says that each release waits for a reviewer" "$next" "$SUMMARY"
-expect_contains "the summary says what is left to do for the Android SDK" \
-    "For the Android SDK, after that: press Publish on central.sonatype.com" "$SUMMARY"
+expect_equal "the summary does not mention central.sonatype.com" "" \
+    "$(grep 'central.sonatype.com' <<<"$SUMMARY" || true)"
 
 # All three components: the crate's release is started by its own workflow.
 tag_repo rust android react-native

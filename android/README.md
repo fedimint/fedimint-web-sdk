@@ -267,31 +267,31 @@ the release. It first checks the tag, then runs the whole
 [`android-sdk.yaml`](../.github/workflows/android-sdk.yaml) chain on the release
 commit, including the emulator run. Only if that passes does it build the AAR
 again from the native libraries and bindings that run tested, then sign and
-upload it. The upload is not released
-automatically. It waits on central.sonatype.com until someone publishes it
-there, because a version released to Central can never be changed or deleted.
-The workflow also does not wait for Central to validate it, so a green run
-means uploaded, not validated.
+upload it. Central publishes the upload as soon as it validates it, and the
+workflow waits for that, so a green run means the version is on Maven Central.
+A deployment that fails validation fails the run, with Central's reasons, and
+nothing is published. Approving the run, below, is the decision to publish:
+nothing is uploaded before it, and a version published to Central can never be
+changed or deleted.
 
 Every release has notes in [`CHANGELOG.md`](CHANGELOG.md), one `## <version>`
 section each. They also become the version's GitHub Release, and the tag's
 message. A release is refused without them.
 
 [`RELEASING.md`](../RELEASING.md) says how a release is started and tagged,
-and what to do when that fails. Once the release workflow has started, three
-steps are the Android SDK's own:
+and what to do when that fails. Once the release workflow has started, one
+step is the Android SDK's own: approve the `maven-central` environment when
+the run asks, after checking that it is on the tag of the release.
 
-1. Approve the `maven-central` environment when the run asks, after checking
-   that it is on the tag of the release.
-2. On central.sonatype.com → Publishing → Deployments, wait for the
-   deployment to show `VALIDATED` (a `FAILED` one lists the reason), then
-   press Publish.
-3. Publish the version's draft GitHub Release, which the run created.
-
-The workflow does not ask Central what it has already. A re-run of its
-`publish` job, or a run by hand on the tag with `publish` ticked, uploads the
-version again, so first look under Publishing → Deployments for what an
-earlier run left, and drop a deployment that must not be published.
+A re-run of the `publish` job, or a run by hand on the tag with `publish`
+ticked, fails without changing anything for a version Central has published.
+A deployment that failed validation stays under Publishing → Deployments on
+central.sonatype.com, and can be dropped there. If the wait for Central runs
+out (50 minutes, set in [`gradle.properties`](gradle.properties)), check
+`https://repo1.maven.org/maven2/org/fedimint/sdk/<version>/` as the header of
+the workflow says, and create the GitHub Release by hand if the version is out.
+If it is not out yet, its deployment under Publishing → Deployments shows
+whether Central is still publishing it or why it failed.
 
 The release is refused if the tag does not name the version in the catalog, if
 its commit is not on `main`, if the version is not newer than every earlier

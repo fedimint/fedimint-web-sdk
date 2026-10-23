@@ -100,13 +100,13 @@ A beta is always either continued (`beta`) or released (`release`). There is no 
    component").
 5. Follow the release workflows under Actions. Each one stops before it publishes and asks a
    reviewer of its environment to approve: check that the run is on the tag of the release
-   you merged, then approve. Then finish what is left by hand:
+   you merged, then approve. The rest needs nothing by hand:
 
-   | Component      | Workflow                 | It publishes                                                                    | Left to do by hand                                                                                                           |
-   | -------------- | ------------------------ | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-   | `rust`         | Rust SDK Release         | the crate to crates.io, and the GitHub Release                                  | nothing                                                                                                                      |
-   | `android`      | Android SDK Release      | an upload to Maven Central that is not yet released, and a draft GitHub Release | On central.sonatype.com, wait for the deployment to show VALIDATED and press Publish. Then publish the draft GitHub Release. |
-   | `react-native` | React Native SDK Release | both packages to npm, and the GitHub Release with the tarballs                  | nothing                                                                                                                      |
+   | Component      | Workflow                 | It publishes                                                   |
+   | -------------- | ------------------------ | -------------------------------------------------------------- |
+   | `rust`         | Rust SDK Release         | the crate to crates.io, and the GitHub Release                 |
+   | `android`      | Android SDK Release      | the release to Maven Central, and the GitHub Release           |
+   | `react-native` | React Native SDK Release | both packages to npm, and the GitHub Release with the tarballs |
 
 Each workflow first checks its tag, then builds and tests the tagged commit, and publishes only
 if all of that passed. The header of each workflow file says what it does in detail.
@@ -153,9 +153,12 @@ components. The release rules would refuse it, and the component would need the 
   not published again, and an npm package that is already there as the tarball this run built is
   skipped, so both releases go on from where they stopped. The GitHub Release is created or
   updated again. A version that a registry has from another build stops the release instead (see
-  the next point). The Android release does not look at Maven Central, so re-running its
-  `publish` job uploads again: read "Releases" in [`android/README.md`](android/README.md)
-  first. [`js/react-native/README.md`](js/react-native/README.md) says why re-running all jobs is
+  the next point). For the Android release, a re-run of the `publish` job for a version that
+  Central published fails and changes nothing, because Central refuses a version it has. A re-run
+  after a failed validation uploads again, as nothing was published. If the job ran out of time
+  waiting for Central, the version may be out already: read "Releases" in
+  [`android/README.md`](android/README.md) first.
+  [`js/react-native/README.md`](js/react-native/README.md) says why re-running all jobs is
   wrong for the npm packages. Finish a release before the next one goes out: once any component
   has a newer release, the first job refuses the older tag, so that release can then only be
   finished by re-running its failed jobs, which leaves the first job out.
@@ -275,5 +278,4 @@ The required reviewers are what decides whether something is published. Creating
 tag is open to everybody who can push, and a workflow runs as its file is in the tagged
 commit, so the checks in the release workflows stop mistakes, not misuse. Whoever approves a
 publishing job checks that it is the release that was merged: its tag, and that the tagged
-commit is on `main`. For the Android SDK, pressing Publish on central.sonatype.com is a second
-decision after that.
+commit is on `main`.
