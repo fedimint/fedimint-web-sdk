@@ -13,25 +13,47 @@ name: Docs
 # come. It must never fall behind one. Nothing updates it on its own; when this fails, run
 # `python3 tools/set_version.py <version>` from docs/ and open a pull request with the result.
 #
-# It runs on a pull request that touches the docs, the skills or the React Native packages, and
-# on every release tag push, so a release that leaves the pages behind fails here. Nothing
-# deploys the site yet.
+# It runs on a pull request that touches the docs, the skills or the React Native packages.
+#
+# It also deploys the site to GitHub Pages (sdk.fedimint.org), and only in two ways:
+#
+#   * react-native-sdk-release.yaml calls it with `deploy` after the npm publish, on the release
+#     tag. The pages then never name a version that is not on npm, and a release that leaves
+#     them behind fails the checks above before anything is deployed. A release tag is not a
+#     trigger here: sdk-tag.yaml pushes tags with the workflow token, which starts no workflow,
+#     and a tag pushed by hand already runs the release, which calls this.
+#   * A manual run on main with `deploy` ticked, for a docs-only fix between releases.
+#
+# The deploy publishes in the `github-pages` environment, so that environment's deployment
+# rules must allow both main and `react-native-sdk-v*` tags.
 
 on:
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy the site to GitHub Pages (only from main)'
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      deploy:
+        description: 'Deploy the site to GitHub Pages once the checks pass'
+        type: boolean
+        default: false
   pull_request:
     paths:
       - 'docs/**'
       - 'skills/**'
       - 'js/react-native/**'
       - '.github/workflows/docs.yaml'
-  push:
-    tags:
-      - 'react-native-sdk-v*'
 
+# A pull request's newer push cancels its older run. Every other run gets a group of its own,
+# so nothing a release calls is ever cancelled; the deploy job queues on `pages` instead. The
+# group is spelled out rather than built from `github.workflow`, which in a called workflow is
+# the caller's name and would share the caller's group.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+  group: docs-${{ github.event_name == 'pull_request' && github.head_ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -88,3 +110,37 @@ jobs:
 
       - name: 'Build the site'
         run: pnpm --dir docs build
+
+      - name: 'Upload the site for GitHub Pages'
+        if: >-
+          inputs.deploy && (github.ref == 'refs/heads/main' ||
+          startsWith(github.ref, 'refs/tags/react-native-sdk-v'))
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs/.vitepress/dist
+
+  # The only job that writes anything. Deploys queue one after another rather than cancel each
+  # other, so a release's deploy is never dropped for a later one.
+  deploy:
+    name: 'Deploy the site to GitHub Pages'
+    needs: [tools, pages]
+    if: >-
+      inputs.deploy && (github.ref == 'refs/heads/main' ||
+      startsWith(github.ref, 'refs/tags/react-native-sdk-v'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      # What GitHub Pages checks the deployment's origin with.
+      id-token: write
+
+    steps:
+      - name: 'Deploy'
+        id: deployment
+        uses: actions/deploy-pages@v5
