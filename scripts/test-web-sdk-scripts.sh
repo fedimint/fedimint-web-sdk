@@ -316,6 +316,18 @@ break_manifest "types pointing at missing file is refused" \
 break_manifest "exports pointing at missing file is refused" \
     'exports["./worker"]["default"] points at ./dist/missing-worker.js, which is not in the tarball' \
     'm.exports["./worker"].default = "./dist/missing-worker.js"'
+break_manifest "missing ./package.json in exports is refused" \
+    'exports["./package.json"] is missing, expected "./package.json"' \
+    'delete m.exports["./package.json"]'
+break_manifest "invalid ./package.json export target is refused" \
+    'exports["./package.json"] is "./dist/package.json", expected "./package.json"' \
+    'm.exports["./package.json"] = "./dist/package.json"'
+break_manifest "manifest with missing exports field is refused" \
+    'exports["./package.json"] is missing, expected "./package.json"' \
+    'delete m.exports'
+
+expect_equal "committed package.json exports ./package.json" "./package.json" \
+    "$(node -e 'console.log(JSON.parse(require("fs").readFileSync("js/web/web-sdk/package.json")).exports["./package.json"] || "")')"
 
 for entry in "${REQUIRED_FILES[@]}"; do
     break_entries "missing $entry is refused" "missing entry package/$entry" \
@@ -483,7 +495,7 @@ expect_contains "missing install command named" \
 expect_contains "missing build output dist/index.js named" \
     "js/web/web-sdk/dist/index.js: run pnpm --dir js/web/web-sdk run build" "$OUT"
 expect_contains "missing build output wasm named" \
-    "js/web/web-sdk/dist/generated/fedimint_sdk.wasm: run pnpm --dir js/web/web-sdk run build" "$OUT"
+    "js/web/web-sdk/dist/generated/fedimint_sdk.wasm: run scripts/nix-build-sdk-wasm.sh" "$OUT"
 
 echo
 echo "$passed passed, $failed failed"

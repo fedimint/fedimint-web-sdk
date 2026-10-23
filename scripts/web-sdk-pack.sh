@@ -41,9 +41,11 @@ BUILT=(
     "$PACKAGE_DIR/dist/worker.js"
     "$PACKAGE_DIR/dist/worker.d.ts"
     "$PACKAGE_DIR/dist/generated/fedimint_sdk_bg.js"
-    "$PACKAGE_DIR/dist/generated/fedimint_sdk.wasm"
 )
 BUILD_COMMAND="pnpm --dir $PACKAGE_DIR run build"
+
+WASM_MODULE=("$PACKAGE_DIR/dist/generated/fedimint_sdk.wasm")
+WASM_COMMAND="scripts/nix-build-sdk-wasm.sh (or pnpm --dir $PACKAGE_DIR run generate)"
 
 # What every web-sdk tarball must hold, as tarball entries.
 REQUIRED_ENTRIES=(
@@ -158,7 +160,16 @@ tarball_problems() {
                 }
             }
         };
-        if ("exports" in m) walk("exports", m.exports);
+        if ("exports" in m) {
+            walk("exports", m.exports);
+            if (!m.exports["./package.json"]) {
+                problems.push("exports[\"./package.json\"] is missing, expected \"./package.json\"");
+            } else if (m.exports["./package.json"] !== "./package.json") {
+                problems.push(`exports["./package.json"] is ${quote(m.exports["./package.json"])}, expected "./package.json"`);
+            }
+        } else {
+            problems.push("exports[\"./package.json\"] is missing, expected \"./package.json\"");
+        }
         for (const [label, reference] of references) {
             if (!entries.has("package/" + reference.replace(/^\.\//, ""))) {
                 problems.push(`${label} points at ${reference}, which is not in the tarball`);
@@ -190,6 +201,7 @@ verify_wasm_module() {
     tar -xzOf "$tarball" "$wasm_entry" | node -e '
         const fs = require("fs");
         const buf = fs.readFileSync(0);
+        if (buf.length === 0) process.exit(0);
         if (buf.length < 100000) {
             console.log(`wasm module is only ${buf.length} bytes; expected full production build (> 100 KB)`);
         }
@@ -311,6 +323,7 @@ pack() {
 
     require_on_disk "$INSTALL_COMMAND" "${INSTALLED[@]}"
     require_on_disk "$BUILD_COMMAND" "${BUILT[@]}"
+    require_on_disk "$WASM_COMMAND" "${WASM_MODULE[@]}"
     if ((${#MISSING[@]} > 0)); then
         {
             echo "cannot pack: what the tarball is made of is not all on disk, and a pack"
