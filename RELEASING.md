@@ -84,8 +84,13 @@ A beta is always either continued (`beta`) or released (`release`). There is no 
    release, as "Release notes" below describes. It refuses a bump that does not fit, such as
    `patch` in the middle of a beta, or a version that is already taken, before it writes anything.
 
-2. Read the notes in the pull request, in each file, and edit them there if they need more, for
-   example to explain how to adapt to a breaking change. This is optional.
+2. Read the notes in the pull request, in each file. Under the list of the files, the pull
+   request lists the commits that got no entry in each component's notes, 50 at most, and
+   `scripts/sdk-changelog.sh left-out <component> <last release>` lists them all. Check the Added
+   and Fixed lines for a change that breaks callers, which belongs under Breaking when its commit
+   had no `!`, and add a line for anything users see among the commits left out. Edit the notes
+   there for anything else they need, for example to explain how to adapt to a breaking change.
+   This is optional.
 3. A pull request opened by a workflow does not start other workflows, so close and reopen it
    to start its checks, and let all of them finish before you merge. They also build the native
    libraries that the release then takes from the cache. One of them, **SDK Release Scripts**,
@@ -122,11 +127,13 @@ type decides where the commit goes:
 - `### Added`: `feat`.
 - `### Fixed`: `fix`.
 
-A section has the headings that have entries, in that order. An entry is a list item holding the
-subject without its `<type>(<scope>)!: ` prefix and otherwise as it is, so the number of the pull
-request, which a squash merge appends to the title as `(#123)`, stays. Commits of any other type
-are left out: `chore` (which includes the `chore(release): ...` commit of a version bump), `build`,
-`ci`, `docs`, `test`, `refactor` and so on. Subjects that are not in this form are left out too.
+A section has the headings that have entries, in the order Breaking, Added, Changed, Fixed.
+`### Changed` is for the one line that is not a commit, described below. An entry under the other
+three is a list item holding the subject without its `<type>(<scope>)!: ` prefix and otherwise as
+it is, so the number of the pull request, which a squash merge appends to the subject as `(#123)`,
+stays. Commits of any other type are left out: `chore` (which includes the `chore(release): ...`
+commit of a version bump), `build`, `ci`, `docs`, `test`, `refactor` and so on. Subjects that are
+not in this form are left out too.
 
 A commit that touched what a component is built from can still be about something else. Its scope,
 the text in the parentheses, says so: a commit whose scope is foreign to a component is left out of
@@ -150,25 +157,52 @@ compared whole, so `sdk-web` is not `web`. A commit with no scope, or with any o
 listed as its type says, so a scope that is in none of the lists puts a commit in the notes rather
 than losing it.
 
-A revert is never listed, and it takes away the entry of the commit it reverts. GitHub titles a
-revert `Revert "<subject>"`, and a squash merge adds the pull request number, as in
-`Revert "<subject>" (#123)`. Among the commits since the component's last release, it takes away the
-entry of one whose subject is exactly `<subject>`, so a commit and its revert leave nothing in the
-notes. A revert that is itself reverted takes away nothing, so the commit stays in the notes. A
-revert of a commit that an earlier release listed takes away nothing either, because the notes of
-that release are written already: if users need to hear about it, write a line by hand in the
-version bump pull request.
+A revert is never listed, and it takes away the entry of the commit it reverts. Its subject is
+`Revert "<subject>"`. `git revert` and GitHub's Revert button write there the subject of the
+commit they revert, number included, but GitHub titles the revert's pull request
+`Revert "<title>"`, without the number, and the title is what lands when that pull request has
+several commits. So among the commits since the component's last release, a revert takes away the
+entry of one commit, the one whose subject is `<subject>` or `<subject> (#<number>)`, and a commit
+and its revert leave nothing in the notes. A revert that is itself reverted takes away nothing, so
+the commit stays in the notes. The revert of a revert is written `Revert "Revert "<subject>""`, or,
+by `git revert` 2.43 and later, `Reapply "<subject>"` followed by the numbers the revert had, to
+which a squash merge may add one more. A reapply is never listed either. A revert of a commit that
+an earlier release listed takes away nothing, because the notes of that release are written
+already: if users need to hear about it, write a line by hand in the version bump pull request.
+
+The crate's `Cargo.lock`, the one in `rust/fedimint-sdk`, says which fedimint every component is
+built against. The bump reads its first `fedimint-core` package at the component's last release and
+at the commit it runs on, and describes each as `fedimint <version>` when the package comes from
+crates.io, or as `an unreleased fedimint` when it is a git revision. When the two differ, the notes
+get `### Changed` with one line:
+`Built against <new>, where <previous version> was built against <old>.` When both are git
+revisions, and not the same one, the line is
+`Built against another unreleased fedimint than <previous version>.` There is no such line for the
+first release of a component, or when the lockfile or its `fedimint-core` package is missing at
+either commit.
+
+The version bump pull request lists, in a collapsed block for each component that has been
+released before, the commits that got no entry in its notes: those of a type that is not listed,
+subjects that are not in the form, commits with a foreign scope, reverts and reapplies, and the
+commits that a revert took away. The block shows 50 commits at most, and
+`scripts/sdk-changelog.sh left-out <component> <last release>` lists them all. Look through the
+list for anything users see, and add a line for it by hand.
 
 Two cases give a section of a single line:
 
-- `No changes for users since <previous version>.` when no commit is left;
+- `No changes for users since <previous version>.` when no commit has an entry and the fedimint is
+  the same;
 - `The first release of the <title>.` for a component that has never been released, such as
   `The first release of the Android SDK.`
 
-Pull requests are squash-merged, so the subject of a commit on `main` is the title of its pull
-request. A pull request that changes what users see is therefore titled `feat(<scope>): ...` or
-`fix(<scope>): ...`, in words users understand, and one that breaks callers marks its type with
-`!`, as in `feat(sdk)!: ...`.
+Pull requests are squash-merged with GitHub's "Default message" (see "What the releases rely on").
+A pull request lands on `main` as one commit. Its subject is the subject of the pull request's
+only commit, or the pull request's title when it has several, with ` (#<number>)` appended either
+way, and that subject is what the notes read. A commit or a title that changes what users see is
+therefore `feat(<scope>): ...` or `fix(<scope>): ...`, in words users understand, and one that
+breaks callers marks its type with `!`, as in `feat(sdk)!: ...`. For a pull request with one
+commit, a `!` or a better summary that review asks for goes into the commit, which is reworded,
+and not only into the title, because the title is not what lands. Write both in this form.
 
 ### The first release of a component
 
@@ -326,6 +360,13 @@ Settings outside this repository's files. All of them have to be in place before
   organization's repository.
 - **"Allow GitHub Actions to create and approve pull requests"** (Settings → Actions →
   General), or the version bump cannot open its pull request.
+- **Squash merges with the "Default message"** (Settings → General → Pull Requests → Allow squash
+  merging → Default commit message, which the API calls `squash_merge_commit_title` and sets to
+  `COMMIT_OR_PR_TITLE`). The generated release notes read the subjects that this setting produces:
+  the subject of a pull request's only commit, or its title when it has several, with
+  ` (#<number>)` appended. "Release notes" above is written for this setting: with another
+  choice, the title of a pull request with one commit would land instead of the commit's subject,
+  and review would fix the title rather than reword the commit.
 - **Self-hosted runners** with the labels `self-hosted, linux, x64` and
   `self-hosted, macOS, ARM64, device-tests`. The Android release builds its native libraries on
   the first and runs the example app on an emulator on the second, and the React Native release

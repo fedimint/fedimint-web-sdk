@@ -1482,6 +1482,54 @@ written_for() {
 # written <subject>...: the same for the Android SDK, with changes to the sources of the crate.
 written() { written_for android rust/fedimint-sdk/src/lib.rs "$@"; }
 
+# change_line <repository> <path> <subject>: commits a change as `change` does, and prints the line
+# that `commits` and `left-out` print for the commit.
+change_line() {
+    change "$@"
+    echo "- $3 ($(git -C "$1" rev-parse --short HEAD))"
+}
+
+# set_lock <repository> <lock>: commits the lockfile of the crate, as a `chore(deps)` commit, which
+# is an empty one when nothing changes. <lock> is `none` for no lockfile, `-` for one that has no
+# fedimint-core package, or `<version> <source>` for one that has the package. Packages with a name
+# that only starts or ends like it come first, and are no use to anyone who takes them for it.
+set_lock() {
+    local dir="$1" lock="$2" name
+    if [[ "$lock" == none ]]; then
+        rm -f "$dir/$CARGO_LOCK"
+    else
+        cargo_lock 0.1.0-beta.1 >"$dir/$CARGO_LOCK"
+        if [[ "$lock" != - ]]; then
+            for name in fedimint-core-types my-fedimint-core; do
+                printf '\n[[package]]\nname = "%s"\nversion = "9.9.9"\n' "$name"
+                printf 'source = "git+https://example.invalid"\n'
+            done >>"$dir/$CARGO_LOCK"
+            printf '\n[[package]]\nname = "fedimint-core"\nversion = "%s"\nsource = "%s"\n' \
+                "${lock%% *}" "${lock#* }" >>"$dir/$CARGO_LOCK"
+        fi
+    fi
+    git -C "$dir" add -A
+    git -C "$dir" commit -q --allow-empty -m "chore(deps): update the lockfile"
+}
+
+# changed <text>: the notes that have the entry <text> under Changed, and nothing else.
+changed() { lines '### Changed' '' "- $1"; }
+
+# fedimint_notes <component> <lock> <lock>: the notes that `write` makes for the component, which
+# was released at 0.1.0-beta.1, with the first <lock> as the lockfile of the crate at that release
+# and the second at HEAD. See set_lock. Prints them, as `section` does.
+fedimint_notes() {
+    local component="$1" dir
+    dir="$(repo 0.1.0-beta.1 < <(finished_notes))"
+    set_lock "$dir" "$2"
+    git -C "$dir" tag rust-sdk-v0.1.0-beta.1
+    git -C "$dir" tag android-sdk-v0.1.0-beta.1
+    git -C "$dir" tag react-native-sdk-v0.1.0-beta.1
+    set_lock "$dir" "$3"
+    "$dir/scripts/sdk-changelog.sh" write "$component" 0.1.0-beta.2 0.1.0-beta.1 2>/dev/null
+    "$dir/scripts/sdk-changelog.sh" section "$component" 0.1.0-beta.2
+}
+
 # A `!` before the colon makes a breaking change of any type, which is listed under Breaking only.
 expect_ok "write lists a breaking refactor under Breaking only" \
     "$(lines '### Breaking' '' '- rename a type')" -- written "refactor(sdk)!: rename a type"
@@ -1513,7 +1561,7 @@ for subject in "chore(deps): bump a crate" "build(nix): change the build" "ci: c
     "chore(release): bump the SDK to 0.2.0 (#14)" "Add a call without a type" \
     "feat(sdk) a call without a colon" "feat(sdk):a call without a space" \
     "Feat(sdk): a type in capitals" "feat(sdk: a scope that is not closed" \
-    'Revert "feat(sdk): add a call"'; do
+    'Revert "feat(sdk): add a call"' 'Reapply "feat(sdk): add a call"'; do
     expect_ok "write leaves out: $subject" "No changes for users since 0.1.0-beta.1." -- \
         written "$subject"
 done
@@ -1620,6 +1668,8 @@ for component in rust android react-native; do
     expect_split "write $component counts a commit with a foreign scope as looked at only" "" \
         "$line" -- "$c" write "$component" 0.1.0-beta.2 0.1.0-beta.1
     notes="$("$c" section "$component" 0.1.0-beta.2)"
+    # What `left-out` prints is what `write` has no entry for.
+    left="$("$c" left-out "$component" 0.1.0-beta.1)"
     for row in "${rows[@]}"; do
         subject="${row%|*}"
         read -ra want <<<"${row##*|}"
@@ -1631,7 +1681,20 @@ for component in rust android react-native; do
         else
             fail "write $component: $subject (expected ${want[$index]})" "$notes"
         fi
+        if [[ "${want[$index]}" == y && "$left" != *"- $subject ("* ]] ||
+            [[ "${want[$index]}" == n && "$left" == *"- $subject ("* ]]; then
+            pass "left-out $component agrees with write about: $subject"
+        else
+            fail "left-out $component disagrees with write about: $subject" "$left"
+        fi
     done
+    in_notes="${counts[$index]% of *}"
+    all_commits="${counts[$index]#* of }"
+    if [[ "$(grep -c '' <<<"$left")" -eq $((all_commits - in_notes)) ]]; then
+        pass "left-out $component prints the commits that write did not list"
+    else
+        fail "left-out $component prints the commits that write did not list" "$left"
+    fi
     index=$((index + 1))
 done
 
@@ -1649,7 +1712,7 @@ expect_ok "write lists a change that only touched web-bindgen.nix for the React 
     written_for react-native nix/web-bindgen.nix "fix(sdk): update the binding generators"
 
 # A revert is never an entry. It takes away the entry of the commit in the same range whose subject
-# is exactly the one it names, with or without the number that a squash merge adds to its own.
+# is the one it names, with or without the number that a squash merge adds to its own.
 expect_ok "write takes a revert and the commit it reverts out of the notes" \
     "$(lines '### Added' '' '- add another call (#13)')" -- \
     written "feat(sdk): add a call (#12)" "feat(sdk): add another call (#13)" \
@@ -1671,7 +1734,7 @@ expect_ok "write lets two reverts take away two commits" \
     'Revert "fix(sdk): stop a crash"'
 expect_ok "write takes away nothing for a revert that names another subject" \
     "$(lines '### Added' '' '- add a call (#12)')" -- \
-    written "feat(sdk): add a call (#12)" 'Revert "feat(sdk): add a call"'
+    written "feat(sdk): add a call (#12)" 'Revert "feat(sdk): add another call"'
 # The subject a revert names is compared as it is, not as a pattern.
 expect_ok "write compares the subject of a revert as text, characters of a pattern included" \
     "No changes for users since 0.1.0-beta.1." -- \
@@ -1720,6 +1783,208 @@ expect_split "write counts a revert of an earlier release as looked at only" "" 
     "$c" write android 0.1.0-beta.2 0.1.0-beta.1
 expect_ok "write lists the commits since the release and not a revert of an earlier one" \
     "$(lines '### Added' '' '- add another call (#14)')" -- "$c" section android 0.1.0-beta.2
+
+# `git revert` of a revert writes `Reapply "<subject>"` and the numbers the revert had, to which a
+# squash merge may add the number of the reapply's own pull request. It undoes the revert, which
+# then takes away nothing, and it is never an entry.
+expect_ok "write keeps a commit whose revert a reapply undid" \
+    "$(lines '### Added' '' '- add a call (#12)')" -- \
+    written "feat(sdk): add a call (#12)" 'Revert "feat(sdk): add a call (#12)" (#13)' \
+    'Reapply "feat(sdk): add a call (#12)" (#13)'
+expect_ok "write keeps it for a reapply that a squash merge numbered too" \
+    "$(lines '### Added' '' '- add a call (#12)')" -- \
+    written "feat(sdk): add a call (#12)" 'Revert "feat(sdk): add a call (#12)" (#13)' \
+    'Reapply "feat(sdk): add a call (#12)" (#13) (#14)'
+expect_ok "write keeps a commit whose revert has no number, for a reapply that has none" \
+    "$(lines '### Added' '' '- add a call')" -- \
+    written "feat(sdk): add a call" 'Revert "feat(sdk): add a call"' \
+    'Reapply "feat(sdk): add a call"'
+expect_ok "write keeps it for a reapply that only a squash merge numbered" \
+    "$(lines '### Added' '' '- add a call')" -- \
+    written "feat(sdk): add a call" 'Revert "feat(sdk): add a call"' \
+    'Reapply "feat(sdk): add a call" (#14)'
+expect_ok "write does not list a reapply" "$(lines '### Added' '' '- add a call')" -- \
+    written "feat(sdk): add a call" 'Reapply "feat(sdk): add a call"'
+expect_ok "write lets a reapply undo only the revert that has its subject" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    written "feat(sdk): add a call (#12)" 'Revert "feat(sdk): add a call (#12)" (#13)' \
+    'Reapply "feat(sdk): add another call (#12)" (#13)'
+expect_ok "write lets a reapply undo one revert only" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    written "feat(sdk): add a call" 'Revert "feat(sdk): add a call"' \
+    'Revert "feat(sdk): add a call" (#14)' 'Reapply "feat(sdk): add a call" (#14)'
+expect_ok "write takes a commit away again when the reapply that kept it is reverted" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    written "feat(sdk): add a call (#12)" 'Revert "feat(sdk): add a call (#12)" (#13)' \
+    'Reapply "feat(sdk): add a call (#12)" (#13)' \
+    'Revert "Reapply "feat(sdk): add a call (#12)" (#13)" (#14)'
+
+# GitHub titles a revert pull request without the number of the pull request it reverts, so a
+# revert takes away the commit whose subject is the one it names, or that one and a number. Each
+# name is still used up by one commit.
+expect_ok "write takes away a commit that has a number when the revert names it without one" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    written "fix(sdk): stop a crash (#12)" 'Revert "fix(sdk): stop a crash" (#13)'
+expect_ok "write uses such a name up on one commit" \
+    "$(lines '### Fixed' '' '- stop a crash (#12)')" -- \
+    written "fix(sdk): stop a crash (#12)" "fix(sdk): stop a crash (#13)" \
+    'Revert "fix(sdk): stop a crash" (#14)'
+expect_ok "write leaves a numbered commit with another subject alone" \
+    "$(lines '### Fixed' '' '- stop a crash again (#12)')" -- \
+    written "fix(sdk): stop a crash again (#12)" 'Revert "fix(sdk): stop a crash" (#13)'
+expect_ok "write keeps a commit whose revert was reverted by a title without numbers" \
+    "$(lines '### Added' '' '- add a call (#12)')" -- \
+    written "feat(sdk): add a call (#12)" 'Revert "feat(sdk): add a call" (#13)' \
+    'Revert "Revert "feat(sdk): add a call"" (#14)'
+
+# The fedimint that the crate is built against is the first fedimint-core package in its lockfile.
+# When it differs between the release and HEAD, in version or in source, the notes of every
+# component have one line for it under Changed.
+crates_io="registry+https://github.com/rust-lang/crates.io-index"
+git_a="git+https://github.com/fedimint/fedimint?rev=3c808b0#3c808b0aaaaaaaaaaaaaaaaaaaa"
+git_b="git+https://github.com/fedimint/fedimint?rev=1d3758c#1d3758cbbbbbbbbbbbbbbbbbbbb"
+built="Built against fedimint 0.13.0-beta.1, where 0.1.0-beta.1 was built against fedimint 0.12.0."
+for component in rust android react-native; do
+    expect_ok "write $component says that the fedimint went from one release to another" \
+        "$(changed "$built")" -- \
+        fedimint_notes "$component" "0.12.0 $crates_io" "0.13.0-beta.1 $crates_io"
+done
+expect_ok "write has no Changed heading when the fedimint is the same release" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    fedimint_notes android "0.13.0-beta.1 $crates_io" "0.13.0-beta.1 $crates_io"
+built="Built against fedimint 0.13.0-beta.1, where 0.1.0-beta.1 was built against"
+built+=" an unreleased fedimint."
+expect_ok "write says that the fedimint went from a git revision to a release" \
+    "$(changed "$built")" -- \
+    fedimint_notes android "0.13.0-alpha $git_a" "0.13.0-beta.1 $crates_io"
+built="Built against an unreleased fedimint, where 0.1.0-beta.1 was built against fedimint 0.12.0."
+expect_ok "write says that the fedimint went from a release to a git revision" \
+    "$(changed "$built")" -- \
+    fedimint_notes android "0.12.0 $crates_io" "0.13.0-alpha $git_a"
+expect_ok "write says that the fedimint went from a git revision to another one" \
+    "$(changed "Built against another unreleased fedimint than 0.1.0-beta.1.")" -- \
+    fedimint_notes android "0.13.0-alpha $git_a" "0.13.0-alpha $git_b"
+expect_ok "write has no Changed heading when the fedimint is the same git revision" \
+    "No changes for users since 0.1.0-beta.1." -- \
+    fedimint_notes android "0.13.0-alpha $git_a" "0.13.0-alpha $git_a"
+for row in "none|no lockfile" "-|a lockfile without the package"; do
+    IFS='|' read -r missing what <<<"$row"
+    expect_ok "write has no line about the fedimint when the release has $what" \
+        "No changes for users since 0.1.0-beta.1." -- \
+        fedimint_notes android "$missing" "0.13.0-beta.1 $crates_io"
+    expect_ok "write has no line about the fedimint when HEAD has $what" \
+        "No changes for users since 0.1.0-beta.1." -- \
+        fedimint_notes android "0.12.0 $crates_io" "$missing"
+    expect_ok "write has no line about the fedimint when both have $what" \
+        "No changes for users since 0.1.0-beta.1." -- fedimint_notes android "$missing" "$missing"
+done
+
+# Only the first package with that name counts, and not one that merely has it in its name. The
+# line about the fedimint is not a commit, and the stderr line does not count it.
+r="$(repo 0.1.0-beta.1 < <(finished_notes))"
+c="$r/scripts/sdk-changelog.sh"
+set_lock "$r" "0.12.0 $crates_io"
+git -C "$r" tag android-sdk-v0.1.0-beta.1
+set_lock "$r" "0.13.0-beta.1 $crates_io"
+printf '\n[[package]]\nname = "fedimint-core"\nversion = "0.99.0"\nsource = "%s"\n' "$git_a" \
+    >>"$r/$CARGO_LOCK"
+commit_all "$r" "chore(deps): add a second fedimint-core package"
+built="Built against fedimint 0.13.0-beta.1, where 0.1.0-beta.1 was built against fedimint 0.12.0."
+expect_split "write does not count the line about the fedimint as a commit" "" \
+    "android/CHANGELOG.md has notes for 0.1.0-beta.2 from 0 of 2 commits since 0.1.0-beta.1" -- \
+    "$c" write android 0.1.0-beta.2 0.1.0-beta.1
+expect_ok "write takes the first fedimint-core package of the lockfile" \
+    "$(changed "$built")" -- "$c" section android 0.1.0-beta.2
+
+# The first release of a component has no release to compare with.
+r="$(repo 0.1.0-beta.1 < <(printf '# Changelog\n\nIntro.\n'))"
+c="$r/scripts/sdk-changelog.sh"
+set_lock "$r" "0.13.0-beta.1 $crates_io"
+expect_split "write gives the first release no line about the fedimint" "" \
+    "android/CHANGELOG.md has notes for 0.1.0-beta.1, those of a first release" -- \
+    "$c" write android 0.1.0-beta.1
+expect_ok "write puts only the first release in its notes" \
+    "The first release of the Android SDK." -- "$c" section android 0.1.0-beta.1
+
+# The headings come in the order Breaking, Added, Changed, Fixed.
+r="$(repo 0.1.0-beta.1 < <(finished_notes))"
+c="$r/scripts/sdk-changelog.sh"
+set_lock "$r" "0.13.0-alpha $git_a"
+git -C "$r" tag android-sdk-v0.1.0-beta.1
+set_lock "$r" "0.13.0-beta.1 $crates_io"
+change "$r" rust/fedimint-sdk/src/lib.rs "fix(sdk): f"
+change "$r" rust/fedimint-sdk/src/lib.rs "feat(sdk): a"
+change "$r" rust/fedimint-sdk/src/lib.rs "feat(sdk)!: b"
+"$c" write android 0.1.0-beta.2 0.1.0-beta.1 2>/dev/null
+built="Built against fedimint 0.13.0-beta.1, where 0.1.0-beta.1 was built against"
+built+=" an unreleased fedimint."
+expect_ok "write orders the headings Breaking, Added, Changed, Fixed" "$(lines \
+    '### Breaking' '' '- b' '' '### Added' '' '- a' '' '### Changed' '' "- $built" '' \
+    '### Fixed' '' '- f')" -- "$c" section android 0.1.0-beta.2
+expect_ok "check passes the notes that have a Changed heading as they are" \
+    "android/CHANGELOG.md has notes for 0.1.0-beta.2" -- "$c" check android 0.1.0-beta.2
+
+echo
+echo "sdk-changelog.sh left-out"
+
+# `left-out` prints the commits that `write` reads and gives no entry, newest first, as `commits`
+# prints them: those of a type that is not listed, subjects that are not in the form, commits with
+# a foreign scope, reverts and reapplies, and the commits that a revert took away.
+r="$(repo 0.1.0-beta.1 < <(finished_notes))"
+c="$r/scripts/sdk-changelog.sh"
+git -C "$r" tag android-sdk-v0.1.0-beta.1
+git -C "$r" tag react-native-sdk-v0.1.0-beta.1
+# Each row is a subject, and whether the notes of android and react-native leave it out.
+rows=(
+    "feat(sdk): add a call (#12)|n n"
+    "chore(deps): bump a crate|y y"
+    "Add a call without a type|y y"
+    "fix(flake): change the flake|y y"
+    "fix(ios): change the iOS build|y n"
+    "fix(sdk): stop a crash (#13)|y y"
+    'Revert "fix(sdk): stop a crash" (#14)|y y'
+    "fix(sdk): stop another crash (#15)|n n"
+    'Revert "fix(sdk): stop another crash (#15)" (#16)|y y'
+    'Reapply "fix(sdk): stop another crash (#15)" (#16)|y y'
+    "feat(sdk)!: remove a call (#17)|n n"
+)
+want_android=""
+want_react_native=""
+for row in "${rows[@]}"; do
+    line="$(change_line "$r" rust/fedimint-sdk/src/lib.rs "${row%|*}")"
+    read -ra out <<<"${row##*|}"
+    [[ "${out[0]}" == n ]] || want_android="$line"$'\n'"$want_android"
+    [[ "${out[1]}" == n ]] || want_react_native="$line"$'\n'"$want_react_native"
+done
+expect_ok "left-out prints the commits that the notes of android have no entry for, newest first" \
+    "${want_android%$'\n'}" -- "$c" left-out android 0.1.0-beta.1
+expect_ok "left-out reads the scopes of the component: ios is in the notes of react-native" \
+    "${want_react_native%$'\n'}" -- "$c" left-out react-native 0.1.0-beta.1
+expect_split "write reads the same commits, and lists those that left-out does not print" "" \
+    "android/CHANGELOG.md has notes for 0.1.0-beta.2 from 3 of 11 commits since 0.1.0-beta.1" -- \
+    "$c" write android 0.1.0-beta.2 0.1.0-beta.1
+expect_ok "write lists exactly the commits that left-out does not print" "$(lines \
+    '### Breaking' '' '- remove a call (#17)' '' '### Added' '' '- add a call (#12)' '' \
+    '### Fixed' '' '- stop another crash (#15)')" -- "$c" section android 0.1.0-beta.2
+rm "$r/android/CHANGELOG.md"
+expect_ok "left-out reads no file, so it needs no notes" "${want_android%$'\n'}" -- \
+    "$c" left-out android 0.1.0-beta.1
+expect_fail "left-out needs the tag of the release" \
+    "no tag android-sdk-v0.9.9 in this checkout; fetch the tags and history" -- \
+    "$c" left-out android 0.9.9
+expect_fail "left-out does not see the tags of another component" \
+    "no tag rust-sdk-v0.1.0-beta.1 in this checkout" -- "$c" left-out rust 0.1.0-beta.1
+
+r="$(repo 0.1.0-beta.1 < <(finished_notes))"
+c="$r/scripts/sdk-changelog.sh"
+git -C "$r" tag android-sdk-v0.1.0-beta.1
+expect_ok "left-out prints nothing when no commit follows the release" "" -- \
+    "$c" left-out android 0.1.0-beta.1
+change "$r" rust/fedimint-sdk/src/lib.rs "feat(sdk): add a call"
+change "$r" rust/fedimint-sdk/src/lib.rs "fix(sdk): stop a crash"
+change "$r" js/web/index.ts "chore(web): change what the Android SDK is not built from"
+expect_ok "left-out prints nothing when every commit it reads has an entry" "" -- \
+    "$c" left-out android 0.1.0-beta.1
 
 echo
 echo "sdk-changelog.sh release-notes"
@@ -1836,7 +2101,7 @@ echo "sdk-changelog.sh usage"
 
 r="$(repo 0.1.0-beta.1 < <(finished_notes))"
 c="$r/scripts/sdk-changelog.sh"
-for sub in section release-notes check write; do
+for sub in section release-notes check write left-out; do
     expect_fail "$sub refuses an unknown component" \
         "sideways is not a component: it must be one of rust, android, react-native" -- \
         "$c" "$sub" sideways 0.1.0-beta.1
@@ -1850,6 +2115,8 @@ expect_usage "release-notes takes one version" -- "$c" release-notes android 0.1
 expect_usage "check takes one version" -- "$c" check android 0.1.0-beta.1 extra
 expect_usage "write takes at most a previous version" -- \
     "$c" write android 0.1.0-beta.2 0.1.0-beta.1 extra
+expect_usage "left-out takes one previous version" -- \
+    "$c" left-out android 0.1.0-beta.1 extra
 expect_usage "a command is needed" -- "$c"
 expect_usage "an unknown command is refused" -- "$c" sideways
 usage="$("$c" 2>&1 || true)"
@@ -1858,6 +2125,12 @@ if [[ "$usage" == *"$write_usage"* && "$usage" != *draft* ]]; then
     pass "the usage lists write and no draft"
 else
     fail "the usage lists write and no draft" "$usage"
+fi
+left_out_usage="usage: scripts/sdk-changelog.sh left-out <component> <previous version>"
+if [[ "$usage" == *"$left_out_usage"* ]]; then
+    pass "the usage lists left-out"
+else
+    fail "the usage lists left-out" "$usage"
 fi
 
 echo
