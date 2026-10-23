@@ -125,15 +125,17 @@ tarball_problems() {
             const lines = workspaceLines.map((line) => line.trim()).join(" ");
             problems.push(`contains "workspace:" ranges that npm cannot resolve: ${lines}`);
         }
-        for (const script of ["preinstall", "install", "postinstall"]) {
-            if (m.scripts && Object.prototype.hasOwnProperty.call(m.scripts, script)) {
-                problems.push(`scripts.${script} is set, and would run on every install`);
+        if (m.scripts && typeof m.scripts === "object") {
+            for (const script of ["preinstall", "install", "postinstall"]) {
+                if (Object.prototype.hasOwnProperty.call(m.scripts, script)) {
+                    problems.push(`scripts.${script} is set, and would run on every install`);
+                }
             }
         }
-        if (!m.publishConfig || m.publishConfig.access !== "public") {
+        if (!m.publishConfig || typeof m.publishConfig !== "object" || m.publishConfig.access !== "public") {
             problems.push("publishConfig.access is not \"public\"");
         }
-        const url = m.repository && m.repository.url;
+        const url = m.repository && typeof m.repository === "object" && m.repository.url;
         const repositoryRe = /^(git\+)?https:\/\/github\.com\/fedimint\/fedimint-sdk(\.git)?$/;
         if (typeof url !== "string") {
             problems.push("repository.url is missing");
@@ -160,7 +162,7 @@ tarball_problems() {
                 }
             }
         };
-        if ("exports" in m) {
+        if ("exports" in m && typeof m.exports === "object" && m.exports !== null) {
             walk("exports", m.exports);
             if (!m.exports["./package.json"]) {
                 problems.push("exports[\"./package.json\"] is missing, expected \"./package.json\"");
@@ -198,16 +200,24 @@ tarball_problems() {
 verify_wasm_module() {
     local tarball="$1" wasm_entry="package/dist/generated/fedimint_sdk.wasm"
     # shellcheck disable=SC2016
-    tar -xzOf "$tarball" "$wasm_entry" | node -e '
+    tar -xzOf "$tarball" "$wasm_entry" 2>/dev/null | node -e '
         const fs = require("fs");
         const buf = fs.readFileSync(0);
-        if (buf.length === 0) process.exit(0);
-        if (buf.length < 100000) {
-            console.log(`wasm module is only ${buf.length} bytes; expected full production build (> 100 KB)`);
-        }
-        // WASM binary magic number: \0asm (0x00, 0x61, 0x73, 0x6d)
-        if (buf.length < 4 || buf[0] !== 0x00 || buf[1] !== 0x61 || buf[2] !== 0x73 || buf[3] !== 0x6d) {
-            console.log("wasm module does not start with valid WebAssembly magic bytes (\\0asm)");
+        if (buf.length === 0) {
+            console.log("wasm module is empty (0 bytes)");
+            console.log("wasm module is not a valid WebAssembly binary");
+        } else {
+            if (buf.length < 100000) {
+                console.log(`wasm module is only ${buf.length} bytes; expected full production build (> 100 KB)`);
+            }
+            // WASM binary magic number: \0asm (0x00, 0x61, 0x73, 0x6d)
+            if (buf.length < 4 || buf[0] !== 0x00 || buf[1] !== 0x61 || buf[2] !== 0x73 || buf[3] !== 0x6d) {
+                console.log("wasm module does not start with valid WebAssembly magic bytes (\\0asm)");
+            } else if (buf.length < 8 || buf[4] !== 0x01 || buf[5] !== 0x00 || buf[6] !== 0x00 || buf[7] !== 0x00) {
+                console.log("wasm module has an invalid WebAssembly version header (expected version 1)");
+            } else if (!WebAssembly.validate(buf)) {
+                console.log("wasm module is not a valid WebAssembly binary");
+            }
         }
     '
 }

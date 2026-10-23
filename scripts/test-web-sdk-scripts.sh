@@ -124,24 +124,57 @@ REQUIRED_FILES=(
     README.md
 )
 
-# make_mock_wasm <file> [byte_length] [bad_magic]
+# make_mock_wasm <file> [byte_length] [bad_magic] [bad_version] [corrupt_body]
 make_mock_wasm() {
-    local file="$1" size="${2:-120000}" bad_magic="${3:-0}"
+    local file="$1" size="${2:-120000}" bad_magic="${3:-0}" bad_version="${4:-0}" corrupt_body="${5:-0}"
     mkdir -p "$(dirname "$file")"
     node -e '
         const fs = require("fs");
-        const [file, sizeStr, badMagicStr] = process.argv.slice(1);
+        const [file, sizeStr, badMagicStr, badVersionStr, corruptBodyStr] = process.argv.slice(1);
         const size = parseInt(sizeStr, 10);
         const badMagic = badMagicStr === "1";
-        const buf = Buffer.alloc(size);
-        if (badMagic) {
-            buf[0] = 0x7f; buf[1] = 0x45; buf[2] = 0x4c; buf[3] = 0x46; // ELF
-        } else {
-            buf[0] = 0x00; buf[1] = 0x61; buf[2] = 0x73; buf[3] = 0x6d; // \0asm
-            buf[4] = 0x01; buf[5] = 0x00; buf[6] = 0x00; buf[7] = 0x00;
+        const badVersion = badVersionStr === "1";
+        const corruptBody = corruptBodyStr === "1";
+
+        if (size === 0) {
+            fs.writeFileSync(file, Buffer.alloc(0));
+            process.exit(0);
         }
-        fs.writeFileSync(file, buf);
-    ' "$file" "$size" "$bad_magic"
+
+        const header = Buffer.from([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
+        if (badMagic) {
+            header[0] = 0x7f; header[1] = 0x45; header[2] = 0x4c; header[3] = 0x46; // ELF
+        } else if (badVersion) {
+            header[4] = 0x02; header[5] = 0x00; header[6] = 0x00; header[7] = 0x00;
+        }
+
+        if (corruptBody || badMagic || badVersion || size <= 13) {
+            const buf = Buffer.alloc(size);
+            header.copy(buf, 0, 0, Math.min(8, size));
+            if (corruptBody && size > 8) {
+                buf.fill(0xff, 8);
+            }
+            fs.writeFileSync(file, buf);
+            process.exit(0);
+        }
+
+        // Construct a syntactically valid WebAssembly module of exact `size` using a custom section
+        const name = Buffer.from("test");
+        const nameLen = Buffer.from([name.length]);
+        const payloadLen = size - 8 - 1 - 4; // header(8) + section_id(1) + leb128_len(4)
+        const dataLen = payloadLen - 1 - name.length;
+        const data = Buffer.alloc(Math.max(0, dataLen));
+        const payload = Buffer.concat([nameLen, name, data]);
+        const len = payload.length;
+        const leb128 = Buffer.from([
+            (len & 0x7f) | 0x80,
+            ((len >> 7) & 0x7f) | 0x80,
+            ((len >> 14) & 0x7f) | 0x80,
+            (len >> 21) & 0x7f
+        ]);
+        const wasm = Buffer.concat([header, Buffer.from([0x00]), leb128, payload]);
+        fs.writeFileSync(file, wasm);
+    ' "$file" "$size" "$bad_magic" "$bad_version" "$corrupt_body"
 }
 
 manifest() {
@@ -226,8 +259,16 @@ add() {
 }
 
 rewrite_wasm() {
-    local size="$1" bad_magic="$2" pkg_dir="$3"
-    make_mock_wasm "$pkg_dir/dist/generated/fedimint_sdk.wasm" "$size" "$bad_magic"
+    local pkg_dir="${!#}"
+    local size="${1:-120000}" bad_magic="${2:-0}" bad_version="${3:-0}" corrupt_body="${4:-0}"
+    if [ "$#" -eq 2 ]; then
+        bad_magic=0; bad_version=0; corrupt_body=0
+    elif [ "$#" -eq 3 ]; then
+        bad_version=0; corrupt_body=0
+    elif [ "$#" -eq 4 ]; then
+        corrupt_body=0
+    fi
+    make_mock_wasm "$pkg_dir/dist/generated/fedimint_sdk.wasm" "$size" "$bad_magic" "$bad_version" "$corrupt_body"
 }
 
 edit_manifest() {
@@ -325,6 +366,15 @@ break_manifest "invalid ./package.json export target is refused" \
 break_manifest "manifest with missing exports field is refused" \
     'exports["./package.json"] is missing, expected "./package.json"' \
     'delete m.exports'
+break_manifest "null exports field in manifest is refused" \
+    'exports["./package.json"] is missing, expected "./package.json"' \
+    'm.exports = null'
+break_manifest "string exports field in manifest is refused" \
+    'exports["./package.json"] is missing, expected "./package.json"' \
+    'm.exports = "./dist/index.js"'
+break_manifest "primitive scripts field in manifest does not crash" \
+    'has a "private" field' \
+    'm.scripts = "invalid"; m.private = true'
 
 expect_equal "committed package.json exports ./package.json" "./package.json" \
     "$(node -e 'console.log(JSON.parse(require("fs").readFileSync("js/web/web-sdk/package.json")).exports["./package.json"] || "")')"
@@ -347,15 +397,33 @@ break_entries "packaging helper script in package/scripts is refused" \
     add "scripts/build.sh"
 
 d="$(valid_dir)"
+rewrite "$d/$TARBALL" rewrite_wasm 0
+expect_fail "empty wasm module is refused" \
+    "$TARBALL: wasm module is empty (0 bytes)" -- \
+    "$PACK" verify "$VERSION" "$d"
+
+d="$(valid_dir)"
 rewrite "$d/$TARBALL" rewrite_wasm 50000 0
 expect_fail "undersized wasm module is refused" \
     "$TARBALL: wasm module is only 50000 bytes; expected full production build (> 100 KB)" -- \
     "$PACK" verify "$VERSION" "$d"
 
 d="$(valid_dir)"
-rewrite "$d/$TARBALL" rewrite_wasm 120000 1
+rewrite "$d/$TARBALL" rewrite_wasm 120000 1 0
 expect_fail "invalid wasm magic bytes is refused" \
     "$TARBALL: wasm module does not start with valid WebAssembly magic bytes (\\0asm)" -- \
+    "$PACK" verify "$VERSION" "$d"
+
+d="$(valid_dir)"
+rewrite "$d/$TARBALL" rewrite_wasm 120000 0 1
+expect_fail "invalid wasm version header is refused" \
+    "$TARBALL: wasm module has an invalid WebAssembly version header (expected version 1)" -- \
+    "$PACK" verify "$VERSION" "$d"
+
+d="$(valid_dir)"
+rewrite "$d/$TARBALL" rewrite_wasm 120000 0 0 1
+expect_fail "corrupt wasm module body is refused" \
+    "$TARBALL: wasm module is not a valid WebAssembly binary" -- \
     "$PACK" verify "$VERSION" "$d"
 
 d="$(valid_dir)"
