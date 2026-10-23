@@ -195,7 +195,7 @@ make_tarball() {
     stage="$(mktemp -d "$WORK/stage.XXXX")"
     mkdir "$stage/package"
     fill "$ver" "$stage/package"
-    tar -czf "$dir/$TARBALL_BASE-$ver.tgz" -C "$stage" package
+    tar -czf "$dir/$TARBALL_BASE-$ver.tgz" -C "$stage" package 2>/dev/null
     rm -rf "$stage"
 }
 
@@ -210,9 +210,9 @@ rewrite() {
     local tgz="$1" tmp
     shift
     tmp="$(mktemp -d "$WORK/rewrite.XXXX")"
-    tar -xzf "$tgz" -C "$tmp"
+    tar -xzf "$tgz" -C "$tmp" 2>/dev/null
     "$@" "$tmp/package"
-    tar -czf "$tgz" -C "$tmp" package
+    tar -czf "$tgz" -C "$tmp" package 2>/dev/null
     rm -rf "$tmp"
 }
 
@@ -430,7 +430,7 @@ identity="$(node -e '
     console.log(m.name.replace("@", "").replace("/", "-") + "-" + m.version + ".tgz", m.version);
 ' "$stage/package/package.json")"
 read -r tarball version <<<"$identity"
-tar -czf "$5/$tarball" -C "$stage" package
+tar -czf "$5/$tarball" -C "$stage" package 2>/dev/null
 rm -rf "${stage:?}"
 EOF
 chmod +x "$WORK/pnpm-bin/pnpm"

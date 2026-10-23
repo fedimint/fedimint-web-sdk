@@ -96,7 +96,7 @@ tarball_problems() {
     shift 4
     # The `${...}` in the JavaScript are for node, not for the shell.
     # shellcheck disable=SC2016
-    tar -xzOf "$tarball" package/package.json | node -e '
+    tar -xzOf "$tarball" package/package.json 2>/dev/null | node -e '
         const fs = require("fs");
         const [name, version, entriesFile, ...required] = process.argv.slice(1);
         const entries = new Set(fs.readFileSync(entriesFile, "utf8").split("\n").filter(Boolean));
@@ -273,7 +273,7 @@ require_on_disk() {
 report() {
     local tarball="$1" unpacked
     unpacked="$(mktemp -d "$SCRATCH/unpacked.XXXXXX")"
-    tar -xzf "$tarball" -C "$unpacked"
+    tar -xzf "$tarball" -C "$unpacked" 2>/dev/null
     # shellcheck disable=SC2016
     node -e '
         const crypto = require("crypto");
